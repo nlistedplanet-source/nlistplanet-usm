@@ -251,8 +251,8 @@ const HowItWorksPage = () => {
               © 2025 Nlist Planet. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm text-gray-400">
-              <a href="#" className="hover:text-white transition">Privacy Policy</a>
-              <a href="#" className="hover:text-white transition">Terms of Service</a>
+              <button className="hover:text-white transition">Privacy Policy</button>
+              <button className="hover:text-white transition">Terms of Service</button>
             </div>
           </div>
         </div>
