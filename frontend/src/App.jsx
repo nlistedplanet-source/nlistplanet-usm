@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
 // Context Providers
@@ -11,6 +11,7 @@ import MarketplacePage from './pages/MarketplacePage';
 import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import AdminDashboard from './pages/AdminDashboard';
 
 // Components
@@ -35,11 +36,12 @@ const ProtectedRoute = ({ children }) => {
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const location = useLocation();
   const [showBottomNav, setShowBottomNav] = useState(true);
 
-  // Hide bottom nav on login/register pages
+  // Hide bottom nav on login/register/forgot-password pages
   useEffect(() => {
-    const hideNavPaths = ['/login', '/register'];
+    const hideNavPaths = ['/login', '/register', '/forgot-password'];
     const path = window.location.pathname;
     setShowBottomNav(!hideNavPaths.includes(path));
   }, []);
@@ -49,17 +51,18 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-dark-50 pb-20">
+    <div className="min-h-screen bg-dark-50">
       {/* Top Bar */}
       {showBottomNav && <TopBar />}
 
       {/* Main Content */}
-      <main className="pt-16">
+      <main className={location.pathname === '/' ? '' : 'pt-16'}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
           <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <RegisterPage />} />
+          <Route path="/forgot-password" element={user ? <Navigate to="/dashboard" /> : <ForgotPasswordPage />} />
           
           {/* Protected Routes */}
           <Route 

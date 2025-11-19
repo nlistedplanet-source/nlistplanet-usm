@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+import bcryptjs from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Password is required'],
     minlength: [6, 'Password must be at least 6 characters'],
-    select: false
+    select: false // Don't return password by default
   },
   fullName: {
     type: String,
@@ -73,10 +73,18 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Hash password before saving
+// Hash password with bcryptjs (simple and stable)
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 12);
+  try {
+    console.log('[Password Hash] Starting password hash for user:', this.email);
+    const salt = await bcryptjs.genSalt(10);
+    this.password = await bcryptjs.hash(this.password, salt);
+    console.log('[Password Hash] Completed for user:', this.email);
+  } catch (err) {
+    console.error('[Password Hash Error]', err);
+    return next(err);
+  }
   next();
 });
 
@@ -88,9 +96,14 @@ userSchema.pre('save', function(next) {
   next();
 });
 
-// Compare password method
+// Compare password with bcryptjs verification
 userSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+  try {
+    return await bcryptjs.compare(candidatePassword, this.password);
+  } catch (err) {
+    console.error('Password comparison error:', err);
+    return false;
+  }
 };
 
 // Get public profile

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FileText, TrendingUp, TrendingDown, Bell, Gift, User as UserIcon, Loader } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';

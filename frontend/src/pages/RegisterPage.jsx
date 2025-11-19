@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Mail, Lock, Phone, Eye, EyeOff, UserPlus, Gift } from 'lucide-react';
+import { Mail, Lock, Phone, Eye, EyeOff, UserPlus, Gift } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { validateUsername, validateEmail, validatePhone } from '../utils/helpers';
 import { motion } from 'framer-motion';
@@ -132,22 +132,6 @@ const RegisterPage = () => {
           className="glass-card rounded-2xl p-6 space-y-3 max-h-[75vh] overflow-y-auto"
         >
           <div className="space-y-3">
-            {/* Username */}
-            <div className="floating-label-wrap">
-              <User className="input-icon absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors" size={20} />
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                placeholder="username (optional - auto-generated if empty)"
-                className={`w-full px-4 py-3 floating-with-icon bg-white border-2 ${errors.username ? 'border-red-500' : 'border-gray-200'} rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all duration-200`}
-              />
-              <label className="floating-label">Username (Optional)</label>
-              {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username}</p>}
-              {!errors.username && <p className="text-gray-400 text-xs mt-1">Leave empty for auto-generated username like tiger_legend</p>}
-            </div>
-
             {/* Full Name */}
             <div className="floating-label-wrap">
               <input

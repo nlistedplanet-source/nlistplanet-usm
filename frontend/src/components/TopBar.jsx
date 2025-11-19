@@ -22,7 +22,7 @@ const TopBar = ({ title, showBack = false }) => {
   const isHomePage = location.pathname === '/';
 
   return (
-    <header className={`w-full fixed top-0 left-0 right-0 z-40 transition-all duration-300 backdrop-blur-md ${
+    <header className={`w-full ${isHomePage ? 'relative' : 'fixed'} top-0 left-0 right-0 z-40 transition-all duration-300 backdrop-blur-md ${
       isDashboardPage
         ? scrolled
           ? 'bg-white/80 border-b border-gray-200 shadow-sm'
@@ -34,42 +34,41 @@ const TopBar = ({ title, showBack = false }) => {
             : 'bg-white/95 border-b border-gray-200'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Slightly taller than standard header for breathing room */}
-        <div className="flex justify-between items-end gap-6 min-h-[100px] py-4">
-          {/* Logo Section - keep large logo while preventing top clipping */}
-          <div className="flex items-end gap-2 h-32">
+        {/* Standard header height with balanced padding */}
+        <div className="flex justify-between items-center gap-6 h-20 py-2">
+          {/* Logo Section - keep consistent sizing */}
+          <div className="flex items-center gap-2">
             {showBack ? (
               <button
                 onClick={() => navigate(-1)}
-                className="p-2 mb-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <ArrowLeft size={24} />
               </button>
             ) : null}
             
             {title ? (
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">{title}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
             ) : (
-              <button onClick={() => navigate('/')} className="hover:opacity-80 transition-opacity h-full">
+              <button onClick={() => navigate('/')} className="hover:opacity-80 transition-opacity">
                 <img 
                   src="/images/logos/nlist_logo.svg" 
                   alt="Nlist Planet" 
-                  className="h-full w-auto object-contain object-bottom"
-                  style={{ maxHeight: '192px' }}
+                  className="h-32 w-auto object-contain"
                 />
               </button>
             )}
           </div>
 
-          {/* Navigation Links */}
+          {/* Navigation Links - Modern Floating Tab */}
           {!isDashboardPage && (
-            <nav className="hidden md:flex items-center gap-1 self-center">
+            <nav className="hidden md:flex items-center gap-2 bg-white/70 backdrop-blur-xl rounded-2xl px-2 py-2 shadow-lg border border-white/50">
               <button
                 onClick={() => navigate('/')}
-                className={`px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
+                className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 ${
                   location.pathname === '/'
-                    ? 'text-purple-700 bg-purple-50 border border-purple-100'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'text-white bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg shadow-purple-500/30'
+                    : 'text-gray-700 hover:bg-white/80 hover:text-gray-900'
                 }`}
               >
                 Home
@@ -77,19 +76,19 @@ const TopBar = ({ title, showBack = false }) => {
               <button
                 onClick={() => navigate('/marketplace')}
                 title="Unlisted Shares Mall"
-                className={`px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
+                className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 ${
                   location.pathname === '/marketplace'
-                    ? 'text-purple-700 bg-purple-50 border border-purple-100'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'text-white bg-gradient-to-r from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30'
+                    : 'text-gray-700 hover:bg-white/80 hover:text-gray-900'
                 }`}
               >
-                USM
+                Unlist Mall
               </button>
               <a
                 href="https://nlistplanet.com/blog"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                className="px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 text-gray-700 hover:bg-white/80 hover:text-gray-900"
               >
                 Blog
               </a>
@@ -97,23 +96,15 @@ const TopBar = ({ title, showBack = false }) => {
                 href="https://nlistplanet.com/how-it-works"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                className="px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 text-gray-700 hover:bg-white/80 hover:text-gray-900"
               >
                 How it Works
               </a>
-              {!user && (
-                <button
-                  onClick={() => navigate('/login')}
-                  className="ml-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 bg-purple-600 text-white hover:bg-purple-700 shadow-sm"
-                >
-                  Login
-                </button>
-              )}
             </nav>
           )}
 
           {/* Right Side Actions */}
-          <div className="flex items-center gap-2 self-center">
+          <div className="flex items-center gap-2">
             {user ? (
               <>
                 {/* User Info - Desktop */}
@@ -219,11 +210,11 @@ const TopBar = ({ title, showBack = false }) => {
               </button>
               <button
                 onClick={() => { navigate('/marketplace'); setShowMobileNav(false); }}
-                className={`w-full text-left px-3 py-2 rounded-lg font-medium text-sm ${
-                  location.pathname === '/marketplace' ? 'text-purple-700 bg-purple-50 border border-purple-100' : 'text-gray-700 hover:bg-gray-100'
+                className={`w-full text-left px-3 py-2 rounded-xl font-semibold text-sm shadow-sm ${
+                  location.pathname === '/marketplace' ? 'text-white bg-gradient-to-r from-emerald-500 to-teal-600' : 'text-gray-700 bg-white border border-gray-200 hover:bg-gray-50'
                 }`}
               >
-                USM
+                Unlist Mall
               </button>
               <a
                 href="https://nlistplanet.com/blog"

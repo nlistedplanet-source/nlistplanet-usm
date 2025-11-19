@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Loader, TrendingUp, Package } from 'lucide-react';
 import { listingsAPI } from '../../utils/api';
 import ListingCard from '../ListingCard';
@@ -14,11 +14,7 @@ const MyPostsTab = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [selectedListing, setSelectedListing] = useState(null);
 
-  useEffect(() => {
-    fetchListings();
-  }, [subTab]);
-
-  const fetchListings = async () => {
+  const fetchListings = useCallback(async () => {
     try {
       setLoading(true);
       const response = await listingsAPI.getMy({ type: subTab });
@@ -28,7 +24,11 @@ const MyPostsTab = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [subTab]);
+
+  useEffect(() => {
+    fetchListings();
+  }, [fetchListings]);
 
   const handleShare = (listing) => {
     setSelectedListing(listing);

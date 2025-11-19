@@ -5,6 +5,9 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
+import rateLimit from 'express-rate-limit';
+import mongoSanitize from 'express-mongo-sanitize';
+import xss from 'xss-clean';
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -20,15 +23,13 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
-app.use(helmet()); // Security headers
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
-}));
-app.use(compression()); // Compress responses
-app.use(morgan('dev')); // Logging
-app.use(express.json()); // Parse JSON bodies
+// Basic middleware only
+app.use(compression());
+app.use((req, res, next) => {
+  console.log(`[${req.method}] ${req.path}`);
+  next();
+});
+app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Database connection
@@ -36,14 +37,70 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB connected successfully'))
   .catch((err) => console.error('❌ MongoDB connection error:', err));
 
+// Root route
+app.get('/', (req, res) => {
+  try {
+    console.log('[GET /] Received request');
+    res.json({
+      success: true,
+      message: 'UnlistedHub USM API',
+      version: '1.0.0'
+    });
+  } catch (err) {
+    console.error('[GET /] Error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/listings', listingRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/companies', companyRoutes);
-app.use('/api/transactions', transactionRoutes);
-app.use('/api/referrals', referralRoutes);
-app.use('/api/admin', adminRoutes);
+try {
+  app.use('/api/auth', authRoutes);
+  console.log('[Routes] Auth routes loaded');
+} catch (err) {
+  console.error('[Routes Error] Auth:', err);
+}
+
+try {
+  app.use('/api/listings', listingRoutes);
+  console.log('[Routes] Listing routes loaded');
+} catch (err) {
+  console.error('[Routes Error] Listings:', err);
+}
+
+try {
+  app.use('/api/notifications', notificationRoutes);
+  console.log('[Routes] Notification routes loaded');
+} catch (err) {
+  console.error('[Routes Error] Notifications:', err);
+}
+
+try {
+  app.use('/api/companies', companyRoutes);
+  console.log('[Routes] Company routes loaded');
+} catch (err) {
+  console.error('[Routes Error] Companies:', err);
+}
+
+try {
+  app.use('/api/transactions', transactionRoutes);
+  console.log('[Routes] Transaction routes loaded');
+} catch (err) {
+  console.error('[Routes Error] Transactions:', err);
+}
+
+try {
+  app.use('/api/referrals', referralRoutes);
+  console.log('[Routes] Referral routes loaded');
+} catch (err) {
+  console.error('[Routes Error] Referrals:', err);
+}
+
+try {
+  app.use('/api/admin', adminRoutes);
+  console.log('[Routes] Admin routes loaded');
+} catch (err) {
+  console.error('[Routes Error] Admin:', err);
+}
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -56,12 +113,23 @@ app.get('/api/health', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
+  const status = err.status || 500;
+  const isProd = process.env.NODE_ENV === 'production';
+  // Avoid leaking internals in production
+  const message = isProd && status === 500 ? 'Internal server error' : (err.message || 'Error');
+  console.error(`[ERROR] ${req.method} ${req.path}:`, err);
+  res.status(status).json({ success: false, message });
+});
+
+// Unhandled promise rejection handler
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[UNHANDLED REJECTION]', reason);
+});
+
+// Uncaught exception handler
+process.on('uncaughtException', (error) => {
+  console.error('[UNCAUGHT EXCEPTION]', error);
+  process.exit(1);
 });
 
 // 404 handler
@@ -74,10 +142,15 @@ app.use((req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
+console.log('[Server] About to listen on port', PORT);
+
 app.listen(PORT, () => {
+  console.log(`[Server] ✅ Listening on port ${PORT}`);
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📱 Environment: ${process.env.NODE_ENV}`);
   console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL}`);
 });
+
+console.log('[Server] Listener created');
 
 export default app;

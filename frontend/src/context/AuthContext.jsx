@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
+import { BASE_API_URL } from '../utils/api';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }) => {
     const loadUser = async () => {
       if (token) {
         try {
-          const response = await axios.get(`${process.env.REACT_APP_API_URL}/auth/me`);
+          const response = await axios.get(`${BASE_API_URL}/auth/me`);
           setUser(response.data.user);
         } catch (error) {
           console.error('Failed to load user:', error);
@@ -47,7 +48,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/auth/login`, {
+      const response = await axios.post(`${BASE_API_URL}/auth/login`, {
         username,
         password
       });
@@ -69,7 +70,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (formData) => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/auth/register`, formData);
+      const response = await axios.post(`${BASE_API_URL}/auth/register`, formData);
 
       const { token: newToken, user: userData } = response.data;
       
@@ -95,7 +96,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (data) => {
     try {
-      const response = await axios.put(`${process.env.REACT_APP_API_URL}/auth/profile`, data);
+      const response = await axios.put(`${BASE_API_URL}/auth/profile`, data);
       setUser(response.data.user);
       toast.success('Profile updated successfully');
       return true;
@@ -108,7 +109,7 @@ export const AuthProvider = ({ children }) => {
 
   const changePassword = async (currentPassword, newPassword) => {
     try {
-      await axios.put(`${process.env.REACT_APP_API_URL}/auth/change-password`, {
+      await axios.put(`${BASE_API_URL}/auth/change-password`, {
         currentPassword,
         newPassword
       });

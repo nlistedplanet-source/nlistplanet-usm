@@ -19,17 +19,16 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
   });
 
   useEffect(() => {
-    fetchCompanies();
+    const loadCompanies = async () => {
+      try {
+        const response = await companiesAPI.getAll({ search: searchTerm, limit: 10 });
+        setCompanies(response.data.data);
+      } catch (error) {
+        console.error('Failed to fetch companies:', error);
+      }
+    };
+    loadCompanies();
   }, [searchTerm]);
-
-  const fetchCompanies = async () => {
-    try {
-      const response = await companiesAPI.getAll({ search: searchTerm, limit: 10 });
-      setCompanies(response.data.data);
-    } catch (error) {
-      console.error('Failed to fetch companies:', error);
-    }
-  };
 
   const handleCompanySelect = (company) => {
     setFormData({
