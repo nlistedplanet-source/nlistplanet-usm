@@ -27,7 +27,6 @@ const app = express();
 app.use(compression());
 
 // CORS configuration
-const cors = require('cors');
 const allowedOrigins = [
   'https://nlistplanet-usm-app.vercel.app',
   'http://localhost:3000'
