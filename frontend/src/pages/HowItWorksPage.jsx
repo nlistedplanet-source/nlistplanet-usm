@@ -21,61 +21,13 @@ const HowItWorksPage = () => {
 
           {/* Illustration and Steps */}
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Left: SVG Illustration */}
+            {/* Left: Hero Image */}
             <div className="flex justify-center">
-              <svg width="400" height="350" viewBox="0 0 400 350" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Person sitting */}
-                <ellipse cx="200" cy="320" rx="80" ry="15" fill="#E5E7EB"/>
-                
-                {/* Legs */}
-                <path d="M160 240 Q140 280 130 310 L150 315 Q165 285 175 250 Z" fill="#3B4A9C"/>
-                <path d="M240 240 Q260 280 270 310 L250 315 Q235 285 225 250 Z" fill="#3B4A9C"/>
-                
-                {/* Shoes */}
-                <ellipse cx="140" cy="315" rx="18" ry="8" fill="#1E293B"/>
-                <ellipse cx="260" cy="315" rx="18" ry="8" fill="#1E293B"/>
-                
-                {/* Body */}
-                <rect x="165" y="180" width="70" height="75" rx="8" fill="#10B981"/>
-                
-                {/* Arms */}
-                <path d="M165 200 Q140 210 130 230 Q128 235 133 237 Q148 225 165 220 Z" fill="#10B981"/>
-                <path d="M235 200 Q255 205 260 215 L250 225 Q240 215 235 220 Z" fill="#10B981"/>
-                
-                {/* Phone in hand */}
-                <rect x="125" y="225" width="25" height="40" rx="4" fill="#374151"/>
-                <rect x="128" y="228" width="19" height="32" rx="2" fill="#60A5FA"/>
-                {/* Chart on phone */}
-                <path d="M132 240 L135 245 L138 238 L141 242 L144 235" stroke="#10B981" strokeWidth="1.5" fill="none"/>
-                
-                {/* Neck */}
-                <rect x="190" y="170" width="20" height="15" fill="#FDB99B"/>
-                
-                {/* Head */}
-                <ellipse cx="200" cy="150" rx="35" ry="40" fill="#FDB99B"/>
-                
-                {/* Hair */}
-                <path d="M165 140 Q165 110 200 105 Q235 110 235 140 Q235 160 230 170 L170 170 Q165 160 165 140 Z" fill="#1E293B"/>
-                
-                {/* Eyes */}
-                <ellipse cx="185" cy="150" rx="3" ry="4" fill="#1E293B"/>
-                <ellipse cx="215" cy="150" rx="3" ry="4" fill="#1E293B"/>
-                
-                {/* Smile */}
-                <path d="M185 165 Q200 172 215 165" stroke="#1E293B" strokeWidth="2" fill="none" strokeLinecap="round"/>
-                
-                {/* Growth arrows and bars */}
-                <g transform="translate(280, 100)">
-                  {/* Bars */}
-                  <rect x="0" y="60" width="20" height="40" rx="4" fill="#60A5FA"/>
-                  <rect x="30" y="40" width="20" height="60" rx="4" fill="#60A5FA"/>
-                  <rect x="60" y="15" width="20" height="85" rx="4" fill="#60A5FA"/>
-                  
-                  {/* Up arrows */}
-                  <path d="M40 20 L50 5 L60 20" stroke="#10B981" strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M70 -5 L85 -25 L100 -5" stroke="#10B981" strokeWidth="5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                </g>
-              </svg>
+              <img
+                src="/images/howitwork_hero.png"
+                alt="How it Works"
+                className="w-full max-w-md"
+              />
             </div>
 
             {/* Right: 4 Step Flow */}
@@ -186,7 +138,7 @@ const HowItWorksPage = () => {
           {/* RIGHT IMAGE */}
           <div className="flex justify-center">
             <img
-              src="https://cdn3d.iconscout.com/3d/premium/thumb/investor-3d-illustration-download-in-png-blend-fbx-gltf-formats--man-coin-money-finance-pack-business-illustrations-8914183.png"
+              src="/images/howitwork_buy.png"
               alt="Buy Illustration"
               className="w-72"
             />
@@ -200,7 +152,7 @@ const HowItWorksPage = () => {
           {/* LEFT IMAGE */}
           <div className="flex justify-center">
             <img
-              src="https://cdn3d.iconscout.com/3d/premium/thumb/female-using-mobile-3d-illustration-download-in-png-blend-fbx-gltf-formats--girl-woman-person-pack-people-illustrations-7286351.png"
+              src="/images/howitwork_sell.png"
               alt="Sell Illustration"
               className="w-72"
             />
@@ -226,6 +178,85 @@ const HowItWorksPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-12 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
+            {/* Brand */}
+            <div>
+              <h3 className="text-2xl font-bold mb-4">Nlist Planet</h3>
+              <p className="text-gray-400 text-sm">
+                India's trusted platform for unlisted shares trading
+              </p>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <h4 className="font-semibold mb-4">Quick Links</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <button onClick={() => navigate('/')} className="text-gray-400 hover:text-white transition">
+                    Home
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => navigate('/marketplace')} className="text-gray-400 hover:text-white transition">
+                    Marketplace
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => navigate('/how-it-works')} className="text-gray-400 hover:text-white transition">
+                    How it Works
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            {/* Resources */}
+            <div>
+              <h4 className="font-semibold mb-4">Resources</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <a href="https://nlistplanet.com/blog" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition">
+                    Blog
+                  </a>
+                </li>
+                <li>
+                  <button onClick={() => navigate('/login')} className="text-gray-400 hover:text-white transition">
+                    Login
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => navigate('/register')} className="text-gray-400 hover:text-white transition">
+                    Sign Up
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            {/* Contact */}
+            <div>
+              <h4 className="font-semibold mb-4">Contact</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li>support@nlistplanet.com</li>
+                <li>Mumbai, India</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-gray-400">
+              © 2025 Nlist Planet. All rights reserved.
+            </p>
+            <div className="flex gap-6 text-sm text-gray-400">
+              <a href="#" className="hover:text-white transition">Privacy Policy</a>
+              <a href="#" className="hover:text-white transition">Terms of Service</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

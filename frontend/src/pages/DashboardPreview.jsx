@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -9,24 +10,34 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   MoreVertical,
-  Calendar,
-  Bell,
-  Search,
   Filter,
   Download,
   Eye,
   ShoppingCart,
-  Briefcase
+  Briefcase,
+  FileText,
+  Bell,
+  Gift,
+  User as UserIcon
 } from 'lucide-react';
+
+// Import existing dashboard tabs
+import MyPostsTab from '../components/dashboard/MyPostsTab';
+import BidsTab from '../components/dashboard/BidsTab';
+import OffersTab from '../components/dashboard/OffersTab';
+import NotificationsTab from '../components/dashboard/NotificationsTab';
+import ReferralsTab from '../components/dashboard/ReferralsTab';
+import ProfileTab from '../components/dashboard/ProfileTab';
 
 const DashboardPreview = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
+  const { user: authUser } = useAuth();
+  const [activeTab, setActiveTab] = useState('overview');
 
-  // Mock user data
-  const user = {
-    username: 'johndoe',
-    email: 'john@example.com',
+  // Use authenticated user or mock user for preview
+  const user = authUser || {
+    username: 'demo_user',
+    email: 'demo@example.com',
     avatar: null
   };
 
@@ -103,47 +114,98 @@ const DashboardPreview = () => {
     }).format(amount);
   };
 
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: Activity },
+    { id: 'posts', label: 'My Posts', icon: FileText },
+    { id: 'bids', label: 'Bids Received', icon: TrendingUp },
+    { id: 'offers', label: 'Offers Made', icon: TrendingDown },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'referrals', label: 'Referrals', icon: Gift },
+    { id: 'profile', label: 'Profile', icon: UserIcon },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
-      {/* Top Navigation Bar */}
-      <nav className="bg-white/80 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
-              <button onClick={() => navigate('/')} className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                Nlist Planet
-              </button>
-              <span className="hidden sm:block text-sm text-gray-500">/ Dashboard</span>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex">
+      {/* Left Sidebar Navigation */}
+      <aside className="w-64 bg-white border-r border-gray-200 fixed left-0 top-0 h-full overflow-y-auto">
+        {/* Logo/Brand */}
+        <div className="p-6 border-b border-gray-100">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            Nlist Planet
+          </h2>
+          <p className="text-xs text-gray-500 mt-1">Dashboard</p>
+        </div>
+
+        {/* User Profile */}
+        <div className="p-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.username} className="w-full h-full rounded-full object-cover" />
+              ) : (
+                user.username?.charAt(0).toUpperCase()
+              )}
             </div>
-            
-            <div className="flex items-center gap-3">
-              <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative">
-                <Bell size={20} className="text-gray-600" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              
-              <div className="flex items-center gap-2 bg-gray-100 rounded-full px-3 py-1.5">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
-                  {user.username?.charAt(0).toUpperCase()}
-                </div>
-                <span className="text-sm font-medium text-gray-700 hidden sm:block">@{user.username}</span>
-              </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-900 truncate">@{user.username}</p>
+              <p className="text-xs text-gray-500 truncate">{user.email}</p>
             </div>
           </div>
         </div>
-      </nav>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        {/* Welcome Section */}
+        {/* Navigation Menu */}
+        <nav className="p-4">
+          <div className="space-y-1">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all ${
+                    isActive
+                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Icon size={20} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* Quick Stats in Sidebar */}
+        <div className="p-4 border-t border-gray-100">
+          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-4">
+            <p className="text-xs font-semibold text-gray-600 uppercase mb-2">Portfolio Value</p>
+            <p className="text-2xl font-bold text-gray-900">{formatCurrency(portfolioStats.totalValue)}</p>
+            <div className="flex items-center gap-1 mt-2">
+              <ArrowUpRight size={14} className="text-green-600" />
+              <span className="text-sm font-semibold text-green-600">+{portfolioStats.gainPercentage}%</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 ml-64 p-8">
+        {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user.username}! 👋
+            {tabs.find(t => t.id === activeTab)?.label || 'Dashboard'}
           </h1>
-          <p className="text-gray-600">Here's what's happening with your portfolio today.</p>
+          <p className="text-gray-600">
+            {activeTab === 'overview' ? "Here's what's happening with your portfolio today." : 'Manage your account and settings'}
+          </p>
         </div>
-
+        
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Total Portfolio Value */}
@@ -369,18 +431,40 @@ const DashboardPreview = () => {
             </div>
           </div>
         </div>
+          </>
+        )}
 
-        {/* Test Notice */}
-        <div className="mt-8 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 text-white text-center">
-          <h3 className="text-xl font-bold mb-2">✨ Modern Dashboard Preview</h3>
-          <p className="mb-4">Yeh ek test preview hai. Agar design pasand aaye toh main implement kar dunga!</p>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="bg-white text-purple-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-all"
-          >
-            View Original Dashboard
-          </button>
-        </div>
+        {/* Other Tabs */}
+        {activeTab === 'posts' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <MyPostsTab />
+          </div>
+        )}
+        {activeTab === 'bids' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <BidsTab />
+          </div>
+        )}
+        {activeTab === 'offers' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <OffersTab />
+          </div>
+        )}
+        {activeTab === 'notifications' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <NotificationsTab />
+          </div>
+        )}
+        {activeTab === 'referrals' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <ReferralsTab />
+          </div>
+        )}
+        {activeTab === 'profile' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <ProfileTab />
+          </div>
+        )}
       </main>
     </div>
   );
