@@ -2,8 +2,6 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
 import compression from 'compression';
 
 // Import routes
@@ -20,15 +18,13 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
-app.use(helmet());
+// Basic middleware only (simplified for serverless)
 app.use(cors({
   origin: process.env.FRONTEND_URL || '*',
   credentials: true
 }));
 app.use(compression());
-app.use(morgan('dev'));
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // MongoDB connection cache for serverless
@@ -53,14 +49,18 @@ async function connectDB() {
   }
 }
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/listings', listingRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/companies', companyRoutes);
-app.use('/api/transactions', transactionRoutes);
-app.use('/api/referrals', referralRoutes);
-app.use('/api/admin', adminRoutes);
+// Routes with try-catch wrapping
+try {
+  app.use('/api/auth', authRoutes);
+  app.use('/api/listings', listingRoutes);
+  app.use('/api/notifications', notificationRoutes);
+  app.use('/api/companies', companyRoutes);
+  app.use('/api/transactions', transactionRoutes);
+  app.use('/api/referrals', referralRoutes);
+  app.use('/api/admin', adminRoutes);
+} catch (err) {
+  console.error('[Routes Error]', err);
+}
 
 // Health check
 app.get('/api/health', (req, res) => {
