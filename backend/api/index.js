@@ -19,8 +19,18 @@ dotenv.config();
 const app = express();
 
 // Basic middleware only (simplified for serverless)
+const allowedOrigins = [
+  'https://nlistplanet-usm-app.vercel.app',
+  'http://localhost:3000'
+];
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Allow all for now, restrict later
+    }
+  },
   credentials: true
 }));
 app.use(compression());

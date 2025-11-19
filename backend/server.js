@@ -25,6 +25,24 @@ const app = express();
 
 // Basic middleware only
 app.use(compression());
+
+// CORS configuration
+const cors = require('cors');
+const allowedOrigins = [
+  'https://nlistplanet-usm-app.vercel.app',
+  'http://localhost:3000'
+];
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Allow all for now, restrict later
+    }
+  },
+  credentials: true
+}));
+
 app.use((req, res, next) => {
   console.log(`[${req.method}] ${req.path}`);
   next();
