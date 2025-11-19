@@ -81,14 +81,16 @@ const TopBar = ({ title, showBack = false }) => {
               >
                 Blog
               </a>
-              <a
-                href="https://nlistplanet.com/how-it-works"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 text-gray-700 hover:bg-white/80 hover:text-gray-900"
+              <button
+                onClick={() => navigate('/how-it-works')}
+                className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 ${
+                  location.pathname === '/how-it-works'
+                    ? 'text-white bg-gradient-to-r from-blue-500 to-cyan-600 shadow-lg shadow-blue-500/30'
+                    : 'text-gray-700 hover:bg-white/80 hover:text-gray-900'
+                }`}
               >
                 How it Works
-              </a>
+              </button>
             </nav>
           )}
 
@@ -206,15 +208,14 @@ const TopBar = ({ title, showBack = false }) => {
               >
                 Blog
               </a>
-              <a
-                href="https://nlistplanet.com/how-it-works"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setShowMobileNav(false)}
-                className="w-full text-left px-3 py-2 rounded-lg font-medium text-sm text-gray-700 hover:bg-gray-100"
+              <button
+                onClick={() => { navigate('/how-it-works'); setShowMobileNav(false); }}
+                className={`w-full text-left px-3 py-2 rounded-lg font-medium text-sm ${
+                  location.pathname === '/how-it-works' ? 'text-blue-700 bg-blue-50 border border-blue-100' : 'text-gray-700 hover:bg-gray-100'
+                }`}
               >
                 How it Works
-              </a>
+              </button>
               {!user && (
                 <button
                   onClick={() => { navigate('/login'); setShowMobileNav(false); }}

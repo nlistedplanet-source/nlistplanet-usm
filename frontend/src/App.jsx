@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 // Pages
 import HomePage from './pages/HomePage';
 import MarketplacePage from './pages/MarketplacePage';
+import HowItWorksPage from './pages/HowItWorksPage';
 import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -60,6 +61,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
+          <Route path="/how-it-works" element={<HowItWorksPage />} />
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
           <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <RegisterPage />} />
           <Route path="/forgot-password" element={user ? <Navigate to="/dashboard" /> : <ForgotPasswordPage />} />
