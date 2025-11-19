@@ -161,196 +161,68 @@ const HowItWorksPage = () => {
         </div>
       </section>
 
-      {/* Buy Section */}
-      <section className="bg-gradient-to-br from-green-50 to-emerald-50 py-16 px-4">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex items-center gap-8 flex-col md:flex-row">
-            {/* Left: Icon and Title */}
-            <div className="flex-1">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-3xl md:text-4xl font-bold text-green-600 mb-3">
-                    Buy Unlisted Shares
-                  </h2>
-                  <p className="text-gray-700 leading-relaxed mb-6">
-                    Get access to exclusive investment opportunities. Unlock premium companies and grow your portfolio with India's fastest-growing unlisted shares.
-                  </p>
-                  <button
-                    onClick={() => navigate('/marketplace')}
-                    className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-all shadow-lg"
-                  >
-                    See Listings
-                  </button>
-                </div>
-              </div>
-            </div>
+      {/* BUY SECTION */}
+      <section className="w-full bg-[#f7fcff] px-6 py-10">
+        <div className="w-full max-w-6xl mx-auto bg-white rounded-3xl p-10 shadow-sm border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+          {/* LEFT TEXT */}
+          <div>
+            <h2 className="text-4xl font-bold text-green-600 flex items-center gap-3 mb-4">
+              <span className="text-5xl">🔒</span> Buy <span className="text-black">Unlisted Shares</span>
+            </h2>
 
-            {/* Right: Illustration */}
-            <div className="flex-1 flex justify-center">
-              <svg width="300" height="250" viewBox="0 0 300 250" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Person sitting */}
-                <ellipse cx="150" cy="230" rx="60" ry="12" fill="#E5E7EB"/>
-                
-                {/* Legs */}
-                <path d="M125 170 Q110 205 105 225 L120 228 Q128 208 135 180 Z" fill="#3B4A9C"/>
-                <path d="M175 170 Q190 205 195 225 L180 228 Q172 208 165 180 Z" fill="#3B4A9C"/>
-                
-                {/* Shoes */}
-                <ellipse cx="112" cy="227" rx="15" ry="6" fill="#1E293B"/>
-                <ellipse cx="188" cy="227" rx="15" ry="6" fill="#1E293B"/>
-                
-                {/* Laptop */}
-                <g transform="translate(110, 165)">
-                  <rect x="0" y="0" width="80" height="50" rx="2" fill="#374151"/>
-                  <rect x="2" y="2" width="76" height="44" fill="#60A5FA"/>
-                  {/* Screen content - chart icon */}
-                  <path d="M15 30 L25 20 L35 28 L45 18 L55 25 L65 15" stroke="#10B981" strokeWidth="3" fill="none"/>
-                  {/* Keyboard base */}
-                  <rect x="-5" y="52" width="90" height="8" rx="2" fill="#4B5563"/>
-                </g>
-                
-                {/* Body */}
-                <rect x="130" y="120" width="40" height="55" rx="6" fill="#10B981"/>
-                
-                {/* Arms */}
-                <path d="M130 135 Q110 145 105 160 Q103 163 107 165 Q118 155 130 148 Z" fill="#10B981"/>
-                <path d="M170 135 Q190 145 195 160 Q197 163 193 165 Q182 155 170 148 Z" fill="#10B981"/>
-                
-                {/* Neck */}
-                <rect x="143" y="110" width="14" height="12" fill="#FDB99B"/>
-                
-                {/* Head */}
-                <ellipse cx="150" cy="95" rx="25" ry="28" fill="#FDB99B"/>
-                
-                {/* Hair */}
-                <path d="M125 88 Q125 65 150 62 Q175 65 175 88 Q175 100 172 108 L128 108 Q125 100 125 88 Z" fill="#1E293B"/>
-                
-                {/* Eyes */}
-                <ellipse cx="140" cy="95" rx="2.5" ry="3" fill="#1E293B"/>
-                <ellipse cx="160" cy="95" rx="2.5" ry="3" fill="#1E293B"/>
-                
-                {/* Smile */}
-                <path d="M140 105 Q150 110 160 105" stroke="#1E293B" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-                
-                {/* Floating icons */}
-                <g transform="translate(220, 80)">
-                  {/* Trending up icon */}
-                  <rect x="0" y="0" width="50" height="50" rx="8" fill="#6366F1"/>
-                  <path d="M12 30 L20 22 L28 28 L38 18" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                  <polyline points="30 18 38 18 38 26" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                </g>
-                
-                {/* Up arrow */}
-                <g transform="translate(40, 50)">
-                  <path d="M0 30 L10 10 L20 30" stroke="#10B981" strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                  <line x1="10" y1="10" x2="10" y2="50" stroke="#10B981" strokeWidth="4" strokeLinecap="round"/>
-                </g>
-              </svg>
-            </div>
+            <p className="text-gray-700 leading-relaxed mb-8 text-lg">
+              Get access to exclusive investment opportunities. Unlock premium companies 
+              and grow your portfolio with India's fastest-growing unlisted shares.
+            </p>
+
+            <button
+              onClick={() => navigate('/marketplace')}
+              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-medium text-lg transition"
+            >
+              See Listings
+            </button>
+          </div>
+
+          {/* RIGHT IMAGE */}
+          <div className="flex justify-center">
+            <img
+              src="https://cdn3d.iconscout.com/3d/premium/thumb/investor-3d-illustration-download-in-png-blend-fbx-gltf-formats--man-coin-money-finance-pack-business-illustrations-8914183.png"
+              alt="Buy Illustration"
+              className="w-72"
+            />
           </div>
         </div>
       </section>
 
-      {/* Sell Section */}
-      <section className="bg-gradient-to-br from-blue-50 to-indigo-50 py-16 px-4">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex items-center gap-8 flex-col md:flex-row-reverse">
-            {/* Right: Icon and Title */}
-            <div className="flex-1">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-3xl md:text-4xl font-bold text-blue-600 mb-3">
-                    Sell Your Shares Easily
-                  </h2>
-                  <p className="text-gray-700 leading-relaxed mb-6">
-                    Join a large investor base and sell your shares quickly at the best price. Trusted by thousands of sellers across India with secure transactions.
-                  </p>
-                  <button
-                    onClick={() => navigate('/dashboard')}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-lg"
-                  >
-                    Sell Now
-                  </button>
-                </div>
-              </div>
-            </div>
+      {/* SELL SECTION */}
+      <section className="w-full bg-[#f7fcff] px-6 py-10">
+        <div className="w-full max-w-6xl mx-auto bg-[#f5f5ff] rounded-3xl p-10 shadow-sm border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+          {/* LEFT IMAGE */}
+          <div className="flex justify-center">
+            <img
+              src="https://cdn3d.iconscout.com/3d/premium/thumb/female-using-mobile-3d-illustration-download-in-png-blend-fbx-gltf-formats--girl-woman-person-pack-people-illustrations-7286351.png"
+              alt="Sell Illustration"
+              className="w-72"
+            />
+          </div>
 
-            {/* Left: Illustration */}
-            <div className="flex-1 flex justify-center">
-              <svg width="300" height="250" viewBox="0 0 300 250" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Person sitting */}
-                <ellipse cx="150" cy="230" rx="60" ry="12" fill="#E5E7EB"/>
-                
-                {/* Legs */}
-                <path d="M125 170 Q108 205 102 225 L117 228 Q125 208 133 180 Z" fill="#10B981"/>
-                <path d="M175 170 Q192 205 198 225 L183 228 Q175 208 167 180 Z" fill="#10B981"/>
-                
-                {/* Shoes */}
-                <ellipse cx="110" cy="227" rx="15" ry="6" fill="#1E293B"/>
-                <ellipse cx="190" cy="227" rx="15" ry="6" fill="#1E293B"/>
-                
-                {/* Body */}
-                <rect x="130" y="125" width="40" height="50" rx="6" fill="white"/>
-                
-                {/* Arms */}
-                <path d="M130 140 Q115 148 112 160 Q111 163 115 164 Q123 155 130 150 Z" fill="#FDB99B"/>
-                <path d="M170 140 Q185 148 188 160 Q189 163 185 164 Q177 155 170 150 Z" fill="#FDB99B"/>
-                
-                {/* Phone in hand */}
-                <g transform="translate(100, 155)">
-                  <rect x="0" y="0" width="20" height="35" rx="3" fill="#1E293B"/>
-                  <rect x="2" y="3" width="16" height="28" rx="1" fill="#3B82F6"/>
-                  <circle cx="10" cy="33" r="1.5" fill="#9CA3AF"/>
-                </g>
-                
-                {/* Neck */}
-                <rect x="143" y="115" width="14" height="12" fill="#FDB99B"/>
-                
-                {/* Head */}
-                <ellipse cx="150" cy="95" rx="25" ry="28" fill="#FDB99B"/>
-                
-                {/* Hair */}
-                <path d="M125 95 Q125 70 150 65 Q175 70 175 95 L170 110 Q165 115 150 115 Q135 115 130 110 Z" fill="#1E293B"/>
-                
-                {/* Eyes */}
-                <ellipse cx="140" cy="93" rx="2.5" ry="3" fill="#1E293B"/>
-                <ellipse cx="160" cy="93" rx="2.5" ry="3" fill="#1E293B"/>
-                
-                {/* Smile */}
-                <path d="M140 105 Q150 110 160 105" stroke="#1E293B" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-                
-                {/* Floating icons */}
-                <g transform="translate(35, 70)">
-                  {/* Users icon */}
-                  <circle cx="15" cy="15" r="15" fill="#3B82F6"/>
-                  <path d="M10 17 Q10 14 12.5 14 Q15 14 15 17" stroke="white" strokeWidth="1.5" fill="none"/>
-                  <circle cx="12.5" cy="10" r="2.5" stroke="white" strokeWidth="1.5" fill="none"/>
-                  <path d="M17 17 Q17 14 19.5 14 Q22 14 22 17" stroke="white" strokeWidth="1.5" fill="none"/>
-                  <circle cx="19.5" cy="10" r="2.5" stroke="white" strokeWidth="1.5" fill="none"/>
-                </g>
-                
-                <g transform="translate(35, 120)">
-                  {/* Shield check icon */}
-                  <circle cx="15" cy="15" r="15" fill="#10B981"/>
-                  <path d="M15 8 L20 10 L20 15 Q20 20 15 22 Q10 20 10 15 L10 10 Z" stroke="white" strokeWidth="1.5" fill="none"/>
-                  <path d="M13 15 L15 17 L18 13" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                </g>
-              </svg>
-            </div>
+          {/* RIGHT TEXT */}
+          <div>
+            <h2 className="text-4xl font-bold text-blue-600 flex items-center gap-3 mb-4">
+              <span className="text-5xl">👤</span> Sell Your Shares Easily
+            </h2>
+
+            <p className="text-gray-700 leading-relaxed mb-8 text-lg">
+              Join a large investor base and sell your shares quickly at the best price. 
+              Trusted by thousands of sellers across India with secure transactions.
+            </p>
+
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-medium text-lg transition"
+            >
+              Sell Now
+            </button>
           </div>
         </div>
       </section>
