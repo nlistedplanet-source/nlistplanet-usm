@@ -73,17 +73,6 @@ const TopBar = ({ title, showBack = false }) => {
               >
                 Home
               </button>
-              <button
-                onClick={() => navigate('/marketplace')}
-                title="Unlisted Shares Mall"
-                className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 ${
-                  location.pathname === '/marketplace'
-                    ? 'text-white bg-gradient-to-r from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30'
-                    : 'text-gray-700 hover:bg-white/80 hover:text-gray-900'
-                }`}
-              >
-                Unlist Mall
-              </button>
               <a
                 href="https://nlistplanet.com/blog"
                 target="_blank"
@@ -207,14 +196,6 @@ const TopBar = ({ title, showBack = false }) => {
                 }`}
               >
                 Home
-              </button>
-              <button
-                onClick={() => { navigate('/marketplace'); setShowMobileNav(false); }}
-                className={`w-full text-left px-3 py-2 rounded-xl font-semibold text-sm shadow-sm ${
-                  location.pathname === '/marketplace' ? 'text-white bg-gradient-to-r from-emerald-500 to-teal-600' : 'text-gray-700 bg-white border border-gray-200 hover:bg-gray-50'
-                }`}
-              >
-                Unlist Mall
               </button>
               <a
                 href="https://nlistplanet.com/blog"
