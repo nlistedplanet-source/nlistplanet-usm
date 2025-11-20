@@ -385,7 +385,7 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 className="mt-1 w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-2 focus:ring-purple-500"
               />
               <label htmlFor="terms" className="text-sm text-gray-700">
-                I agree to the <a href="#" className="text-purple-600 font-semibold hover:underline">Terms & Conditions</a> and confirm that all information provided is accurate
+                I agree to the <button type="button" className="text-purple-600 font-semibold hover:underline">Terms & Conditions</button> and confirm that all information provided is accurate
               </label>
             </div>
 
