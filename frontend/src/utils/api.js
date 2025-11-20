@@ -46,6 +46,13 @@ export const referralsAPI = {
   getMyReferrals: () => axios.get('/referrals/my-referrals'),
 };
 
+// Portfolio API
+export const portfolioAPI = {
+  getStats: () => axios.get('/portfolio/stats'),
+  getHoldings: () => axios.get('/portfolio/holdings'),
+  getActivities: (params) => axios.get('/portfolio/activities', { params }),
+};
+
 // Admin API
 export const adminAPI = {
   getStats: () => axios.get('/admin/stats'),

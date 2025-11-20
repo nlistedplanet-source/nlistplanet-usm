@@ -17,6 +17,7 @@ import companyRoutes from './routes/companies.js';
 import transactionRoutes from './routes/transactions.js';
 import referralRoutes from './routes/referrals.js';
 import adminRoutes from './routes/admin.js';
+import portfolioRoutes from './routes/portfolio.js';
 
 // Load environment variables
 dotenv.config();
@@ -110,6 +111,13 @@ try {
   console.log('[Routes] Referral routes loaded');
 } catch (err) {
   console.error('[Routes Error] Referrals:', err);
+}
+
+try {
+  app.use('/api/portfolio', portfolioRoutes);
+  console.log('[Routes] Portfolio routes loaded');
+} catch (err) {
+  console.error('[Routes Error] Portfolio:', err);
 }
 
 try {

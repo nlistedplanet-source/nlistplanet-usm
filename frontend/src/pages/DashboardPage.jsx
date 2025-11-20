@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   FileText, 
@@ -23,6 +23,8 @@ import {
   ShoppingCart
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { portfolioAPI, listingsAPI } from '../utils/api';
+import toast from 'react-hot-toast';
 import MyPostsTab from '../components/dashboard/MyPostsTab';
 import BidsTab from '../components/dashboard/BidsTab';
 import OffersTab from '../components/dashboard/OffersTab';
@@ -35,71 +37,66 @@ const DashboardPage = () => {
   const { user, logout } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
+  const [loading, setLoading] = useState(true);
+  const [portfolioStats, setPortfolioStats] = useState({
+    totalValue: 0,
+    totalInvested: 0,
+    totalGain: 0,
+    gainPercentage: 0,
+    activeListings: 0,
+    completedTrades: 0
+  });
+  const [holdings, setHoldings] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [marketplaceListings, setMarketplaceListings] = useState([]);
+  const [marketplaceLoading, setMarketplaceLoading] = useState(false);
 
-  // Mock portfolio data - Replace with real API data later
-  const portfolioStats = {
-    totalValue: 1250000,
-    totalInvested: 950000,
-    totalGain: 300000,
-    gainPercentage: 31.58,
-    activeListings: 5,
-    completedTrades: 12
-  };
+  // Fetch portfolio data
+  useEffect(() => {
+    const fetchPortfolioData = async () => {
+      try {
+        setLoading(true);
+        const [statsRes, holdingsRes, activitiesRes] = await Promise.all([
+          portfolioAPI.getStats(),
+          portfolioAPI.getHoldings(),
+          portfolioAPI.getActivities({ limit: 10 })
+        ]);
 
-  // Mock holdings - Replace with real API data later
-  const holdings = [
-    {
-      id: 1,
-      company: 'Razorpay',
-      quantity: 50,
-      buyPrice: 12000,
-      currentPrice: 15000,
-      totalValue: 750000,
-      gain: 150000,
-      gainPercent: 25.0,
-      logo: '🔷'
-    },
-    {
-      id: 2,
-      company: 'Zerodha',
-      quantity: 30,
-      buyPrice: 8000,
-      currentPrice: 10500,
-      totalValue: 315000,
-      gain: 75000,
-      gainPercent: 31.25,
-      logo: '⚡'
-    },
-    {
-      id: 3,
-      company: 'Swiggy',
-      quantity: 20,
-      buyPrice: 6000,
-      currentPrice: 5500,
-      totalValue: 110000,
-      gain: -10000,
-      gainPercent: -8.33,
-      logo: '🍔'
-    },
-    {
-      id: 4,
-      company: 'PhonePe',
-      quantity: 15,
-      buyPrice: 5000,
-      currentPrice: 6200,
-      totalValue: 93000,
-      gain: 18000,
-      gainPercent: 24.0,
-      logo: '💜'
+        setPortfolioStats(statsRes.data.data);
+        setHoldings(holdingsRes.data.data);
+        setRecentActivities(activitiesRes.data.data);
+      } catch (error) {
+        console.error('Failed to fetch portfolio data:', error);
+        toast.error('Failed to load portfolio data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (activeTab === 'overview' || activeTab === 'portfolio') {
+      fetchPortfolioData();
     }
-  ];
+  }, [activeTab]);
 
-  // Recent activities - Replace with real API data later
-  const recentActivities = [
-    { id: 1, type: 'buy', company: 'Razorpay', amount: 15000, shares: 50, date: '2 days ago' },
-    { id: 2, type: 'sell', company: 'Cred', amount: 45000, shares: 30, date: '5 days ago' },
-    { id: 3, type: 'bid', company: 'Dream11', amount: 25000, shares: 20, date: '1 week ago' },
-  ];
+  // Fetch marketplace listings
+  useEffect(() => {
+    const fetchMarketplaceListings = async () => {
+      try {
+        setMarketplaceLoading(true);
+        const response = await listingsAPI.getAll({ limit: 50 });
+        setMarketplaceListings(response.data.data);
+      } catch (error) {
+        console.error('Failed to fetch marketplace listings:', error);
+        toast.error('Failed to load marketplace listings');
+      } finally {
+        setMarketplaceLoading(false);
+      }
+    };
+
+    if (activeTab === 'marketplace') {
+      fetchMarketplaceListings();
+    }
+  }, [activeTab]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
@@ -231,6 +228,13 @@ const DashboardPage = () => {
         {/* Tab Content */}
         {activeTab === 'overview' && (
           <>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader className="animate-spin text-purple-600 mb-3" size={40} />
+            <p className="text-gray-600">Loading portfolio...</p>
+          </div>
+        ) : (
+          <>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Total Portfolio Value */}
@@ -327,6 +331,13 @@ const DashboardPage = () => {
             </div>
             
             <div className="overflow-x-auto">
+              {holdings.length === 0 ? (
+                <div className="text-center py-12 bg-gray-50 rounded-xl">
+                  <Package className="mx-auto text-gray-300 mb-3" size={48} />
+                  <p className="text-gray-600 font-medium mb-2">No holdings yet</p>
+                  <p className="text-gray-500 text-sm">Start trading to build your portfolio</p>
+                </div>
+              ) : (
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
@@ -381,6 +392,7 @@ const DashboardPage = () => {
                   ))}
                 </tbody>
               </table>
+              )}
             </div>
             
             <div className="p-6 border-t border-gray-100">
@@ -458,6 +470,8 @@ const DashboardPage = () => {
         </div>
           </>
         )}
+          </>
+        )}
 
         {/* Marketplace Tab */}
         {activeTab === 'marketplace' && (
@@ -465,23 +479,81 @@ const DashboardPage = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Marketplace - All Listings</h2>
             <p className="text-gray-600 mb-6">View all buy and sell posts from other users (excluding your own posts)</p>
             
-            {/* Filter Tabs */}
-            <div className="flex gap-4 mb-6 border-b border-gray-200">
-              <button className="pb-3 px-4 font-semibold text-purple-600 border-b-2 border-purple-600">
-                All Posts
-              </button>
-              <button className="pb-3 px-4 font-medium text-gray-600 hover:text-gray-900">
-                Buy Requests
-              </button>
-              <button className="pb-3 px-4 font-medium text-gray-600 hover:text-gray-900">
-                Sell Posts
-              </button>
-            </div>
+            {marketplaceLoading ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <Loader className="animate-spin text-purple-600 mb-3" size={40} />
+                <p className="text-gray-600">Loading marketplace...</p>
+              </div>
+            ) : marketplaceListings.length === 0 ? (
+              <div className="text-center py-12">
+                <Package className="mx-auto text-gray-300 mb-3" size={48} />
+                <p className="text-gray-600 font-medium mb-2">No listings available</p>
+                <p className="text-gray-500 text-sm">Check back later for new opportunities</p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {marketplaceListings.map((listing) => (
+                  <div key={listing._id} className="border border-gray-200 rounded-xl p-4 hover:border-purple-300 hover:shadow-md transition-all">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center">
+                          {listing.companyId?.logo ? (
+                            <img src={listing.companyId.logo} alt={listing.companyName} className="w-10 h-10 object-contain" />
+                          ) : (
+                            <span className="text-xl">{listing.companyName?.charAt(0)}</span>
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-gray-900">{listing.companyName}</h3>
+                          <p className="text-sm text-gray-600">@{listing.userId?.username}</p>
+                        </div>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        listing.type === 'sell' 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {listing.type === 'sell' ? 'BUY Opportunity' : 'SELL Opportunity'}
+                      </span>
+                    </div>
 
-            {/* Broadcast Listings - Replace with real API data */}
-            <div className="space-y-4">
-              <p className="text-center text-gray-500 py-8">No listings available at the moment</p>
-            </div>
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <p className="text-xs text-gray-500">Price per share</p>
+                        <p className="font-bold text-gray-900">{formatCurrency(listing.price)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Quantity</p>
+                        <p className="font-semibold text-gray-900">{listing.quantity} shares</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Min Lot</p>
+                        <p className="font-semibold text-gray-900">{listing.minLot || 1}</p>
+                      </div>
+                    </div>
+
+                    {listing.description && (
+                      <p className="text-sm text-gray-600 mb-4">{listing.description}</p>
+                    )}
+
+                    <div className="flex gap-2">
+                      <button 
+                        className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition-all"
+                        onClick={() => {
+                          /* TODO: Implement bid/offer modal */
+                          toast.success(`${listing.type === 'sell' ? 'Bid' : 'Offer'} functionality coming soon!`);
+                        }}
+                      >
+                        {listing.type === 'sell' ? 'Place Bid' : 'Make Offer'}
+                      </button>
+                      <button className="px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50">
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
