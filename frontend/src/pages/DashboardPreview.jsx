@@ -116,6 +116,7 @@ const DashboardPreview = () => {
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Activity },
+    { id: 'portfolio', label: 'Portfolio', icon: Briefcase },
     { id: 'posts', label: 'My Posts', icon: FileText },
     { id: 'bids', label: 'Bids Received', icon: TrendingUp },
     { id: 'offers', label: 'Offers Made', icon: TrendingDown },
@@ -128,28 +129,19 @@ const DashboardPreview = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex">
       {/* Left Sidebar Navigation */}
       <aside className="w-64 bg-white border-r border-gray-200 fixed left-0 top-0 h-full overflow-y-auto">
-        {/* Logo/Brand */}
+        {/* User Profile - Moved to Top */}
         <div className="p-6 border-b border-gray-100">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-            Nlist Planet
-          </h2>
-          <p className="text-xs text-gray-500 mt-1">Dashboard</p>
-        </div>
-
-        {/* User Profile */}
-        <div className="p-4 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-2xl mb-3">
               {user.avatar ? (
                 <img src={user.avatar} alt={user.username} className="w-full h-full rounded-full object-cover" />
               ) : (
                 user.username?.charAt(0).toUpperCase()
               )}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">@{user.username}</p>
-              <p className="text-xs text-gray-500 truncate">{user.email}</p>
-            </div>
+            <h3 className="text-lg font-bold text-gray-900 truncate w-full">{user.username}</h3>
+            <p className="text-sm text-gray-500 truncate w-full">ID: {user.email?.split('@')[0] || 'demo_user'}</p>
+            <p className="text-xs text-gray-400 truncate w-full mt-1">{user.email}</p>
           </div>
         </div>
 
@@ -192,16 +184,31 @@ const DashboardPreview = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 ml-64 p-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {tabs.find(t => t.id === activeTab)?.label || 'Dashboard'}
-          </h1>
-          <p className="text-gray-600">
-            {activeTab === 'overview' ? "Here's what's happening with your portfolio today." : 'Manage your account and settings'}
-          </p>
-        </div>
+      <main className="flex-1 ml-64">
+        {/* Top Header */}
+        <header className="bg-white border-b border-gray-200 px-8 py-4 sticky top-0 z-10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img src="/images/logos/favicon.png" alt="Logo" className="h-10 w-10" />
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">
+                  {tabs.find(t => t.id === activeTab)?.label || 'Dashboard'}
+                </h1>
+                <p className="text-xs text-gray-500">
+                  {activeTab === 'overview' ? "Here's what's happening with your portfolio today." : 'Manage your account and settings'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <button className="relative p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <Bell size={24} className="text-gray-600" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <div className="p-8">
         
         {/* Tab Content */}
         {activeTab === 'overview' && (
@@ -465,6 +472,64 @@ const DashboardPreview = () => {
             <ProfileTab />
           </div>
         )}
+        {activeTab === 'portfolio' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">My Portfolio</h2>
+            
+            {/* Holdings Section */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Current Holdings</h3>
+                <button className="text-purple-600 hover:text-purple-700 font-medium text-sm">Add Holdings →</button>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3">Company</th>
+                      <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3">Quantity</th>
+                      <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3">Buy Price</th>
+                      <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3">Current Price</th>
+                      <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3">Total Value</th>
+                      <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3">P&L</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {holdings.map((holding) => (
+                      <tr key={holding.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{holding.logo}</span>
+                            <span className="font-medium text-gray-900">{holding.company}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{holding.quantity}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{formatCurrency(holding.buyPrice)}</td>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{formatCurrency(holding.currentPrice)}</td>
+                        <td className="px-4 py-3 text-sm font-semibold text-gray-900">{formatCurrency(holding.totalValue)}</td>
+                        <td className="px-4 py-3">
+                          <span className={`text-sm font-semibold ${holding.gain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {holding.gain >= 0 ? '+' : ''}{formatCurrency(holding.gain)} ({holding.gainPercent > 0 ? '+' : ''}{holding.gainPercent.toFixed(2)}%)
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Add New Holdings Button */}
+            <div className="mt-6">
+              <button className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-4 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                <Package size={20} />
+                Add New Holdings to Portfolio
+              </button>
+            </div>
+          </div>
+        )}
+        </div>
       </main>
     </div>
   );

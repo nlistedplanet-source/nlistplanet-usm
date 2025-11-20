@@ -9,6 +9,8 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
   const [companies, setCompanies] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [manualEntry, setManualEntry] = useState(false);
   const [formData, setFormData] = useState({
     companyId: '',
     companyName: '',
@@ -20,14 +22,26 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
 
   useEffect(() => {
     const loadCompanies = async () => {
-      try {
-        const response = await companiesAPI.getAll({ search: searchTerm, limit: 10 });
-        setCompanies(response.data.data);
-      } catch (error) {
-        console.error('Failed to fetch companies:', error);
+      if (searchTerm.length > 0) {
+        try {
+          const response = await companiesAPI.getAll({ search: searchTerm, limit: 10 });
+          setCompanies(response.data.data);
+          setShowSuggestions(true);
+        } catch (error) {
+          console.error('Failed to fetch companies:', error);
+          setCompanies([]);
+        }
+      } else {
+        setCompanies([]);
+        setShowSuggestions(false);
       }
     };
-    loadCompanies();
+
+    const delayDebounce = setTimeout(() => {
+      loadCompanies();
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
   }, [searchTerm]);
 
   const handleCompanySelect = (company) => {
@@ -36,27 +50,53 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
       companyId: company._id,
       companyName: company.name
     });
+    setSearchTerm(company.name);
+    setShowSuggestions(false);
+    setManualEntry(false);
     setStep(2);
+  };
+
+  const handleManualEntry = () => {
+    if (searchTerm.length > 0) {
+      setFormData({
+        ...formData,
+        companyId: '', // No ID for manual entry
+        companyName: searchTerm
+      });
+      setManualEntry(true);
+      setShowSuggestions(false);
+      setStep(2);
+    } else {
+      toast.error('Please enter company name');
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.companyId || !formData.price || !formData.quantity) {
+    if (!formData.companyName || !formData.price || !formData.quantity) {
       toast.error('Please fill all required fields');
       return;
     }
 
     setLoading(true);
     try {
-      await listingsAPI.create({
+      const payload = {
         type,
-        companyId: formData.companyId,
         price: parseFloat(formData.price),
         quantity: parseInt(formData.quantity),
         minLot: parseInt(formData.minLot),
         description: formData.description
-      });
+      };
+
+      // Add companyId if selected from database, otherwise add companyName for manual entry
+      if (formData.companyId) {
+        payload.companyId = formData.companyId;
+      } else {
+        payload.companyName = formData.companyName;
+      }
+
+      await listingsAPI.create(payload);
       toast.success(`${type === 'sell' ? 'Sell post' : 'Buy request'} created successfully!`);
       onSuccess();
     } catch (error) {
@@ -117,7 +157,7 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
             {/* Company Search */}
             <div>
               <label className="block text-sm font-semibold text-dark-700 mb-2">
-                Select Company
+                Type Company Name
               </label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-400" size={20} />
@@ -125,40 +165,66 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search company..."
+                  placeholder="Start typing company name..."
                   className="input-mobile pl-10"
+                  autoFocus
                 />
               </div>
+              <p className="text-xs text-dark-500 mt-1">
+                Select from suggestions or continue typing to add manually
+              </p>
             </div>
 
-            {/* Company List */}
-            <div className="max-h-64 overflow-y-auto space-y-2">
-              {companies.map((company) => (
-                <button
-                  key={company._id}
-                  onClick={() => handleCompanySelect(company)}
-                  className="w-full flex items-center gap-3 p-3 bg-dark-50 hover:bg-dark-100 rounded-xl transition-all text-left touch-feedback"
-                >
-                  {company.logo ? (
-                    <img
-                      src={company.logo}
-                      alt={company.name}
-                      className="w-12 h-12 rounded-lg object-cover"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center">
-                      <span className="text-primary-700 font-bold text-lg">
-                        {company.name[0]}
-                      </span>
+            {/* Company Suggestions */}
+            {showSuggestions && companies.length > 0 && (
+              <div className="max-h-64 overflow-y-auto space-y-2 border-2 border-primary-200 rounded-xl p-2">
+                <p className="text-xs font-semibold text-dark-600 px-2 py-1">Suggestions from database:</p>
+                {companies.map((company) => (
+                  <button
+                    key={company._id}
+                    onClick={() => handleCompanySelect(company)}
+                    className="w-full flex items-center gap-3 p-3 bg-dark-50 hover:bg-primary-50 rounded-xl transition-all text-left touch-feedback"
+                  >
+                    {company.logo ? (
+                      <img
+                        src={company.logo}
+                        alt={company.name}
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center">
+                        <span className="text-primary-700 font-bold text-lg">
+                          {company.name[0]}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-dark-900">{company.name}</h4>
+                      <p className="text-sm text-dark-500">{company.sector}</p>
                     </div>
-                  )}
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-dark-900">{company.name}</h4>
-                    <p className="text-sm text-dark-500">{company.sector}</p>
-                  </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Manual Entry Option */}
+            {searchTerm.length > 0 && (
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                <p className="text-sm text-dark-700 mb-3">
+                  Can't find <span className="font-bold">"{searchTerm}"</span> in suggestions?
+                </p>
+                <button
+                  type="button"
+                  onClick={handleManualEntry}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+                >
+                  Continue with "{searchTerm}"
                 </button>
-              ))}
-            </div>
+                <p className="text-xs text-dark-500 mt-2 text-center">
+                  You'll be able to list this company manually
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -173,11 +239,18 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
               </div>
               <div className="flex-1">
                 <h4 className="font-semibold text-dark-900">{formData.companyName}</h4>
-                <p className="text-sm text-dark-600">{type === 'sell' ? 'Selling shares' : 'Buying shares'}</p>
+                <p className="text-sm text-dark-600">
+                  {type === 'sell' ? 'Selling shares' : 'Buying shares'}
+                  {manualEntry && <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Manual Entry</span>}
+                </p>
               </div>
               <button
                 type="button"
-                onClick={() => setStep(1)}
+                onClick={() => {
+                  setStep(1);
+                  setSearchTerm('');
+                  setManualEntry(false);
+                }}
                 className="text-primary-600 text-sm font-semibold"
               >
                 Change
