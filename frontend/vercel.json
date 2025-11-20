@@ -23,5 +23,10 @@
       "dest": "/index.html"
     }
   ],
-  "env": {}
+  "build": {
+    "env": {
+      "CI": "false",
+      "DISABLE_ESLINT_PLUGIN": "true"
+    }
+  }
 }
