@@ -3,6 +3,28 @@ import { X, Search, TrendingUp, Package, Info, IndianRupee } from 'lucide-react'
 import { companiesAPI, listingsAPI } from '../utils/api';
 import toast from 'react-hot-toast';
 
+// Number to words converter
+const numberToWords = (num) => {
+  if (!num || num === 0) return 'Zero';
+  
+  const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+  const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  
+  const convertLessThanThousand = (n) => {
+    if (n === 0) return '';
+    if (n < 10) return ones[n];
+    if (n < 20) return teens[n - 10];
+    if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + ones[n % 10] : '');
+    return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 !== 0 ? ' ' + convertLessThanThousand(n % 100) : '');
+  };
+  
+  if (num < 1000) return convertLessThanThousand(num);
+  if (num < 100000) return convertLessThanThousand(Math.floor(num / 1000)) + ' Thousand' + (num % 1000 !== 0 ? ' ' + convertLessThanThousand(num % 1000) : '');
+  if (num < 10000000) return convertLessThanThousand(Math.floor(num / 100000)) + ' Lakh' + (num % 100000 !== 0 ? ' ' + numberToWords(num % 100000) : '');
+  return convertLessThanThousand(Math.floor(num / 10000000)) + ' Crore' + (num % 10000000 !== 0 ? ' ' + numberToWords(num % 10000000) : '');
+};
+
 const CreateListingModal = ({ onClose, onSuccess }) => {
   const [step, setStep] = useState(1);
   const [type, setType] = useState('sell');
@@ -282,20 +304,25 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 placeholder=" "
-                className="peer w-full px-4 py-3 pl-10 pr-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                className="peer w-full px-4 py-3 pl-10 pr-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 required
                 min="1"
                 step="0.01"
               />
-              <label className="absolute left-10 top-3 text-gray-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white peer-focus:px-1 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
-                Price per Share *
+              <label className="absolute left-10 -top-2.5 text-xs text-gray-500 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white">
+                Price per Share
               </label>
               <div className="absolute right-3 top-1/2 -translate-y-1/2 group">
                 <Info size={18} className="text-gray-400 cursor-help" />
-                <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block w-48 bg-gray-900 text-white text-xs rounded-lg p-2 shadow-lg">
+                <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block w-48 bg-gray-900 text-white text-xs rounded-lg p-2 shadow-lg z-20">
                   Platform fee (2%) will be added automatically
                 </div>
               </div>
+              {formData.price && (
+                <p className="text-xs text-gray-600 mt-1 ml-1">
+                  {numberToWords(parseFloat(formData.price))} Rupees
+                </p>
+              )}
             </div>
 
             {/* Quantity with Floating Label */}
@@ -306,13 +333,18 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 value={formData.quantity}
                 onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                 placeholder=" "
-                className="peer w-full px-4 py-3 pl-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                className="peer w-full px-4 py-3 pl-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 required
                 min="1"
               />
-              <label className="absolute left-10 top-3 text-gray-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white peer-focus:px-1 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
-                Quantity *
+              <label className="absolute left-10 -top-2.5 text-xs text-gray-500 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white">
+                Quantity
               </label>
+              {formData.quantity && (
+                <p className="text-xs text-gray-600 mt-1 ml-1">
+                  {numberToWords(parseInt(formData.quantity))} Shares
+                </p>
+              )}
             </div>
 
             {/* Min Lot with Floating Label */}
@@ -322,10 +354,10 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 value={formData.minLot}
                 onChange={(e) => setFormData({ ...formData, minLot: e.target.value })}
                 placeholder=" "
-                className="peer w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                className="peer w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 min="1"
               />
-              <label className="absolute left-4 top-3 text-gray-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white peer-focus:px-1 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
+              <label className="absolute left-4 -top-2.5 text-xs text-gray-500 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white">
                 Minimum Lot Size
               </label>
             </div>
@@ -340,8 +372,8 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 className="peer w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
                 maxLength="10"
               />
-              <label className="absolute left-4 top-3 text-gray-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white peer-focus:px-1 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
-                Company PAN (Optional)
+              <label className="absolute left-4 -top-2.5 text-xs text-gray-500 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white">
+                Company PAN
               </label>
             </div>
 
@@ -355,8 +387,8 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 className="peer w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
                 maxLength="12"
               />
-              <label className="absolute left-4 top-3 text-gray-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white peer-focus:px-1 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
-                Company ISIN No (Optional)
+              <label className="absolute left-4 -top-2.5 text-xs text-gray-500 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white">
+                Company ISIN No
               </label>
             </div>
 
@@ -370,8 +402,8 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 className="peer w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
                 maxLength="21"
               />
-              <label className="absolute left-4 top-3 text-gray-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white peer-focus:px-1 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
-                Company CIN Number (Optional)
+              <label className="absolute left-4 -top-2.5 text-xs text-gray-500 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white">
+                Company CIN Number
               </label>
             </div>
 
@@ -396,7 +428,7 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
               className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <TrendingUp size={20} />
-              Preview Listing
+              Submit
             </button>
           </form>
         )}
