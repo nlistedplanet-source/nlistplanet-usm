@@ -172,8 +172,8 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                   onClick={() => setType('sell')}
                   className={`py-4 px-6 rounded-xl border-2 font-semibold transition-all ${
                     type === 'sell'
-                      ? 'border-primary-600 bg-primary-50 text-primary-700'
-                      : 'border-dark-200 bg-white text-dark-600'
+                      ? 'border-green-500 bg-gradient-to-br from-green-50 to-emerald-50 text-green-700 shadow-md'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-green-300'
                   }`}
                 >
                   <TrendingUp className="mx-auto mb-2" size={24} />
@@ -183,8 +183,8 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                   onClick={() => setType('buy')}
                   className={`py-4 px-6 rounded-xl border-2 font-semibold transition-all ${
                     type === 'buy'
-                      ? 'border-primary-600 bg-primary-50 text-primary-700'
-                      : 'border-dark-200 bg-white text-dark-600'
+                      ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-700 shadow-md'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-blue-300'
                   }`}
                 >
                   <Package className="mx-auto mb-2" size={24} />
@@ -319,8 +319,8 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 </div>
               </div>
               {formData.price && (
-                <p className="text-xs text-gray-600 mt-1 ml-1">
-                  {numberToWords(parseFloat(formData.price))} Rupees
+                <p className="text-sm font-semibold text-purple-600 mt-2 ml-1 bg-purple-50 px-3 py-1 rounded-lg inline-block">
+                  ₹ {numberToWords(parseFloat(formData.price))} Rupees
                 </p>
               )}
             </div>
@@ -341,8 +341,8 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 Quantity
               </label>
               {formData.quantity && (
-                <p className="text-xs text-gray-600 mt-1 ml-1">
-                  {numberToWords(parseInt(formData.quantity))} Shares
+                <p className="text-sm font-semibold text-indigo-600 mt-2 ml-1 bg-indigo-50 px-3 py-1 rounded-lg inline-block">
+                  📊 {numberToWords(parseInt(formData.quantity))} Shares
                 </p>
               )}
             </div>
