@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Mail, Phone, Edit2, Key, LogOut, Shield, Shuffle, Calendar, MapPin, Briefcase, Building, Users, CreditCard, FileText, CheckCircle, XCircle, AlertCircle, Bell, Palette, Camera } from 'lucide-react';
+import { User, Mail, Phone, Edit2, Key, LogOut, Shield, Shuffle, Calendar, MapPin, Briefcase, Building, Users, CreditCard, FileText, CheckCircle, XCircle, AlertCircle, Bell, Palette, Camera, Save } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -16,6 +16,24 @@ const ProfileTab = () => {
     confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
+  
+  // Profile editing state
+  const [isEditing, setIsEditing] = useState(false);
+  const [profileData, setProfileData] = useState({
+    username: user?.username || '',
+    fullName: user?.fullName || '',
+    phone: user?.phone || ''
+  });
+  const [generatedUsername, setGeneratedUsername] = useState(user?.username || '');
+  
+  // KYC document upload state
+  const [currentStep, setCurrentStep] = useState(1);
+  const [kycDocuments, setKycDocuments] = useState({
+    pan: { file: null, preview: null, extracted: null },
+    aadhaar: { file: null, preview: null, extracted: null },
+    bank: { file: null, preview: null, extracted: null },
+    demat: { file: null, preview: null, extracted: null }
+  });
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -46,6 +64,107 @@ const ProfileTab = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+  
+  // Username shuffle handler
+  const generateRandomUsername = () => {
+    const adjectives = ['Cool', 'Smart', 'Fast', 'Wise', 'Bold', 'Bright', 'Swift', 'Quick', 'Sharp', 'Epic'];
+    const nouns = ['Tiger', 'Eagle', 'Shark', 'Wolf', 'Lion', 'Hawk', 'Bear', 'Fox', 'Panda', 'Dragon'];
+    const randomNum = Math.floor(Math.random() * 999);
+    const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+    return `${randomAdj}${randomNoun}${randomNum}`;
+  };
+
+  const handleShuffleUsername = () => {
+    setGeneratedUsername(generateRandomUsername());
+  };
+
+  // Profile update handler
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const success = await updateProfile({
+        username: generatedUsername,
+        fullName: profileData.fullName,
+        phone: profileData.phone
+      });
+      if (success) {
+        setIsEditing(false);
+        toast.success('Profile updated successfully!');
+      }
+    } catch (error) {
+      toast.error('Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // File upload handler for KYC documents
+  const handleFileUpload = (docType, event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setKycDocuments(prev => ({
+        ...prev,
+        [docType]: { 
+          file, 
+          preview: reader.result,
+          extracted: null // Mock extraction - in real app, call OCR API
+        }
+      }));
+      toast.success(`${docType.toUpperCase()} uploaded successfully`);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // KYC step navigation
+  const handleNextStep = () => {
+    if (currentStep < 4) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePreviousStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  // KYC submission
+  const handleSubmitKYC = async () => {
+    setLoading(true);
+    try {
+      const kycData = {
+        documents: {
+          pan: kycDocuments.pan.preview,
+          aadhaar: kycDocuments.aadhaar.preview,
+          bankProof: kycDocuments.bank.preview,
+          cdslStatement: kycDocuments.demat.preview
+        }
+      };
+      await kycAPI.submitKYC(kycData);
+      toast.success('KYC submitted successfully!');
+      setCurrentStep(1);
+      setKycDocuments({
+        pan: { file: null, preview: null, extracted: null },
+        aadhaar: { file: null, preview: null, extracted: null },
+        bank: { file: null, preview: null, extracted: null },
+        demat: { file: null, preview: null, extracted: null }
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to submit KYC');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getDocumentStatusIcon = (docStatus) => {
