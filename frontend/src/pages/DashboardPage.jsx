@@ -111,7 +111,7 @@ const DashboardPage = () => {
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Activity },
-    { id: 'broadcast', label: 'Broadcast', icon: Radio },
+    { id: 'marketplace', label: 'Marketplace', icon: Radio },
     { id: 'portfolio', label: 'Portfolio', icon: Briefcase },
     { id: 'posts', label: 'My Posts', icon: FileText },
     { id: 'bids', label: 'Bids Received', icon: TrendingUp },
@@ -459,11 +459,11 @@ const DashboardPage = () => {
           </>
         )}
 
-        {/* Broadcast Tab */}
-        {activeTab === 'broadcast' && (
+        {/* Marketplace Tab */}
+        {activeTab === 'marketplace' && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Broadcast - All Listings</h2>
-            <p className="text-gray-600 mb-6">View all buy and sell posts from other users in the marketplace</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Marketplace - All Listings</h2>
+            <p className="text-gray-600 mb-6">View all buy and sell posts from other users (excluding your own posts)</p>
             
             {/* Filter Tabs */}
             <div className="flex gap-4 mb-6 border-b border-gray-200">

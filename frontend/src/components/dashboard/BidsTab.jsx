@@ -94,16 +94,6 @@ const BidsTab = () => {
               </div>
             </div>
 
-            {/* Message */}
-            {bid.message && (
-              <div className="bg-blue-50 rounded-lg p-3 mb-3">
-                <div className="flex items-start gap-2">
-                  <MessageCircle size={16} className="text-blue-600 mt-0.5" />
-                  <p className="text-sm text-blue-900">{bid.message}</p>
-                </div>
-              </div>
-            )}
-
             {/* Counter History */}
             {bid.counterHistory && bid.counterHistory.length > 0 && (
               <div className="mb-3">

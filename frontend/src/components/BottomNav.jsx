@@ -27,8 +27,6 @@ const BottomNav = () => {
   }, []);
 
   const navItems = [
-    { icon: Home, label: 'Home', path: '/' },
-    { icon: TrendingUp, label: 'Marketplace', path: '/marketplace' },
     { icon: Bell, label: 'Notifications', path: '/dashboard?tab=notifications', badge: unreadCount },
     { icon: User, label: 'Profile', path: '/dashboard?tab=profile' },
   ];
