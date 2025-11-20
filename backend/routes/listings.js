@@ -47,7 +47,7 @@ router.get('/', async (req, res, next) => {
       .skip(skip)
       .limit(parseInt(limit))
       .populate('userId', 'username avatar fullName')
-      .populate('companyId', 'name logo sector');
+      .populate('companyId', 'CompanyName ScripName Logo Sector name logo sector');
 
     const total = await Listing.countDocuments(query);
 
@@ -80,7 +80,7 @@ router.get('/my', protect, async (req, res, next) => {
 
     const listings = await Listing.find(query)
       .sort('-createdAt')
-      .populate('companyId', 'name logo sector');
+      .populate('companyId', 'CompanyName ScripName Logo Sector name logo sector');
 
     res.json({
       success: true,
@@ -113,7 +113,7 @@ router.post('/', protect, async (req, res, next) => {
       username: req.user.username,
       type,
       companyId,
-      companyName: company.name,
+      companyName: company.CompanyName || company.name,
       price,
       quantity,
       minLot: minLot || 1,
