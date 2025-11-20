@@ -252,6 +252,13 @@ const AdminDashboard = () => {
             ))}
           </div>
         </div>
+          </>
+        )}
+
+        {/* Company Data Tab */}
+        {activeTab === 'companies' && (
+          <CompanyData />
+        )}
       </div>
 
       {/* Create Company Modal */}
@@ -364,14 +371,6 @@ const AdminDashboard = () => {
           </div>
         </>
       )}
-          </>
-        )}
-
-        {/* Company Data Tab */}
-        {activeTab === 'companies' && (
-          <CompanyData />
-        )}
-      </div>
     </div>
   );
 };
