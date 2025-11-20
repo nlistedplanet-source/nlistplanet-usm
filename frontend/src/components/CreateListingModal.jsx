@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Search, TrendingUp, DollarSign, Package, FileText } from 'lucide-react';
+import { X, Search, TrendingUp, Package, Info, IndianRupee } from 'lucide-react';
 import { companiesAPI, listingsAPI } from '../utils/api';
 import toast from 'react-hot-toast';
 
@@ -11,13 +11,17 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [manualEntry, setManualEntry] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [formData, setFormData] = useState({
     companyId: '',
     companyName: '',
+    companyPan: '',
+    companyISIN: '',
+    companyCIN: '',
     price: '',
     quantity: '',
-    minLot: '1',
-    description: ''
+    minLot: '1'
   });
 
   useEffect(() => {
@@ -71,7 +75,7 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     
     if (!formData.companyName || !formData.price || !formData.quantity) {
@@ -79,6 +83,16 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
       return;
     }
 
+    if (!agreedToTerms) {
+      toast.error('Please agree to Terms & Conditions');
+      return;
+    }
+
+    // Show preview before final submission
+    setShowPreview(true);
+  };
+
+  const handleConfirmSubmit = async () => {
     setLoading(true);
     try {
       const payload = {
@@ -86,7 +100,9 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
         price: parseFloat(formData.price),
         quantity: parseInt(formData.quantity),
         minLot: parseInt(formData.minLot),
-        description: formData.description
+        companyPan: formData.companyPan,
+        companyISIN: formData.companyISIN,
+        companyCIN: formData.companyCIN
       };
 
       // Add companyId if selected from database, otherwise add companyName for manual entry
@@ -258,102 +274,211 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
               </button>
             </div>
 
-            {/* Price */}
-            <div>
-              <label className="block text-sm font-semibold text-dark-700 mb-2">
-                Price per Share <span className="text-red-500">*</span>
+            {/* Price with Floating Label */}
+            <div className="relative">
+              <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={18} />
+              <input
+                type="number"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                placeholder=" "
+                className="peer w-full px-4 py-3 pl-10 pr-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                required
+                min="1"
+                step="0.01"
+              />
+              <label className="absolute left-10 top-3 text-gray-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white peer-focus:px-1 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
+                Price per Share *
               </label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-400" size={20} />
-                <input
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  placeholder="Enter price"
-                  className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  required
-                  min="1"
-                  step="0.01"
-                />
-              </div>
-              <p className="text-xs text-dark-500 mt-1">
-                Platform fee (2%) will be added automatically
-              </p>
-            </div>
-
-            {/* Quantity */}
-            <div>
-              <label className="block text-sm font-semibold text-dark-700 mb-2">
-                Quantity <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Package className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-400" size={20} />
-                <input
-                  type="number"
-                  value={formData.quantity}
-                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                  placeholder="Number of shares"
-                  className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  required
-                  min="1"
-                />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 group">
+                <Info size={18} className="text-gray-400 cursor-help" />
+                <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block w-48 bg-gray-900 text-white text-xs rounded-lg p-2 shadow-lg">
+                  Platform fee (2%) will be added automatically
+                </div>
               </div>
             </div>
 
-            {/* Min Lot */}
-            <div>
-              <label className="block text-sm font-semibold text-dark-700 mb-2">
-                Minimum Lot Size
+            {/* Quantity with Floating Label */}
+            <div className="relative">
+              <Package className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={18} />
+              <input
+                type="number"
+                value={formData.quantity}
+                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                placeholder=" "
+                className="peer w-full px-4 py-3 pl-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                required
+                min="1"
+              />
+              <label className="absolute left-10 top-3 text-gray-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white peer-focus:px-1 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
+                Quantity *
               </label>
+            </div>
+
+            {/* Min Lot with Floating Label */}
+            <div className="relative">
               <input
                 type="number"
                 value={formData.minLot}
                 onChange={(e) => setFormData({ ...formData, minLot: e.target.value })}
-                placeholder="Minimum shares per transaction"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder=" "
+                className="peer w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
                 min="1"
               />
+              <label className="absolute left-4 top-3 text-gray-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white peer-focus:px-1 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
+                Minimum Lot Size
+              </label>
             </div>
 
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-semibold text-dark-700 mb-2">
-                Description (Optional)
+            {/* Company PAN */}
+            <div className="relative">
+              <input
+                type="text"
+                value={formData.companyPan}
+                onChange={(e) => setFormData({ ...formData, companyPan: e.target.value.toUpperCase() })}
+                placeholder=" "
+                className="peer w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                maxLength="10"
+              />
+              <label className="absolute left-4 top-3 text-gray-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white peer-focus:px-1 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
+                Company PAN (Optional)
               </label>
-              <div className="relative">
-                <FileText className="absolute left-3 top-3 text-dark-400" size={20} />
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Add any additional details..."
-                  className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent min-h-24 resize-none"
-                  maxLength="500"
-                />
-              </div>
-              <p className="text-xs text-dark-500 mt-1">
-                {formData.description.length}/500 characters
-              </p>
+            </div>
+
+            {/* Company ISIN */}
+            <div className="relative">
+              <input
+                type="text"
+                value={formData.companyISIN}
+                onChange={(e) => setFormData({ ...formData, companyISIN: e.target.value.toUpperCase() })}
+                placeholder=" "
+                className="peer w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                maxLength="12"
+              />
+              <label className="absolute left-4 top-3 text-gray-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white peer-focus:px-1 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
+                Company ISIN No (Optional)
+              </label>
+            </div>
+
+            {/* Company CIN */}
+            <div className="relative">
+              <input
+                type="text"
+                value={formData.companyCIN}
+                onChange={(e) => setFormData({ ...formData, companyCIN: e.target.value.toUpperCase() })}
+                placeholder=" "
+                className="peer w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                maxLength="21"
+              />
+              <label className="absolute left-4 top-3 text-gray-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white peer-focus:px-1 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
+                Company CIN Number (Optional)
+              </label>
+            </div>
+
+            {/* Terms & Conditions Checkbox */}
+            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+              <input
+                type="checkbox"
+                id="terms"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                className="mt-1 w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-2 focus:ring-purple-500"
+              />
+              <label htmlFor="terms" className="text-sm text-gray-700">
+                I agree to the <a href="#" className="text-purple-600 font-semibold hover:underline">Terms & Conditions</a> and confirm that all information provided is accurate
+              </label>
             </div>
 
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={!agreedToTerms}
               className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {loading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <TrendingUp size={20} />
-                  Create {type === 'sell' ? 'Sell Post' : 'Buy Request'}
-                </>
-              )}
+              <TrendingUp size={20} />
+              Preview Listing
             </button>
           </form>
+        )}
+
+        {/* Preview Modal */}
+        {showPreview && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowPreview(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+              <div className="p-6">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Review Your Listing</h3>
+                <p className="text-sm text-gray-600 mb-6">Please verify all details before posting</p>
+
+                <div className="space-y-4 mb-6">
+                  <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-4">
+                    <p className="text-xs text-gray-600 mb-1">Company</p>
+                    <p className="text-lg font-bold text-gray-900">{formData.companyName}</p>
+                    {manualEntry && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Manual Entry</span>}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-gray-50 rounded-xl p-3">
+                      <p className="text-xs text-gray-600 mb-1">Type</p>
+                      <p className={`font-bold ${type === 'sell' ? 'text-green-600' : 'text-blue-600'}`}>
+                        {type === 'sell' ? 'SELL' : 'BUY'}
+                      </p>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-3">
+                      <p className="text-xs text-gray-600 mb-1">Price per Share</p>
+                      <p className="font-bold text-gray-900">₹{parseFloat(formData.price).toLocaleString('en-IN')}</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-3">
+                      <p className="text-xs text-gray-600 mb-1">Quantity</p>
+                      <p className="font-bold text-gray-900">{formData.quantity} shares</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-3">
+                      <p className="text-xs text-gray-600 mb-1">Min Lot</p>
+                      <p className="font-bold text-gray-900">{formData.minLot}</p>
+                    </div>
+                  </div>
+
+                  {(formData.companyPan || formData.companyISIN || formData.companyCIN) && (
+                    <div className="bg-gray-50 rounded-xl p-3">
+                      <p className="text-xs text-gray-600 mb-2">Company Details</p>
+                      {formData.companyPan && <p className="text-sm text-gray-900">PAN: {formData.companyPan}</p>}
+                      {formData.companyISIN && <p className="text-sm text-gray-900">ISIN: {formData.companyISIN}</p>}
+                      {formData.companyCIN && <p className="text-sm text-gray-900">CIN: {formData.companyCIN}</p>}
+                    </div>
+                  )}
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                    <p className="text-xs text-blue-600 font-semibold mb-1">Platform Fee</p>
+                    <p className="text-sm text-gray-700">2% fee (₹{(parseFloat(formData.price) * 0.02).toFixed(2)}) will be added</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowPreview(false)}
+                    className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-300 transition-all"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={handleConfirmSubmit}
+                    disabled={loading}
+                    className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        Confirm & Post
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
           </div>
         </div>
