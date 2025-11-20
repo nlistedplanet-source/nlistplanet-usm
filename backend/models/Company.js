@@ -1,37 +1,73 @@
 import mongoose from 'mongoose';
 
 const companySchema = new mongoose.Schema({
-  name: {
+  Logo: {
+    type: String,
+    default: ''
+  },
+  CompanyName: {
     type: String,
     required: true,
-    trim: true,
-    unique: true
+    trim: true
   },
-  logo: {
+  ScripName: {
     type: String,
-    default: null
+    required: true,
+    trim: true
   },
-  sector: {
+  ISIN: {
+    type: String,
+    required: true,
+    unique: true,
+    uppercase: true,
+    trim: true
+  },
+  PAN: {
+    type: String,
+    required: true,
+    unique: true,
+    uppercase: true,
+    trim: true
+  },
+  CIN: {
+    type: String,
+    required: true,
+    unique: true,
+    uppercase: true,
+    trim: true
+  },
+  RegistrationDate: {
     type: String,
     required: true
+  },
+  Sector: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  // Legacy fields for backward compatibility (populate with CompanyName to avoid unique index issues)
+  name: {
+    type: String,
+    trim: true
+  },
+  logo: {
+    type: String
+  },
+  sector: {
+    type: String
   },
   description: {
     type: String,
     maxlength: 1000
   },
   isin: {
-    type: String,
-    unique: true,
-    sparse: true,
-    match: [/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/, 'Invalid ISIN format']
+    type: String
   },
   pan: {
-    type: String,
-    match: [/^[A-Z]{5}[0-9]{4}[A-Z]$/, 'Invalid PAN format']
+    type: String
   },
   cin: {
-    type: String,
-    match: [/^[UL][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/, 'Invalid CIN format']
+    type: String
   },
   website: String,
   foundedYear: Number,
@@ -44,11 +80,12 @@ const companySchema = new mongoose.Schema({
     default: true
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  autoIndex: false // Disable automatic index creation
 });
 
-// Index for search
-companySchema.index({ name: 'text', sector: 'text' });
-companySchema.index({ sector: 1, isActive: 1 });
+// Index for faster searches
+companySchema.index({ CompanyName: 'text', ScripName: 'text' });
+companySchema.index({ Sector: 1, isActive: 1 });
 
 export default mongoose.model('Company', companySchema);

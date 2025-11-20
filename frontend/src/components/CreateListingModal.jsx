@@ -74,9 +74,12 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
     setFormData({
       ...formData,
       companyId: company._id,
-      companyName: company.name
+      companyName: company.CompanyName || company.name,
+      companyPan: company.PAN || '',
+      companyISIN: company.ISIN || '',
+      companyCIN: company.CIN || ''
     });
-    setSearchTerm(company.name);
+    setSearchTerm(company.CompanyName || company.name);
     setShowSuggestions(false);
     setManualEntry(false);
     setStep(2);
@@ -224,22 +227,25 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                     onClick={() => handleCompanySelect(company)}
                     className="w-full flex items-center gap-3 p-3 bg-dark-50 hover:bg-primary-50 rounded-xl transition-all text-left touch-feedback"
                   >
-                    {company.logo ? (
+                    {(company.Logo || company.logo) ? (
                       <img
-                        src={company.logo}
-                        alt={company.name}
+                        src={company.Logo || company.logo}
+                        alt={company.CompanyName || company.name}
                         className="w-12 h-12 rounded-lg object-cover"
                       />
                     ) : (
                       <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center">
                         <span className="text-primary-700 font-bold text-lg">
-                          {company.name[0]}
+                          {(company.CompanyName || company.name)[0]}
                         </span>
                       </div>
                     )}
                     <div className="flex-1">
-                      <h4 className="font-semibold text-dark-900">{company.name}</h4>
-                      <p className="text-sm text-dark-500">{company.sector}</p>
+                      <h4 className="font-semibold text-dark-900">{company.CompanyName || company.name}</h4>
+                      <p className="text-sm text-dark-500 flex items-center gap-2">
+                        {company.ScripName && <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">{company.ScripName}</span>}
+                        {company.Sector || company.sector}
+                      </p>
                     </div>
                   </button>
                 ))}

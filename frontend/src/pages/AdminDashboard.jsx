@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Users, TrendingUp, DollarSign, Building2, Ban, CheckCircle, Plus, Loader } from 'lucide-react';
+import { Users, TrendingUp, DollarSign, Building2, Ban, CheckCircle, Plus, Loader, Database } from 'lucide-react';
 import { adminAPI } from '../utils/api';
 import { formatCurrency, formatDate } from '../utils/helpers';
 import toast from 'react-hot-toast';
 import TopBar from '../components/TopBar';
+import CompanyData from '../components/admin/CompanyData';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -101,8 +103,37 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4 pt-20 pb-24">
         <h1 className="text-2xl font-bold text-dark-900 mb-6">Admin Dashboard</h1>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        {/* Tab Navigation */}
+        <div className="flex gap-2 mb-6 overflow-x-auto">
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`px-4 py-2 rounded-xl font-semibold whitespace-nowrap transition-all ${
+              activeTab === 'dashboard'
+                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
+                : 'bg-white text-dark-700 hover:bg-gray-100'
+            }`}
+          >
+            <TrendingUp size={16} className="inline mr-2" />
+            Dashboard
+          </button>
+          <button
+            onClick={() => setActiveTab('companies')}
+            className={`px-4 py-2 rounded-xl font-semibold whitespace-nowrap transition-all ${
+              activeTab === 'companies'
+                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
+                : 'bg-white text-dark-700 hover:bg-gray-100'
+            }`}
+          >
+            <Database size={16} className="inline mr-2" />
+            Company Data
+          </button>
+        </div>
+
+        {/* Render active tab content */}
+        {activeTab === 'dashboard' && (
+          <>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-4 text-white">
             <Users size={24} className="mb-2" />
             <p className="text-sm opacity-90">Total Users</p>
@@ -333,6 +364,14 @@ const AdminDashboard = () => {
           </div>
         </>
       )}
+          </>
+        )}
+
+        {/* Company Data Tab */}
+        {activeTab === 'companies' && (
+          <CompanyData />
+        )}
+      </div>
     </div>
   );
 };

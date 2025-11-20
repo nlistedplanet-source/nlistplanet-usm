@@ -30,6 +30,10 @@ export const notificationsAPI = {
 export const companiesAPI = {
   getAll: (params) => axios.get('/companies', { params }),
   getById: (id) => axios.get(`/companies/${id}`),
+  search: (query) => axios.get('/companies/search', { params: { q: query } }),
+  create: (data) => axios.post('/companies', data),
+  update: (id, data) => axios.put(`/companies/${id}`, data),
+  delete: (id) => axios.delete(`/companies/${id}`),
 };
 
 // Transactions API
