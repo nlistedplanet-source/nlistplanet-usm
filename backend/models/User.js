@@ -74,17 +74,118 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  // KYC Information
+  dob: {
+    type: Date,
+    default: null
+  },
+  gender: {
+    type: String,
+    enum: ['Male', 'Female', 'Other', null],
+    default: null
+  },
+  address: {
+    line1: { type: String, default: null },
+    line2: { type: String, default: null },
+    line3: { type: String, default: null },
+    city: { type: String, default: null },
+    state: { type: String, default: null },
+    pincode: { type: String, default: null },
+    country: { type: String, default: 'India' }
+  },
+  workIncome: {
+    incomeRange: { 
+      type: String, 
+      enum: ['< 1 Lac', '1-5 Lacs', '5-10 Lacs', '> 10 Lacs', null],
+      default: null 
+    },
+    sourceOfWealth: { 
+      type: String,
+      enum: ['Salary', 'Business Income', 'Investment Returns', 'Inheritance', 'Other', null],
+      default: null
+    }
+  },
+  bankAccount: {
+    accountType: { 
+      type: String,
+      enum: ['Saving', 'Current', null],
+      default: null
+    },
+    accountNumber: { type: String, default: null },
+    ifsc: { type: String, default: null },
+    bankName: { type: String, default: null },
+    branch: { type: String, default: null }
+  },
+  nominee: {
+    name: { type: String, default: null },
+    relationship: { 
+      type: String,
+      enum: ['Spouse', 'Father', 'Mother', 'Son', 'Daughter', 'Brother', 'Sister', 'Other', null],
+      default: null
+    },
+    dob: { type: Date, default: null },
+    mobile: { type: String, default: null },
+    sharePercentage: { type: Number, default: 100 },
+    copyAddress: { type: Boolean, default: false }
+  },
+  dematAccount: {
+    dpId: { type: String, default: null },
+    clientId: { type: String, default: null }
+  },
   kycStatus: {
     type: String,
     enum: ['not_started', 'pending', 'approved', 'rejected'],
     default: 'not_started'
   },
   kycDocuments: {
-    pan: { type: Object, default: null },
-    aadhaar: { type: Object, default: null },
-    bank: { type: Object, default: null },
-    demat: { type: Object, default: null }
-  }
+    pan: {
+      url: { type: String, default: null },
+      status: { 
+        type: String, 
+        enum: ['not_uploaded', 'pending', 'approved', 'rejected'],
+        default: 'not_uploaded'
+      },
+      rejectionReason: { type: String, default: null },
+      uploadedAt: { type: Date, default: null },
+      verifiedAt: { type: Date, default: null }
+    },
+    aadhaar: {
+      url: { type: String, default: null },
+      status: { 
+        type: String, 
+        enum: ['not_uploaded', 'pending', 'approved', 'rejected'],
+        default: 'not_uploaded'
+      },
+      rejectionReason: { type: String, default: null },
+      uploadedAt: { type: Date, default: null },
+      verifiedAt: { type: Date, default: null }
+    },
+    bankProof: {
+      url: { type: String, default: null },
+      status: { 
+        type: String, 
+        enum: ['not_uploaded', 'pending', 'approved', 'rejected'],
+        default: 'not_uploaded'
+      },
+      rejectionReason: { type: String, default: null },
+      uploadedAt: { type: Date, default: null },
+      verifiedAt: { type: Date, default: null }
+    },
+    cdslStatement: {
+      url: { type: String, default: null },
+      status: { 
+        type: String, 
+        enum: ['not_uploaded', 'pending', 'approved', 'rejected'],
+        default: 'not_uploaded'
+      },
+      rejectionReason: { type: String, default: null },
+      uploadedAt: { type: Date, default: null },
+      verifiedAt: { type: Date, default: null }
+    }
+  },
+  kycSubmittedAt: { type: Date, default: null },
+  kycVerifiedAt: { type: Date, default: null },
+  kycRejectionReason: { type: String, default: null }
 }, {
   timestamps: true
 });
