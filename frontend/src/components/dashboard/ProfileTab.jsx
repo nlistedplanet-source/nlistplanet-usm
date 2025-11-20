@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { kycAPI } from '../../utils/api';
 
+// ProfileTab Component - Updated Design v2.0
 const ProfileTab = () => {
   const { user, logout, updateProfile, changePassword } = useAuth();
   const navigate = useNavigate();
