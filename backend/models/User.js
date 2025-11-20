@@ -2,6 +2,11 @@ import mongoose from 'mongoose';
 import bcryptjs from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
+  userId: {
+    type: String,
+    unique: true,
+    uppercase: true
+  },
   username: {
     type: String,
     required: [true, 'Username is required'],
@@ -68,6 +73,17 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     default: null
+  },
+  kycStatus: {
+    type: String,
+    enum: ['not_started', 'pending', 'approved', 'rejected'],
+    default: 'not_started'
+  },
+  kycDocuments: {
+    pan: { type: Object, default: null },
+    aadhaar: { type: Object, default: null },
+    bank: { type: Object, default: null },
+    demat: { type: Object, default: null }
   }
 }, {
   timestamps: true
@@ -84,6 +100,20 @@ userSchema.pre('save', async function(next) {
   } catch (err) {
     console.error('[Password Hash Error]', err);
     return next(err);
+  }
+  next();
+});
+
+// Generate unique userId before saving
+userSchema.pre('save', function(next) {
+  if (!this.userId) {
+    // Generate 8-character alphanumeric ID
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let userId = 'USR';
+    for (let i = 0; i < 5; i++) {
+      userId += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    this.userId = userId;
   }
   next();
 });
