@@ -108,8 +108,9 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
 
   return (
     <>
-      <div className="bottom-sheet-overlay" onClick={onClose} />
-      <div className="bottom-sheet p-6">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-dark-900">Create Listing</h2>
@@ -166,7 +167,7 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Start typing company name..."
-                  className="input-mobile pl-10"
+                  className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   autoFocus
                 />
               </div>
@@ -269,7 +270,7 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   placeholder="Enter price"
-                  className="input-mobile pl-10"
+                  className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   required
                   min="1"
                   step="0.01"
@@ -292,7 +293,7 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                   value={formData.quantity}
                   onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                   placeholder="Number of shares"
-                  className="input-mobile pl-10"
+                  className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   required
                   min="1"
                 />
@@ -309,7 +310,7 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 value={formData.minLot}
                 onChange={(e) => setFormData({ ...formData, minLot: e.target.value })}
                 placeholder="Minimum shares per transaction"
-                className="input-mobile"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 min="1"
               />
             </div>
@@ -325,7 +326,7 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Add any additional details..."
-                  className="input-mobile pl-10 min-h-24 resize-none"
+                  className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent min-h-24 resize-none"
                   maxLength="500"
                 />
               </div>
@@ -338,7 +339,7 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn-mobile btn-primary flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -354,6 +355,8 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
             </button>
           </form>
         )}
+          </div>
+        </div>
       </div>
     </>
   );

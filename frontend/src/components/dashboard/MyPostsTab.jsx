@@ -52,7 +52,7 @@ const MyPostsTab = () => {
         <h2 className="text-lg font-bold text-dark-900">My Listings</h2>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="btn-mobile btn-primary text-sm py-2 flex items-center gap-2"
+          className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-xl font-semibold hover:shadow-lg transition-all text-sm flex items-center gap-2"
         >
           <Plus size={18} />
           New Listing
@@ -100,7 +100,7 @@ const MyPostsTab = () => {
           </p>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="btn-mobile btn-primary text-sm"
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-xl font-semibold hover:shadow-lg transition-all text-sm"
           >
             <Plus className="inline mr-2" size={18} />
             Create Listing

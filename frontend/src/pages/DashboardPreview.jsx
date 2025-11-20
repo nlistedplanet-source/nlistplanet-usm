@@ -18,7 +18,9 @@ import {
   FileText,
   Bell,
   Gift,
-  User as UserIcon
+  User as UserIcon,
+  LogOut,
+  Radio
 } from 'lucide-react';
 
 // Import existing dashboard tabs
@@ -116,6 +118,7 @@ const DashboardPreview = () => {
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Activity },
+    { id: 'broadcast', label: 'Broadcast', icon: Radio },
     { id: 'portfolio', label: 'Portfolio', icon: Briefcase },
     { id: 'posts', label: 'My Posts', icon: FileText },
     { id: 'bids', label: 'Bids Received', icon: TrendingUp },
@@ -129,19 +132,20 @@ const DashboardPreview = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex">
       {/* Left Sidebar Navigation */}
       <aside className="w-64 bg-white border-r border-gray-200 fixed left-0 top-0 h-full overflow-y-auto">
-        {/* User Profile - Moved to Top */}
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex flex-col items-center text-center">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-2xl mb-3">
+        {/* User Profile - Compact */}
+        <div className="p-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
               {user.avatar ? (
                 <img src={user.avatar} alt={user.username} className="w-full h-full rounded-full object-cover" />
               ) : (
                 user.username?.charAt(0).toUpperCase()
               )}
             </div>
-            <h3 className="text-lg font-bold text-gray-900 truncate w-full">{user.username}</h3>
-            <p className="text-sm text-gray-500 truncate w-full">ID: {user.email?.split('@')[0] || 'demo_user'}</p>
-            <p className="text-xs text-gray-400 truncate w-full mt-1">{user.email}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-gray-900 truncate">{user.username}</p>
+              <p className="text-xs text-gray-500 truncate">ID: {user.email?.split('@')[0] || 'demo_user'}</p>
+            </div>
           </div>
         </div>
 
@@ -170,15 +174,21 @@ const DashboardPreview = () => {
           </div>
         </nav>
 
-        {/* Quick Stats in Sidebar */}
-        <div className="p-4 border-t border-gray-100">
-          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-4">
-            <p className="text-xs font-semibold text-gray-600 uppercase mb-2">Portfolio Value</p>
-            <p className="text-2xl font-bold text-gray-900">{formatCurrency(portfolioStats.totalValue)}</p>
-            <div className="flex items-center gap-1 mt-2">
-              <ArrowUpRight size={14} className="text-green-600" />
-              <span className="text-sm font-semibold text-green-600">+{portfolioStats.gainPercentage}%</span>
-            </div>
+        {/* Logout Section */}
+        <div className="p-4 border-t border-gray-100 mt-auto">
+          <button
+            onClick={() => {
+              // Add logout logic here
+              navigate('/login');
+            }}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all text-red-600 hover:bg-red-50"
+          >
+            <LogOut size={20} />
+            <span>Logout</span>
+          </button>
+          <div className="mt-4 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-3 text-center">
+            <p className="text-xs text-gray-600 mb-1">Ad Space</p>
+            <p className="text-xs text-gray-400">Premium ads here</p>
           </div>
         </div>
       </aside>
@@ -470,6 +480,64 @@ const DashboardPreview = () => {
         {activeTab === 'profile' && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <ProfileTab />
+          </div>
+        )}
+        {activeTab === 'broadcast' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Broadcast - All Listings</h2>
+            <p className="text-gray-600 mb-6">View all buy and sell posts from other users in the marketplace</p>
+            
+            {/* Filter Tabs */}
+            <div className="flex gap-4 mb-6 border-b border-gray-200">
+              <button className="pb-3 px-4 font-semibold text-purple-600 border-b-2 border-purple-600">
+                All Posts
+              </button>
+              <button className="pb-3 px-4 font-medium text-gray-600 hover:text-gray-900">
+                Buy Requests
+              </button>
+              <button className="pb-3 px-4 font-medium text-gray-600 hover:text-gray-900">
+                Sell Posts
+              </button>
+            </div>
+
+            {/* Broadcast Listings */}
+            <div className="space-y-4">
+              {[1, 2, 3].map((item) => (
+                <div key={item} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center text-xl">
+                        🏢
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900">Sample Company {item}</h3>
+                        <p className="text-sm text-gray-500">Posted by @user{item} • 2 hours ago</p>
+                      </div>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${item % 2 === 0 ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                      {item % 2 === 0 ? 'SELL' : 'BUY'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 mb-3">
+                    <div>
+                      <p className="text-xs text-gray-500">Price per Share</p>
+                      <p className="font-bold text-gray-900">₹{(15000 * item).toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Quantity</p>
+                      <p className="font-bold text-gray-900">{50 * item} shares</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Min Lot</p>
+                      <p className="font-bold text-gray-900">{10 * item}</p>
+                    </div>
+                  </div>
+                  <button className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition-all">
+                    View Details
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
         {activeTab === 'portfolio' && (
