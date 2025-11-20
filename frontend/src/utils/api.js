@@ -53,6 +53,15 @@ export const portfolioAPI = {
   getActivities: (params) => axios.get('/portfolio/activities', { params }),
 };
 
+// KYC API
+export const kycAPI = {
+  getStatus: () => axios.get('/kyc/status'),
+  submitKYC: (data) => axios.post('/kyc/submit', data),
+  saveDraft: (data) => axios.post('/kyc/draft', data),
+  getPending: () => axios.get('/kyc/pending'), // Admin only
+  verify: (data) => axios.post('/kyc/verify', data), // Admin only
+};
+
 // Admin API
 export const adminAPI = {
   getStats: () => axios.get('/admin/stats'),
