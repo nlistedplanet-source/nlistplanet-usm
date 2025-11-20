@@ -9,7 +9,7 @@ const ProfileTab = () => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showKYCModal, setShowKYCModal] = useState(false);
+  const [generatedUsername, setGeneratedUsername] = useState(user.username);
   const [currentStep, setCurrentStep] = useState(1);
   const [kycDocuments, setKycDocuments] = useState({
     pan: { file: null, preview: null, extracted: null },
@@ -28,6 +28,21 @@ const ProfileTab = () => {
     confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
+
+  const generateRandomUsername = () => {
+    const adjectives = ['Cool', 'Smart', 'Fast', 'Wise', 'Bold', 'Bright', 'Swift', 'Quick', 'Sharp', 'Epic'];
+    const nouns = ['Tiger', 'Eagle', 'Shark', 'Wolf', 'Lion', 'Hawk', 'Bear', 'Fox', 'Panda', 'Dragon'];
+    const randomNum = Math.floor(Math.random() * 999);
+    const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+    return `${randomAdj}${randomNoun}${randomNum}`;
+  };
+
+  const handleShuffleUsername = () => {
+    const newUsername = generateRandomUsername();
+    setGeneratedUsername(newUsername);
+    setProfileData({ ...profileData, username: newUsername });
+  };
 
   const handleFileUpload = (documentType, event) => {
     const file = event.target.files[0];
@@ -192,16 +207,7 @@ const ProfileTab = () => {
             )}
           </div>
           <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <h3 className="text-xl font-bold text-dark-900">@{user.username}</h3>
-              <button 
-                onClick={() => setIsEditing(true)}
-                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                title="Edit username"
-              >
-                <Edit2 size={16} className="text-gray-600" />
-              </button>
-            </div>
+            <h3 className="text-xl font-bold text-dark-900">@{user.username}</h3>
             <p className="text-sm text-dark-600">{user.email}</p>
             <p className="text-xs text-dark-500 mt-1">User ID: {user.userId || user._id?.slice(-8).toUpperCase()}</p>
             <div className="flex items-center gap-2 mt-2">
@@ -228,18 +234,22 @@ const ProfileTab = () => {
               <label className="block text-sm font-semibold text-dark-700 mb-2">
                 Username
               </label>
-              <input
-                type="text"
-                value={profileData.username}
-                onChange={(e) => setProfileData({ ...profileData, username: e.target.value })}
-                className="input-mobile"
-                required
-                minLength="3"
-                maxLength="20"
-                pattern="[a-zA-Z0-9_]+"
-                title="Only letters, numbers and underscore allowed"
-              />
-              <p className="text-xs text-dark-500 mt-1">You can change your username anytime</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={generatedUsername}
+                  readOnly
+                  className="input-mobile flex-1 bg-gray-50"
+                />
+                <button
+                  type="button"
+                  onClick={handleShuffleUsername}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-semibold"
+                >
+                  🔄 Shuffle
+                </button>
+              </div>
+              <p className="text-xs text-dark-500 mt-1">Click shuffle to generate new username suggestions</p>
             </div>
 
             <div>
@@ -273,14 +283,14 @@ const ProfileTab = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 btn-mobile btn-primary flex items-center justify-center gap-2"
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-semibold flex items-center gap-2"
               >
                 {loading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    <Save size={18} />
-                    Save Changes
+                    <Save size={16} />
+                    Save
                   </>
                 )}
               </button>
@@ -288,13 +298,14 @@ const ProfileTab = () => {
                 type="button"
                 onClick={() => {
                   setIsEditing(false);
+                  setGeneratedUsername(user.username);
                   setProfileData({
                     username: user.username,
                     fullName: user.fullName,
                     phone: user.phone
                   });
                 }}
-                className="btn-mobile btn-secondary px-6"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-semibold"
               >
                 Cancel
               </button>
@@ -371,23 +382,6 @@ const ProfileTab = () => {
       {/* Actions */}
       <div className="space-y-3">
         <button
-          onClick={() => setShowKYCModal(true)}
-          className="w-full card-mobile flex items-center gap-3 text-left"
-        >
-          <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-            <Shield size={20} className="text-purple-600" />
-          </div>
-          <div className="flex-1">
-            <p className="font-semibold text-dark-900">KYC Verification</p>
-            <p className="text-xs text-dark-500">
-              {user.kycStatus === 'approved' ? 'Verified ✓' : 
-               user.kycStatus === 'pending' ? 'Under Review' : 
-               'Complete your KYC'}
-            </p>
-          </div>
-        </button>
-
-        <button
           onClick={() => setShowPasswordModal(true)}
           className="w-full card-mobile flex items-center gap-3 text-left"
         >
@@ -412,6 +406,315 @@ const ProfileTab = () => {
             <p className="text-xs text-dark-500">Sign out of your account</p>
           </div>
         </button>
+      </div>
+
+      {/* KYC Verification Section - Inline */}
+      <div className="card-mobile mt-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-dark-900 flex items-center gap-2">
+            <Shield size={20} className="text-purple-600" />
+            KYC Verification
+          </h3>
+          <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${
+            user.kycStatus === 'approved' ? 'bg-green-100 text-green-700' :
+            user.kycStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+            'bg-blue-100 text-blue-700'
+          }`}>
+            {user.kycStatus === 'approved' ? 'Verified ✓' :
+             user.kycStatus === 'pending' ? 'Under Review' :
+             'Not Started'}
+          </span>
+        </div>
+
+        {/* KYC Status Banner */}
+        {user.kycStatus === 'approved' ? (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+            <div className="flex items-center gap-3">
+              <Shield size={24} className="text-green-600" />
+              <div>
+                <p className="font-semibold text-green-900">KYC Verified ✓</p>
+                <p className="text-sm text-green-700">Your account is fully verified</p>
+              </div>
+            </div>
+          </div>
+        ) : user.kycStatus === 'pending' ? (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4">
+            <div className="flex items-center gap-3">
+              <Shield size={24} className="text-yellow-600" />
+              <div>
+                <p className="font-semibold text-yellow-900">Under Review</p>
+                <p className="text-sm text-yellow-700">Your KYC documents are being verified by admin</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+            <div className="flex items-center gap-3">
+              <Shield size={24} className="text-blue-600" />
+              <div>
+                <p className="font-semibold text-blue-900">Complete Your KYC</p>
+                <p className="text-sm text-blue-700">Upload required documents to verify your identity</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* KYC Form - Only show if not approved */}
+        {user.kycStatus !== 'approved' && (
+          <div className="space-y-4">
+            {/* Progress Bar */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-dark-900">Step {currentStep} of 4</span>
+                <span className="text-xs text-dark-600">{Math.round((currentStep / 4) * 100)}% Complete</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(currentStep / 4) * 100}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Step 1: PAN Card */}
+            {currentStep === 1 && (
+              <div className="border border-gray-200 rounded-xl p-4 bg-white">
+                <h4 className="font-bold text-dark-900 mb-3 flex items-center gap-2">
+                  <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm">1</span>
+                  PAN Card
+                </h4>
+                <p className="text-sm text-dark-600 mb-4">Upload your PAN card. We'll extract: Name, DOB, PAN No, Father's Name</p>
+                
+                <input 
+                  type="file" 
+                  accept="image/*,application/pdf"
+                  onChange={(e) => handleFileUpload('pan', e)}
+                  className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 mb-4"
+                />
+
+                {/* Preview */}
+                {kycDocuments.pan.preview && (
+                  <div className="mt-4 space-y-3">
+                    <img src={kycDocuments.pan.preview} alt="PAN Preview" className="w-full h-48 object-cover rounded-lg border" />
+                    
+                    {/* Extracted Data */}
+                    {kycDocuments.pan.extracted && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
+                        <p className="text-xs font-semibold text-green-900 mb-2">✓ Data Extracted:</p>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-dark-600">Name:</span>
+                            <p className="font-semibold text-dark-900">{kycDocuments.pan.extracted.name}</p>
+                          </div>
+                          <div>
+                            <span className="text-dark-600">DOB:</span>
+                            <p className="font-semibold text-dark-900">{kycDocuments.pan.extracted.dob}</p>
+                          </div>
+                          <div>
+                            <span className="text-dark-600">PAN No:</span>
+                            <p className="font-semibold text-dark-900">{kycDocuments.pan.extracted.panNo}</p>
+                          </div>
+                          <div>
+                            <span className="text-dark-600">Father's Name:</span>
+                            <p className="font-semibold text-dark-900">{kycDocuments.pan.extracted.fatherName}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 2: Aadhaar Card */}
+            {currentStep === 2 && (
+              <div className="border border-gray-200 rounded-xl p-4 bg-white">
+                <h4 className="font-bold text-dark-900 mb-3 flex items-center gap-2">
+                  <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm">2</span>
+                  Aadhaar Card (Masked)
+                </h4>
+                <p className="text-sm text-dark-600 mb-2">Upload masked Aadhaar. We'll extract: Address, Last 4 digits</p>
+                <p className="text-xs text-orange-600 mb-4">⚠️ System will auto-mask if you upload unmasked Aadhaar</p>
+                
+                <input 
+                  type="file" 
+                  accept="image/*,application/pdf"
+                  onChange={(e) => handleFileUpload('aadhaar', e)}
+                  className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 mb-4"
+                />
+                <p className="text-xs text-dark-500 mb-4">✓ Name must match with PAN card</p>
+
+                {/* Preview */}
+                {kycDocuments.aadhaar.preview && (
+                  <div className="mt-4 space-y-3">
+                    <img src={kycDocuments.aadhaar.preview} alt="Aadhaar Preview" className="w-full h-48 object-cover rounded-lg border" />
+                    
+                    {/* Extracted Data */}
+                    {kycDocuments.aadhaar.extracted && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
+                        <p className="text-xs font-semibold text-green-900 mb-2">✓ Data Extracted:</p>
+                        <div className="space-y-2 text-xs">
+                          <div>
+                            <span className="text-dark-600">Address:</span>
+                            <p className="font-semibold text-dark-900">{kycDocuments.aadhaar.extracted.address}</p>
+                          </div>
+                          <div>
+                            <span className="text-dark-600">Last 4 Digits:</span>
+                            <p className="font-semibold text-dark-900">XXXX-XXXX-{kycDocuments.aadhaar.extracted.last4Digits}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 3: Bank Document */}
+            {currentStep === 3 && (
+              <div className="border border-gray-200 rounded-xl p-4 bg-white">
+                <h4 className="font-bold text-dark-900 mb-3 flex items-center gap-2">
+                  <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm">3</span>
+                  Bank Document (Cheque/Passbook)
+                </h4>
+                <p className="text-sm text-dark-600 mb-4">Upload cancelled cheque or bank passbook. We'll extract: Account holder name, Account number, IFSC, MICR, Branch</p>
+                
+                <input 
+                  type="file" 
+                  accept="image/*,application/pdf"
+                  onChange={(e) => handleFileUpload('bank', e)}
+                  className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 mb-4"
+                />
+                <p className="text-xs text-dark-500 mb-4">✓ Account holder name must match with PAN</p>
+
+                {/* Preview */}
+                {kycDocuments.bank.preview && (
+                  <div className="mt-4 space-y-3">
+                    <img src={kycDocuments.bank.preview} alt="Bank Preview" className="w-full h-48 object-cover rounded-lg border" />
+                    
+                    {/* Extracted Data */}
+                    {kycDocuments.bank.extracted && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
+                        <p className="text-xs font-semibold text-green-900 mb-2">✓ Data Extracted:</p>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-dark-600">Account Holder:</span>
+                            <p className="font-semibold text-dark-900">{kycDocuments.bank.extracted.accountHolder}</p>
+                          </div>
+                          <div>
+                            <span className="text-dark-600">Account No:</span>
+                            <p className="font-semibold text-dark-900">{kycDocuments.bank.extracted.accountNo}</p>
+                          </div>
+                          <div>
+                            <span className="text-dark-600">IFSC:</span>
+                            <p className="font-semibold text-dark-900">{kycDocuments.bank.extracted.ifsc}</p>
+                          </div>
+                          <div>
+                            <span className="text-dark-600">Branch:</span>
+                            <p className="font-semibold text-dark-900">{kycDocuments.bank.extracted.branch}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 4: CDSL Statement */}
+            {currentStep === 4 && (
+              <div className="border border-gray-200 rounded-xl p-4 bg-white">
+                <h4 className="font-bold text-dark-900 mb-3 flex items-center gap-2">
+                  <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm">4</span>
+                  CDSL/NSDL Statement (CLM Copy)
+                </h4>
+                <p className="text-sm text-dark-600 mb-4">Upload CDSL statement. We'll extract: DP ID</p>
+                
+                <input 
+                  type="file" 
+                  accept="image/*,application/pdf"
+                  onChange={(e) => handleFileUpload('demat', e)}
+                  className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 mb-4"
+                />
+                <p className="text-xs text-dark-500 mb-4">✓ Name must match with PAN</p>
+
+                {/* Preview */}
+                {kycDocuments.demat.preview && (
+                  <div className="mt-4 space-y-3">
+                    <img src={kycDocuments.demat.preview} alt="CDSL Preview" className="w-full h-48 object-cover rounded-lg border" />
+                    
+                    {/* Extracted Data */}
+                    {kycDocuments.demat.extracted && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
+                        <p className="text-xs font-semibold text-green-900 mb-2">✓ Data Extracted:</p>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-dark-600">DP ID:</span>
+                            <p className="font-semibold text-dark-900">{kycDocuments.demat.extracted.dpId}</p>
+                          </div>
+                          <div>
+                            <span className="text-dark-600">Name:</span>
+                            <p className="font-semibold text-dark-900">{kycDocuments.demat.extracted.name}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Validation Info */}
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-4">
+                  <p className="text-sm font-semibold text-amber-900 mb-2">📋 Validation Rules:</p>
+                  <ul className="text-xs text-amber-800 space-y-1 list-disc list-inside">
+                    <li>PAN name must match with Aadhaar name</li>
+                    <li>PAN name must match with Bank account holder name</li>
+                    <li>PAN name must match with CDSL statement name</li>
+                    <li>If names don't match, KYC will be sent to admin for manual approval</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex gap-3">
+              {currentStep > 1 && (
+                <button
+                  type="button"
+                  onClick={handlePreviousStep}
+                  className="flex-1 px-4 py-2 bg-gray-100 text-dark-900 rounded-lg font-semibold hover:bg-gray-200 transition-all"
+                >
+                  Previous
+                </button>
+              )}
+              
+              {currentStep < 4 ? (
+                <button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all"
+                >
+                  Save & Next
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSubmitKYC}
+                  disabled={loading}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Shield size={20} />
+                      Submit KYC Documents
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Change Password Modal */}
@@ -490,317 +793,6 @@ const ProfileTab = () => {
         </>
       )}
 
-      {/* KYC Verification Modal */}
-      {showKYCModal && (
-        <>
-          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setShowKYCModal(false)} />
-          <div className="fixed inset-x-0 bottom-0 md:inset-0 md:flex md:items-center md:justify-center z-50">
-            <div className="bg-white rounded-t-3xl md:rounded-2xl p-6 max-h-[90vh] overflow-y-auto md:max-w-2xl md:w-full md:mx-4">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-dark-900">KYC Verification</h3>
-                <button 
-                  onClick={() => {
-                    setShowKYCModal(false);
-                    setCurrentStep(1);
-                  }}
-                  className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* KYC Status */}
-              {user.kycStatus === 'approved' ? (
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
-                  <div className="flex items-center gap-3">
-                    <Shield size={24} className="text-green-600" />
-                    <div>
-                      <p className="font-semibold text-green-900">KYC Verified ✓</p>
-                      <p className="text-sm text-green-700">Your account is fully verified</p>
-                    </div>
-                  </div>
-                </div>
-              ) : user.kycStatus === 'pending' ? (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
-                  <div className="flex items-center gap-3">
-                    <Shield size={24} className="text-yellow-600" />
-                    <div>
-                      <p className="font-semibold text-yellow-900">Under Review</p>
-                      <p className="text-sm text-yellow-700">Your KYC documents are being verified by admin</p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-                    <div className="flex items-center gap-3">
-                      <Shield size={24} className="text-blue-600" />
-                      <div>
-                        <p className="font-semibold text-blue-900">Complete Your KYC</p>
-                        <p className="text-sm text-blue-700">Upload required documents to verify your identity</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-dark-900">Step {currentStep} of 4</span>
-                      <span className="text-xs text-dark-600">{Math.round((currentStep / 4) * 100)}% Complete</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-gradient-to-r from-purple-600 to-indigo-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${(currentStep / 4) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* Multi-Step Form - Only show if not approved */}
-              {user.kycStatus !== 'approved' && (
-                <div className="space-y-6">
-                  {/* Step 1: PAN Card */}
-                  {currentStep === 1 && (
-                    <div className="border border-gray-200 rounded-xl p-4">
-                      <h4 className="font-bold text-dark-900 mb-3 flex items-center gap-2">
-                        <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm">1</span>
-                        PAN Card
-                      </h4>
-                      <p className="text-sm text-dark-600 mb-4">Upload your PAN card. We'll extract: Name, DOB, PAN No, Father's Name</p>
-                      
-                      <input 
-                        type="file" 
-                        accept="image/*,application/pdf"
-                        onChange={(e) => handleFileUpload('pan', e)}
-                        className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 mb-4"
-                      />
-
-                      {/* Preview */}
-                      {kycDocuments.pan.preview && (
-                        <div className="mt-4 space-y-3">
-                          <img src={kycDocuments.pan.preview} alt="PAN Preview" className="w-full h-48 object-cover rounded-lg border" />
-                          
-                          {/* Extracted Data */}
-                          {kycDocuments.pan.extracted && (
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
-                              <p className="text-xs font-semibold text-green-900 mb-2">✓ Data Extracted:</p>
-                              <div className="grid grid-cols-2 gap-2 text-xs">
-                                <div>
-                                  <span className="text-dark-600">Name:</span>
-                                  <p className="font-semibold text-dark-900">{kycDocuments.pan.extracted.name}</p>
-                                </div>
-                                <div>
-                                  <span className="text-dark-600">DOB:</span>
-                                  <p className="font-semibold text-dark-900">{kycDocuments.pan.extracted.dob}</p>
-                                </div>
-                                <div>
-                                  <span className="text-dark-600">PAN No:</span>
-                                  <p className="font-semibold text-dark-900">{kycDocuments.pan.extracted.panNo}</p>
-                                </div>
-                                <div>
-                                  <span className="text-dark-600">Father's Name:</span>
-                                  <p className="font-semibold text-dark-900">{kycDocuments.pan.extracted.fatherName}</p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Step 2: Aadhaar Card */}
-                  {currentStep === 2 && (
-                    <div className="border border-gray-200 rounded-xl p-4">
-                      <h4 className="font-bold text-dark-900 mb-3 flex items-center gap-2">
-                        <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm">2</span>
-                        Aadhaar Card (Masked)
-                      </h4>
-                      <p className="text-sm text-dark-600 mb-2">Upload masked Aadhaar. We'll extract: Address, Last 4 digits</p>
-                      <p className="text-xs text-orange-600 mb-4">⚠️ System will auto-mask if you upload unmasked Aadhaar</p>
-                      
-                      <input 
-                        type="file" 
-                        accept="image/*,application/pdf"
-                        onChange={(e) => handleFileUpload('aadhaar', e)}
-                        className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 mb-4"
-                      />
-                      <p className="text-xs text-dark-500 mb-4">✓ Name must match with PAN card</p>
-
-                      {/* Preview */}
-                      {kycDocuments.aadhaar.preview && (
-                        <div className="mt-4 space-y-3">
-                          <img src={kycDocuments.aadhaar.preview} alt="Aadhaar Preview" className="w-full h-48 object-cover rounded-lg border" />
-                          
-                          {/* Extracted Data */}
-                          {kycDocuments.aadhaar.extracted && (
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
-                              <p className="text-xs font-semibold text-green-900 mb-2">✓ Data Extracted:</p>
-                              <div className="space-y-2 text-xs">
-                                <div>
-                                  <span className="text-dark-600">Address:</span>
-                                  <p className="font-semibold text-dark-900">{kycDocuments.aadhaar.extracted.address}</p>
-                                </div>
-                                <div>
-                                  <span className="text-dark-600">Last 4 Digits:</span>
-                                  <p className="font-semibold text-dark-900">XXXX-XXXX-{kycDocuments.aadhaar.extracted.last4Digits}</p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Step 3: Bank Document */}
-                  {currentStep === 3 && (
-                    <div className="border border-gray-200 rounded-xl p-4">
-                      <h4 className="font-bold text-dark-900 mb-3 flex items-center gap-2">
-                        <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm">3</span>
-                        Bank Document (Cheque/Passbook)
-                      </h4>
-                      <p className="text-sm text-dark-600 mb-4">Upload cancelled cheque or bank passbook. We'll extract: Account holder name, Account number, IFSC, MICR, Branch</p>
-                      
-                      <input 
-                        type="file" 
-                        accept="image/*,application/pdf"
-                        onChange={(e) => handleFileUpload('bank', e)}
-                        className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 mb-4"
-                      />
-                      <p className="text-xs text-dark-500 mb-4">✓ Account holder name must match with PAN</p>
-
-                      {/* Preview */}
-                      {kycDocuments.bank.preview && (
-                        <div className="mt-4 space-y-3">
-                          <img src={kycDocuments.bank.preview} alt="Bank Preview" className="w-full h-48 object-cover rounded-lg border" />
-                          
-                          {/* Extracted Data */}
-                          {kycDocuments.bank.extracted && (
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
-                              <p className="text-xs font-semibold text-green-900 mb-2">✓ Data Extracted:</p>
-                              <div className="grid grid-cols-2 gap-2 text-xs">
-                                <div>
-                                  <span className="text-dark-600">Account Holder:</span>
-                                  <p className="font-semibold text-dark-900">{kycDocuments.bank.extracted.accountHolder}</p>
-                                </div>
-                                <div>
-                                  <span className="text-dark-600">Account No:</span>
-                                  <p className="font-semibold text-dark-900">{kycDocuments.bank.extracted.accountNo}</p>
-                                </div>
-                                <div>
-                                  <span className="text-dark-600">IFSC:</span>
-                                  <p className="font-semibold text-dark-900">{kycDocuments.bank.extracted.ifsc}</p>
-                                </div>
-                                <div>
-                                  <span className="text-dark-600">Branch:</span>
-                                  <p className="font-semibold text-dark-900">{kycDocuments.bank.extracted.branch}</p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Step 4: CDSL Statement */}
-                  {currentStep === 4 && (
-                    <div className="border border-gray-200 rounded-xl p-4">
-                      <h4 className="font-bold text-dark-900 mb-3 flex items-center gap-2">
-                        <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm">4</span>
-                        CDSL/NSDL Statement (CLM Copy)
-                      </h4>
-                      <p className="text-sm text-dark-600 mb-4">Upload CDSL statement. We'll extract: DP ID</p>
-                      
-                      <input 
-                        type="file" 
-                        accept="image/*,application/pdf"
-                        onChange={(e) => handleFileUpload('demat', e)}
-                        className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 mb-4"
-                      />
-                      <p className="text-xs text-dark-500 mb-4">✓ Name must match with PAN</p>
-
-                      {/* Preview */}
-                      {kycDocuments.demat.preview && (
-                        <div className="mt-4 space-y-3">
-                          <img src={kycDocuments.demat.preview} alt="CDSL Preview" className="w-full h-48 object-cover rounded-lg border" />
-                          
-                          {/* Extracted Data */}
-                          {kycDocuments.demat.extracted && (
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
-                              <p className="text-xs font-semibold text-green-900 mb-2">✓ Data Extracted:</p>
-                              <div className="grid grid-cols-2 gap-2 text-xs">
-                                <div>
-                                  <span className="text-dark-600">DP ID:</span>
-                                  <p className="font-semibold text-dark-900">{kycDocuments.demat.extracted.dpId}</p>
-                                </div>
-                                <div>
-                                  <span className="text-dark-600">Name:</span>
-                                  <p className="font-semibold text-dark-900">{kycDocuments.demat.extracted.name}</p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Validation Info */}
-                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-4">
-                        <p className="text-sm font-semibold text-amber-900 mb-2">📋 Validation Rules:</p>
-                        <ul className="text-xs text-amber-800 space-y-1 list-disc list-inside">
-                          <li>PAN name must match with Aadhaar name</li>
-                          <li>PAN name must match with Bank account holder name</li>
-                          <li>PAN name must match with CDSL statement name</li>
-                          <li>If names don't match, KYC will be sent to admin for manual approval</li>
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Navigation Buttons */}
-                  <div className="flex gap-3">
-                    {currentStep > 1 && (
-                      <button
-                        onClick={handlePreviousStep}
-                        className="flex-1 bg-gray-100 text-dark-900 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-all"
-                      >
-                        Previous
-                      </button>
-                    )}
-                    
-                    {currentStep < 4 ? (
-                      <button
-                        onClick={handleNextStep}
-                        className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
-                      >
-                        Save & Next
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleSubmitKYC}
-                        disabled={loading}
-                        className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      >
-                        {loading ? (
-                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        ) : (
-                          <>
-                            <Shield size={20} />
-                            Submit KYC Documents
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
     </div>
   );
 };
