@@ -32,6 +32,7 @@ import OffersTab from '../components/dashboard/OffersTab';
 import NotificationsTab from '../components/dashboard/NotificationsTab';
 import ReferralsTab from '../components/dashboard/ReferralsTab';
 import ProfileTab from '../components/dashboard/ProfileTab';
+import MarketplaceCard from '../components/MarketplaceCard';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -452,88 +453,39 @@ const DashboardPage = () => {
         </div>
           </>
         )}
-          </>
-        )}
 
         {/* Marketplace Tab */}
         {activeTab === 'marketplace' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="w-full">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Marketplace - All Listings</h2>
-            <p className="text-gray-600 mb-6">View all buy and sell posts from other users (excluding your own posts)</p>
-            
+            <p className="text-gray-600 mb-4">View all buy and sell posts from other users (excluding your own posts)</p>
             {marketplaceLoading ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader className="animate-spin text-purple-600 mb-3" size={40} />
-                <p className="text-gray-600">Loading marketplace...</p>
+              <div className="flex justify-center items-center h-32">
+                <span className="text-gray-600">Loading marketplace...</span>
               </div>
             ) : marketplaceListings.length === 0 ? (
-              <div className="text-center py-12">
-                <Package className="mx-auto text-gray-300 mb-3" size={48} />
-                <p className="text-gray-600 font-medium mb-2">No listings available</p>
-                <p className="text-gray-500 text-sm">Check back later for new opportunities</p>
+              <div className="flex justify-center items-center h-32">
+                <span className="text-gray-600">No listings found</span>
               </div>
             ) : (
-              <div className="grid gap-4">
+              <div className="flex flex-col gap-6">
                 {marketplaceListings.map((listing) => (
-                  <div key={listing._id} className="border border-gray-200 rounded-xl p-4 hover:border-purple-300 hover:shadow-md transition-all">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center">
-                          {listing.companyId?.logo ? (
-                            <img src={listing.companyId.logo} alt={listing.companyName} className="w-10 h-10 object-contain" />
-                          ) : (
-                            <span className="text-xl">{listing.companyName?.charAt(0)}</span>
-                          )}
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-gray-900">{listing.companyName}</h3>
-                          <p className="text-sm text-gray-600">@{listing.userId?.username}</p>
-                        </div>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        listing.type === 'sell' 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {listing.type === 'sell' ? 'BUY Opportunity' : 'SELL Opportunity'}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                      <div>
-                        <p className="text-xs text-gray-500">Price per share</p>
-                        <p className="font-bold text-gray-900">{formatCurrency(calculateTotalWithFee(listing.price))}</p>
-                        <p className="text-xs text-gray-500">(incl. fees)</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Quantity</p>
-                        <p className="font-semibold text-gray-900">{listing.quantity} shares</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Min Lot</p>
-                        <p className="font-semibold text-gray-900">{listing.minLot || 1}</p>
-                      </div>
-                    </div>
-
-                    {listing.description && (
-                      <p className="text-sm text-gray-600 mb-4">{listing.description}</p>
-                    )}
-
-                    <div className="flex gap-2">
-                      <button 
-                        className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition-all"
-                        onClick={() => {
-                          /* TODO: Implement bid/offer modal */
-                          toast.success(`${listing.type === 'sell' ? 'Bid' : 'Offer'} functionality coming soon!`);
-                        }}
-                      >
-                        {listing.type === 'sell' ? 'Place Bid' : 'Make Offer'}
-                      </button>
-                      <button className="px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50">
-                        View Details
-                      </button>
-                    </div>
-                  </div>
+                  <MarketplaceCard
+                    key={listing._id}
+                    type={listing.type}
+                    companyLogo={listing.companyId?.Logo || listing.companyId?.logo}
+                    companyName={listing.companyName}
+                    companySymbol={listing.companyId?.ScripName || listing.companyId?.symbol}
+                    companyPan={listing.companyId?.PAN || listing.companyId?.pan}
+                    companyIsin={listing.companyId?.ISIN || listing.companyId?.isin}
+                    companyCin={listing.companyId?.CIN || listing.companyId?.cin}
+                    price={calculateTotalWithFee(listing.price)}
+                    shares={listing.quantity}
+                    user={listing.username}
+                    onPrimary={() => {}}
+                    onSecondary={() => {}}
+                    onShare={() => {}}
+                  />
                 ))}
               </div>
             )}
