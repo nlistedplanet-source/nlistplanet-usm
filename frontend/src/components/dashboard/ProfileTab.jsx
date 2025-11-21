@@ -918,6 +918,7 @@ const ProfileTab = () => {
       )}
       
     </div>
+    </div>
   );
 };
 
