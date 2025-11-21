@@ -470,7 +470,7 @@ const DashboardPage = () => {
                 <span className="text-gray-600">No listings found</span>
               </div>
             ) : (
-              <div className="flex flex-col gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {marketplaceListings.map((listing) => (
                   <MarketplaceCard
                     key={listing._id}
