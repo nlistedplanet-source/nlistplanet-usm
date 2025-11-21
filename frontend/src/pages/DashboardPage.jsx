@@ -378,7 +378,7 @@ const DashboardPage = () => {
             
             <div className="p-6 border-t border-gray-100">
               <button 
-                onClick={() => navigate('/marketplace')}
+                onClick={() => handleTabChange('marketplace')}
                 className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
               >
                 <ShoppingCart size={20} />
