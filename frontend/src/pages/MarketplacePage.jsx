@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Unlock, Users } from 'lucide-react';
 import { listingsAPI } from '../utils/api';
 import toast from 'react-hot-toast';
+import MarketplaceCard from '../components/MarketplaceCard';
 
 const MarketplacePage = () => {
   const [buyListings, setBuyListings] = useState([]);
@@ -53,19 +54,22 @@ const MarketplacePage = () => {
             <p className="col-span-3 text-center text-gray-500">Loading...</p>
           ) : buyListings.length > 0 ? (
             buyListings.map((listing) => (
-              <div key={listing._id} className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition-all duration-300 border border-emerald-100">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-emerald-100 rounded-full w-12 h-12 flex items-center justify-center font-bold text-emerald-600">BUY</div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-gray-800 text-lg">{listing.companyName}</h3>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-gray-600"><span className="font-semibold">Price:</span> ₹{listing.price}/share</p>
-                  <p className="text-gray-600"><span className="font-semibold">Min Qty:</span> {listing.minQuantity} shares</p>
-                  <p className="text-gray-600"><span className="font-semibold">Total Qty:</span> {listing.quantity} shares</p>
-                </div>
-              </div>
+              <MarketplaceCard
+                key={listing._id}
+                type="buy"
+                companyLogo={listing.companyId?.logo}
+                companyName={listing.companyName}
+                companySymbol={listing.companyId?.symbol}
+                companyPan={listing.companyId?.pan}
+                companyIsin={listing.companyId?.isin}
+                companyCin={listing.companyId?.cin}
+                price={listing.price}
+                shares={listing.quantity}
+                user={listing.username}
+                onPrimary={() => {}}
+                onSecondary={() => {}}
+                onShare={() => {}}
+              />
             ))
           ) : (
             <p className="col-span-3 text-center text-gray-500">No buy listings available</p>
@@ -98,19 +102,22 @@ const MarketplacePage = () => {
             <p className="col-span-3 text-center text-gray-500">Loading...</p>
           ) : sellListings.length > 0 ? (
             sellListings.map((listing) => (
-              <div key={listing._id} className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition-all duration-300 border border-indigo-100">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-indigo-100 rounded-full w-12 h-12 flex items-center justify-center font-bold text-indigo-600">SELL</div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-gray-800 text-lg">{listing.companyName}</h3>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-gray-600"><span className="font-semibold">Price:</span> ₹{listing.price}/share</p>
-                  <p className="text-gray-600"><span className="font-semibold">Min Qty:</span> {listing.minQuantity} shares</p>
-                  <p className="text-gray-600"><span className="font-semibold">Total Qty:</span> {listing.quantity} shares</p>
-                </div>
-              </div>
+              <MarketplaceCard
+                key={listing._id}
+                type="sell"
+                companyLogo={listing.companyId?.logo}
+                companyName={listing.companyName}
+                companySymbol={listing.companyId?.symbol}
+                companyPan={listing.companyId?.pan}
+                companyIsin={listing.companyId?.isin}
+                companyCin={listing.companyId?.cin}
+                price={listing.price}
+                shares={listing.quantity}
+                user={listing.username}
+                onPrimary={() => {}}
+                onSecondary={() => {}}
+                onShare={() => {}}
+              />
             ))
           ) : (
             <p className="col-span-3 text-center text-gray-500">No sell listings available</p>
