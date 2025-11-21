@@ -840,7 +840,8 @@ const ProfileTab = () => {
         </button>
       </div>
 
-      {/* KYC Verification Section Removed */
+      {/* KYC Verification Section Removed */}
+      
       {/* Change Password Modal */}
       {showPasswordModal && (
         <>
@@ -916,8 +917,6 @@ const ProfileTab = () => {
           </div>
         </>
       )}
-      
-    </div>
     </div>
   );
 };
