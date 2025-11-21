@@ -84,7 +84,11 @@ const DashboardPage = () => {
       try {
         setMarketplaceLoading(true);
         const response = await listingsAPI.getAll({ limit: 50 });
-        setMarketplaceListings(response.data.data);
+        // Filter out current user's own listings
+        const filteredListings = response.data.data.filter(
+          listing => listing.userId?._id !== user?._id && listing.userId !== user?._id
+        );
+        setMarketplaceListings(filteredListings);
       } catch (error) {
         console.error('Failed to fetch marketplace listings:', error);
         toast.error('Failed to load marketplace listings');
@@ -96,7 +100,7 @@ const DashboardPage = () => {
     if (activeTab === 'marketplace') {
       fetchMarketplaceListings();
     }
-  }, [activeTab]);
+  }, [activeTab, user]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
