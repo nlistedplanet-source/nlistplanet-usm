@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { portfolioAPI, listingsAPI } from '../utils/api';
+import { calculateTotalWithFee } from '../utils/helpers';
 import toast from 'react-hot-toast';
 import MyPostsTab from '../components/dashboard/MyPostsTab';
 import BidsTab from '../components/dashboard/BidsTab';
@@ -501,7 +502,8 @@ const DashboardPage = () => {
                     <div className="grid grid-cols-3 gap-4 mb-4">
                       <div>
                         <p className="text-xs text-gray-500">Price per share</p>
-                        <p className="font-bold text-gray-900">{formatCurrency(listing.price)}</p>
+                        <p className="font-bold text-gray-900">{formatCurrency(calculateTotalWithFee(listing.price))}</p>
+                        <p className="text-xs text-gray-500">(incl. fees)</p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500">Quantity</p>
