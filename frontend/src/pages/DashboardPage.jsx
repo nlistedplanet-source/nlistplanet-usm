@@ -464,17 +464,17 @@ const DashboardPage = () => {
         {activeTab === 'marketplace' && (
           <div className="w-full">
             {/* Creative Title */}
-            <div className="mb-8 text-center">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+            <div className="mb-4 text-center">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent mb-1">
                 Discover & Trade Unlisted Shares
               </h1>
-              <p className="text-gray-600">View all buy and sell posts from other users (excluding your own posts)</p>
+              <p className="text-sm text-gray-600">View all buy and sell posts from other users (excluding your own posts)</p>
             </div>
 
             {/* Modern Search Box */}
-            <div className="mb-6 relative">
-              <div className="relative max-w-2xl mx-auto">
-                <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mb-4 relative">
+              <div className="relative max-w-xl mx-auto">
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <input
@@ -482,18 +482,18 @@ const DashboardPage = () => {
                   placeholder="Search by company name, sector, or user..."
                   value={marketplaceSearch}
                   onChange={(e) => setMarketplaceSearch(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-2xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all text-gray-700 placeholder-gray-400 shadow-sm"
+                  className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all text-sm text-gray-700 placeholder-gray-400 shadow-sm"
                 />
               </div>
             </div>
 
             {/* Buy/Sell Tabs + Filter/Sort */}
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               {/* Buy/Sell Tabs */}
-              <div className="flex gap-2 bg-gray-100 p-1.5 rounded-xl">
+              <div className="flex gap-1.5 bg-gray-100 p-1 rounded-lg">
                 <button
                   onClick={() => setActiveMarketTab('all')}
-                  className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
+                  className={`px-4 py-1.5 rounded-md font-semibold text-sm transition-all ${
                     activeMarketTab === 'all'
                       ? 'bg-white text-emerald-600 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
@@ -503,7 +503,7 @@ const DashboardPage = () => {
                 </button>
                 <button
                   onClick={() => setActiveMarketTab('buy')}
-                  className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
+                  className={`px-4 py-1.5 rounded-md font-semibold text-sm transition-all ${
                     activeMarketTab === 'buy'
                       ? 'bg-white text-yellow-600 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
@@ -513,7 +513,7 @@ const DashboardPage = () => {
                 </button>
                 <button
                   onClick={() => setActiveMarketTab('sell')}
-                  className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
+                  className={`px-4 py-1.5 rounded-md font-semibold text-sm transition-all ${
                     activeMarketTab === 'sell'
                       ? 'bg-white text-emerald-600 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
@@ -524,11 +524,11 @@ const DashboardPage = () => {
               </div>
 
               {/* Filter & Sort */}
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <select
                   value={marketplaceSort}
                   onChange={(e) => setMarketplaceSort(e.target.value)}
-                  className="px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all text-gray-700 bg-white cursor-pointer font-medium"
+                  className="px-3 py-1.5 text-sm border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all text-gray-700 bg-white cursor-pointer font-medium"
                 >
                   <option value="latest">Latest First</option>
                   <option value="price-high">Price: High to Low</option>
@@ -540,7 +540,7 @@ const DashboardPage = () => {
                 <select
                   value={marketplaceFilter}
                   onChange={(e) => setMarketplaceFilter(e.target.value)}
-                  className="px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all text-gray-700 bg-white cursor-pointer font-medium"
+                  className="px-3 py-1.5 text-sm border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all text-gray-700 bg-white cursor-pointer font-medium"
                 >
                   <option value="all">All Sectors</option>
                   <option value="finance">Finance</option>
