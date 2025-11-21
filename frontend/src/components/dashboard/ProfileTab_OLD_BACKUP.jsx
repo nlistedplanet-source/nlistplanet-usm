@@ -1,27 +1,12 @@
 import React, { useState } from 'react';
-import { User, Mail, Phone, Edit2, Key, LogOut, Shield, Shuffle, Calendar, MapPin, Briefcase, Building, Users, CreditCard, FileText, CheckCircle, XCircle, AlertCircle, Bell, Palette, Camera, Save } from 'lucide-react';
+import { User, Mail, Phone, Edit2, Key, LogOut, Shield, Shuffle, Calendar, MapPin, Briefcase, Building, Users, CreditCard, FileText, CheckCircle, XCircle, AlertCircle, Bell, Palette, Camera } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { kycAPI } from '../../utils/api';
 
-// ProfileTab Component - Updated Design v2.0
 const ProfileTab = () => {
   const { user, logout, updateProfile, changePassword } = useAuth();
   const navigate = useNavigate();
-  
-  // If no user, show loading or placeholder
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
-  
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showKYCModal, setShowKYCModal] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -30,24 +15,6 @@ const ProfileTab = () => {
     confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
-  
-  // Profile editing state
-  const [isEditing, setIsEditing] = useState(false);
-  const [profileData, setProfileData] = useState({
-    username: user?.username || '',
-    fullName: user?.fullName || '',
-    phone: user?.phone || ''
-  });
-  const [generatedUsername, setGeneratedUsername] = useState(user?.username || '');
-  
-  // KYC document upload state
-  const [currentStep, setCurrentStep] = useState(1);
-  const [kycDocuments, setKycDocuments] = useState({
-    pan: { file: null, preview: null, extracted: null },
-    aadhaar: { file: null, preview: null, extracted: null },
-    bank: { file: null, preview: null, extracted: null },
-    demat: { file: null, preview: null, extracted: null }
-  });
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -78,107 +45,6 @@ const ProfileTab = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
-  };
-  
-  // Username shuffle handler
-  const generateRandomUsername = () => {
-    const adjectives = ['Cool', 'Smart', 'Fast', 'Wise', 'Bold', 'Bright', 'Swift', 'Quick', 'Sharp', 'Epic'];
-    const nouns = ['Tiger', 'Eagle', 'Shark', 'Wolf', 'Lion', 'Hawk', 'Bear', 'Fox', 'Panda', 'Dragon'];
-    const randomNum = Math.floor(Math.random() * 999);
-    const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
-    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-    return `${randomAdj}${randomNoun}${randomNum}`;
-  };
-
-  const handleShuffleUsername = () => {
-    setGeneratedUsername(generateRandomUsername());
-  };
-
-  // Profile update handler
-  const handleUpdateProfile = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const success = await updateProfile({
-        username: generatedUsername,
-        fullName: profileData.fullName,
-        phone: profileData.phone
-      });
-      if (success) {
-        setIsEditing(false);
-        toast.success('Profile updated successfully!');
-      }
-    } catch (error) {
-      toast.error('Failed to update profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // File upload handler for KYC documents
-  const handleFileUpload = (docType, event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setKycDocuments(prev => ({
-        ...prev,
-        [docType]: { 
-          file, 
-          preview: reader.result,
-          extracted: null // Mock extraction - in real app, call OCR API
-        }
-      }));
-      toast.success(`${docType.toUpperCase()} uploaded successfully`);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  // KYC step navigation
-  const handleNextStep = () => {
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handlePreviousStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  // KYC submission
-  const handleSubmitKYC = async () => {
-    setLoading(true);
-    try {
-      const kycData = {
-        documents: {
-          pan: kycDocuments.pan.preview,
-          aadhaar: kycDocuments.aadhaar.preview,
-          bankProof: kycDocuments.bank.preview,
-          cdslStatement: kycDocuments.demat.preview
-        }
-      };
-      await kycAPI.submitKYC(kycData);
-      toast.success('KYC submitted successfully!');
-      setCurrentStep(1);
-      setKycDocuments({
-        pan: { file: null, preview: null, extracted: null },
-        aadhaar: { file: null, preview: null, extracted: null },
-        bank: { file: null, preview: null, extracted: null },
-        demat: { file: null, preview: null, extracted: null }
-      });
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to submit KYC');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const getDocumentStatusIcon = (docStatus) => {
@@ -738,19 +604,6 @@ const ProfileTab = () => {
         )}
       </div>
 
-      {/* KYC Edit Modal */}
-      {showKYCModal && (
-        <KYCEditModal 
-          user={user} 
-          onClose={() => setShowKYCModal(false)}
-          onSuccess={() => {
-            setShowKYCModal(false);
-            toast.success('Profile updated successfully!');
-            window.location.reload(); // Reload to get updated user data
-          }}
-        />
-      )}
-
       {/* Change Password Modal */}
       {showPasswordModal && (
         <>
@@ -828,210 +681,6 @@ const ProfileTab = () => {
       )}
 
     </div>
-  );
-};
-
-// KYC Edit Modal Component
-const KYCEditModal = ({ user, onClose, onSuccess }) => {
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: user.fullName || '',
-    email: user.email || '',
-    phone: user.phone || '',
-    userId: user.userId || user._id?.slice(-8).toUpperCase() || '',
-    username: user.username || '',
-    dob: user.dob ? new Date(user.dob).toISOString().split('T')[0] : '',
-    gender: user.gender || '',
-    addressLine1: user.address?.line1 || '',
-    addressLine2: user.address?.line2 || '',
-    addressLine3: user.address?.line3 || '',
-    city: user.address?.city || '',
-    state: user.address?.state || '',
-    pincode: user.address?.pincode || '',
-    country: user.address?.country || 'India',
-    incomeRange: user.workIncome?.incomeRange || '',
-    sourceOfWealth: user.workIncome?.sourceOfWealth || '',
-    accountType: user.bankAccount?.accountType || '',
-    accountNumber: user.bankAccount?.accountNumber || '',
-    ifsc: user.bankAccount?.ifsc || '',
-    bankName: user.bankAccount?.bankName || '',
-    branch: user.bankAccount?.branch || '',
-    nomineeName: user.nominee?.name || '',
-    nomineeRelationship: user.nominee?.relationship || '',
-    nomineeDob: user.nominee?.dob ? new Date(user.nominee.dob).toISOString().split('T')[0] : '',
-    nomineeMobile: user.nominee?.mobile || '',
-    nomineeSharePercentage: user.nominee?.sharePercentage || 100,
-    nomineeCopyAddress: user.nominee?.copyAddress || false,
-    dpId: user.dematAccount?.dpId || '',
-    clientId: user.dematAccount?.clientId || '',
-    agreeTerms: false
-  });
-
-  const [documents, setDocuments] = useState({
-    pan: { file: null, preview: user.kycDocuments?.pan?.url || null },
-    aadhaar: { file: null, preview: user.kycDocuments?.aadhaar?.url || null },
-    bankProof: { file: null, preview: user.kycDocuments?.bankProof?.url || null },
-    cdslStatement: { file: null, preview: user.kycDocuments?.cdslStatement?.url || null }
-  });
-
-  const generateRandomUsername = () => {
-    const adjectives = ['Cool', 'Smart', 'Fast', 'Wise', 'Bold', 'Bright', 'Swift', 'Quick', 'Sharp', 'Epic'];
-    const nouns = ['Tiger', 'Eagle', 'Shark', 'Wolf', 'Lion', 'Hawk', 'Bear', 'Fox', 'Panda', 'Dragon'];
-    const randomNum = Math.floor(Math.random() * 999);
-    const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
-    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-    return `${randomAdj}${randomNoun}${randomNum}`;
-  };
-
-  const handleShuffleUsername = () => {
-    setFormData({ ...formData, username: generateRandomUsername() });
-  };
-
-  const handleFileUpload = (docType, event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setDocuments(prev => ({
-        ...prev,
-        [docType]: { file, preview: reader.result }
-      }));
-      toast.success(`${docType.toUpperCase()} uploaded`);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleSubmit = async (isDraft = false) => {
-    if (!isDraft && !formData.agreeTerms) {
-      toast.error('Please confirm that all information is accurate');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const kycData = {
-        fullName: formData.fullName,
-        username: formData.username,
-        dob: formData.dob,
-        gender: formData.gender,
-        address: {
-          line1: formData.addressLine1,
-          line2: formData.addressLine2,
-          line3: formData.addressLine3,
-          city: formData.city,
-          state: formData.state,
-          pincode: formData.pincode,
-          country: formData.country
-        },
-        workIncome: {
-          incomeRange: formData.incomeRange,
-          sourceOfWealth: formData.sourceOfWealth
-        },
-        bankAccount: {
-          accountType: formData.accountType,
-          accountNumber: formData.accountNumber,
-          ifsc: formData.ifsc,
-          bankName: formData.bankName,
-          branch: formData.branch
-        },
-        nominee: {
-          name: formData.nomineeName,
-          relationship: formData.nomineeRelationship,
-          dob: formData.nomineeDob,
-          mobile: formData.nomineeMobile,
-          sharePercentage: formData.nomineeSharePercentage,
-          copyAddress: formData.nomineeCopyAddress
-        },
-        dematAccount: {
-          dpId: formData.dpId,
-          clientId: formData.clientId
-        },
-        documents: {
-          pan: documents.pan.preview,
-          aadhaar: documents.aadhaar.preview,
-          bankProof: documents.bankProof.preview,
-          cdslStatement: documents.cdslStatement.preview
-        }
-      };
-
-      if (isDraft) {
-        await kycAPI.saveDraft(kycData);
-        toast.success('Draft saved successfully!');
-      } else {
-        await kycAPI.submitKYC(kycData);
-        toast.success('KYC submitted for verification!');
-        onSuccess();
-      }
-    } catch (error) {
-      console.error('KYC submission error:', error);
-      toast.error(error.response?.data?.message || 'Failed to submit KYC');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <>
-      <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
-      <div className="fixed inset-4 z-50 bg-white rounded-2xl overflow-hidden flex flex-col md:inset-auto md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-4xl md:h-[90vh]">
-        {/* Header */}
-        <div className="p-6 border-b bg-gradient-to-r from-purple-600 to-indigo-600">
-          <h3 className="text-2xl font-bold text-white">Complete Your KYC</h3>
-          <p className="text-sm text-purple-100 mt-1">Fill all details and upload required documents</p>
-        </div>
-
-        {/* Form Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="space-y-6">
-            {/* Rest of the form sections will be abbreviated for space */}
-            <div className="text-center p-8">
-              <p className="text-dark-600">KYC Form implementation in progress...</p>
-              <p className="text-sm text-dark-500 mt-2">Basic Info, Address, Work & Income, Bank, Nominee, Demat, Documents sections</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer Buttons */}
-        <div className="p-6 border-t bg-gray-50 flex gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSubmit(true)}
-            disabled={loading}
-            className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
-          >
-            Save as Draft
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSubmit(false)}
-            disabled={loading}
-            className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <>
-                <Shield size={18} />
-                Submit for Review
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    </>
   );
 };
 

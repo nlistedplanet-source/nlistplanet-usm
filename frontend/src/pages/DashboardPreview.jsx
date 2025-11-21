@@ -29,19 +29,29 @@ import BidsTab from '../components/dashboard/BidsTab';
 import OffersTab from '../components/dashboard/OffersTab';
 import NotificationsTab from '../components/dashboard/NotificationsTab';
 import ReferralsTab from '../components/dashboard/ReferralsTab';
-import ProfileTab from '../components/dashboard/ProfileTab';
+import ProfileTabPreview from '../components/dashboard/ProfileTabPreview';
 
 const DashboardPreview = () => {
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('profile');
 
   // Use authenticated user or mock user for preview
-  const user = authUser || {
-    username: 'demo_user',
-    email: 'demo@example.com',
+  const mockUser = {
+    _id: 'mock123',
+    username: 'edison_player_907',
+    fullName: 'Praveen Singh',
+    email: 'praveensingh1@hotmail.com',
+    phone: '9580118412',
+    userId: 'USR12345',
+    role: 'user',
+    kycStatus: 'not_started',
+    totalReferrals: 0,
+    totalEarnings: 0,
     avatar: null
   };
+  
+  const user = authUser || mockUser;
 
   // Mock portfolio data
   const portfolioStats = {
@@ -456,7 +466,7 @@ const DashboardPreview = () => {
         )}
         {activeTab === 'profile' && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <ProfileTab />
+            <ProfileTabPreview mockUser={user} />
           </div>
         )}
         {activeTab === 'broadcast' && (
