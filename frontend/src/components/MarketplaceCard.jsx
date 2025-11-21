@@ -32,6 +32,8 @@ const MarketplaceCard = ({
   onPrimary,
   onSecondary,
   onShare,
+  onLike,
+  isLiked = false,
 }) => {
   const isSell = type === 'sell';
   // Accent color and background based on type
@@ -115,45 +117,53 @@ const MarketplaceCard = ({
         {isSell ? (
           <>
             <button
-              className="flex-1 py-1.5 rounded-lg font-semibold text-xs bg-gray-800 text-emerald-400 hover:bg-gray-900 shadow"
+              className="flex-1 py-1.5 rounded-lg font-semibold text-xs bg-gray-800 text-emerald-400 hover:bg-gray-900 shadow transition-colors"
               onClick={onPrimary}
             >
               Place Your Bid
             </button>
             <button
-              className="flex-1 py-1.5 rounded-lg font-semibold text-xs border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+              className="flex-1 py-1.5 rounded-lg font-semibold text-xs border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
               onClick={onShare}
             >
               Share
             </button>
             <button
-              className="w-8 h-8 rounded-lg flex items-center justify-center border border-gray-300 bg-white text-red-500 hover:bg-red-50"
-              onClick={onShare}
-              title="Like"
+              className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${
+                isLiked 
+                  ? 'bg-red-50 border-red-300 text-red-600' 
+                  : 'bg-white border-gray-300 text-red-500 hover:bg-red-50'
+              }`}
+              onClick={onLike}
+              title={isLiked ? 'Unlike' : 'Like'}
             >
-              <Heart size={14} className="fill-current" />
+              <Heart size={14} className={isLiked ? 'fill-current' : ''} />
             </button>
           </>
         ) : (
           <>
             <button
-              className="flex-1 py-1.5 rounded-lg font-semibold text-xs bg-gray-800 text-yellow-400 hover:bg-gray-900 shadow"
+              className="flex-1 py-1.5 rounded-lg font-semibold text-xs bg-gray-800 text-yellow-400 hover:bg-gray-900 shadow transition-colors"
               onClick={onPrimary}
             >
               Make Offer
             </button>
             <button
-              className="flex-1 py-1.5 rounded-lg font-semibold text-xs border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+              className="flex-1 py-1.5 rounded-lg font-semibold text-xs border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
               onClick={onShare}
             >
               Share
             </button>
             <button
-              className="w-8 h-8 rounded-lg flex items-center justify-center border border-gray-300 bg-white text-red-500 hover:bg-red-50"
-              onClick={onShare}
-              title="Like"
+              className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${
+                isLiked 
+                  ? 'bg-red-50 border-red-300 text-red-600' 
+                  : 'bg-white border-gray-300 text-red-500 hover:bg-red-50'
+              }`}
+              onClick={onLike}
+              title={isLiked ? 'Unlike' : 'Like'}
             >
-              <Heart size={14} className="fill-current" />
+              <Heart size={14} className={isLiked ? 'fill-current' : ''} />
             </button>
           </>
         )}

@@ -33,6 +33,7 @@ import NotificationsTab from '../components/dashboard/NotificationsTab';
 import ReferralsTab from '../components/dashboard/ReferralsTab';
 import ProfileTab from '../components/dashboard/ProfileTab';
 import MarketplaceCard from '../components/MarketplaceCard';
+import BidOfferModal from '../components/BidOfferModal';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -56,6 +57,9 @@ const DashboardPage = () => {
   const [activeMarketTab, setActiveMarketTab] = useState('all');
   const [marketplaceSort, setMarketplaceSort] = useState('latest');
   const [marketplaceFilter, setMarketplaceFilter] = useState('all');
+  const [selectedListing, setSelectedListing] = useState(null);
+  const [showBidModal, setShowBidModal] = useState(false);
+  const [likedListings, setLikedListings] = useState(new Set());
 
   // Fetch portfolio data
   useEffect(() => {
@@ -114,6 +118,75 @@ const DashboardPage = () => {
       currency: 'INR',
       maximumFractionDigits: 0
     }).format(amount);
+  };
+
+  // Handlers for marketplace card actions
+  const handlePlaceBid = (listing) => {
+    setSelectedListing(listing);
+    setShowBidModal(true);
+  };
+
+  const handleShare = async (listing) => {
+    const shareUrl = `${window.location.origin}/marketplace?listing=${listing._id}`;
+    const shareText = `Check out this ${listing.type === 'sell' ? 'selling' : 'buying'} opportunity: ${listing.companyName} at ${formatCurrency(listing.price)} per share`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${listing.companyName} - NlistPlanet`,
+          text: shareText,
+          url: shareUrl
+        });
+        toast.success('Shared successfully!');
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          fallbackShare(shareUrl, shareText);
+        }
+      }
+    } else {
+      fallbackShare(shareUrl, shareText);
+    }
+  };
+
+  const fallbackShare = (url, text) => {
+    navigator.clipboard.writeText(`${text}\n${url}`);
+    toast.success('Link copied to clipboard!');
+  };
+
+  const handleLike = (listing) => {
+    setLikedListings(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(listing._id)) {
+        newSet.delete(listing._id);
+        toast.success('Removed from favorites');
+      } else {
+        newSet.add(listing._id);
+        toast.success('Added to favorites');
+      }
+      return newSet;
+    });
+  };
+
+  const handleBidSuccess = () => {
+    setShowBidModal(false);
+    setSelectedListing(null);
+    toast.success('Bid/Offer placed successfully!');
+    // Refresh marketplace listings
+    const fetchMarketplaceListings = async () => {
+      try {
+        setMarketplaceLoading(true);
+        const response = await listingsAPI.getAll({ limit: 50 });
+        const filteredListings = response.data.data.filter(
+          listing => listing.userId?._id !== user?._id && listing.userId !== user?._id
+        );
+        setMarketplaceListings(filteredListings);
+      } catch (error) {
+        console.error('Failed to fetch marketplace listings:', error);
+      } finally {
+        setMarketplaceLoading(false);
+      }
+    };
+    fetchMarketplaceListings();
   };
 
   const tabs = [
@@ -616,9 +689,11 @@ const DashboardPage = () => {
                       price={calculateTotalWithFee(listing.price)}
                       shares={listing.quantity}
                       user={listing.username}
-                      onPrimary={() => {}}
-                      onSecondary={() => {}}
-                      onShare={() => {}}
+                      onPrimary={() => handlePlaceBid(listing)}
+                      onSecondary={() => handleShare(listing)}
+                      onShare={() => handleShare(listing)}
+                      onLike={() => handleLike(listing)}
+                      isLiked={likedListings.has(listing._id)}
                     />
                   ))}
               </div>
@@ -718,6 +793,18 @@ const DashboardPage = () => {
         )}
         </div>
       </main>
+
+      {/* Bid/Offer Modal */}
+      {showBidModal && selectedListing && (
+        <BidOfferModal
+          listing={selectedListing}
+          onClose={() => {
+            setShowBidModal(false);
+            setSelectedListing(null);
+          }}
+          onSuccess={handleBidSuccess}
+        />
+      )}
     </div>
   );
 };
