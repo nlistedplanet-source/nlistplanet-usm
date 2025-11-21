@@ -464,91 +464,92 @@ const DashboardPage = () => {
         {activeTab === 'marketplace' && (
           <div className="w-full">
             {/* Creative Title */}
-            <div className="mb-4 text-center">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent mb-1">
+            <div className="mb-3">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
                 Discover & Trade Unlisted Shares
               </h1>
-              <p className="text-sm text-gray-600">View all buy and sell posts from other users (excluding your own posts)</p>
             </div>
 
             {/* Modern Search Box */}
-            <div className="mb-4 relative">
-              <div className="relative max-w-xl mx-auto">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mb-3 relative">
+              <div className="relative">
+                <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search by company name, sector, or user..."
+                  placeholder="Search by company, sector, user..."
                   value={marketplaceSearch}
                   onChange={(e) => setMarketplaceSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all text-sm text-gray-700 placeholder-gray-400 shadow-sm"
+                  className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all text-xs text-gray-700 placeholder-gray-400"
                 />
               </div>
             </div>
 
             {/* Buy/Sell Tabs + Filter/Sort */}
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              {/* Buy/Sell Tabs */}
-              <div className="flex gap-1.5 bg-gray-100 p-1 rounded-lg">
-                <button
-                  onClick={() => setActiveMarketTab('all')}
-                  className={`px-4 py-1.5 rounded-md font-semibold text-sm transition-all ${
-                    activeMarketTab === 'all'
-                      ? 'bg-white text-emerald-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  All Posts
-                </button>
-                <button
-                  onClick={() => setActiveMarketTab('buy')}
-                  className={`px-4 py-1.5 rounded-md font-semibold text-sm transition-all ${
-                    activeMarketTab === 'buy'
-                      ? 'bg-white text-yellow-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Buy Posts
-                </button>
-                <button
-                  onClick={() => setActiveMarketTab('sell')}
-                  className={`px-4 py-1.5 rounded-md font-semibold text-sm transition-all ${
-                    activeMarketTab === 'sell'
-                      ? 'bg-white text-emerald-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Sell Posts
-                </button>
-              </div>
+            <div className="mb-3 p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                {/* Buy/Sell Tabs */}
+                <div className="flex gap-1 bg-white p-0.5 rounded-md shadow-sm">
+                  <button
+                    onClick={() => setActiveMarketTab('all')}
+                    className={`px-3 py-1 rounded text-[11px] font-bold transition-all ${
+                      activeMarketTab === 'all'
+                        ? 'bg-emerald-500 text-white shadow'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    All
+                  </button>
+                  <button
+                    onClick={() => setActiveMarketTab('buy')}
+                    className={`px-3 py-1 rounded text-[11px] font-bold transition-all ${
+                      activeMarketTab === 'buy'
+                        ? 'bg-yellow-400 text-gray-900 shadow'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Buy
+                  </button>
+                  <button
+                    onClick={() => setActiveMarketTab('sell')}
+                    className={`px-3 py-1 rounded text-[11px] font-bold transition-all ${
+                      activeMarketTab === 'sell'
+                        ? 'bg-emerald-500 text-white shadow'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Sell
+                  </button>
+                </div>
 
-              {/* Filter & Sort */}
-              <div className="flex gap-2">
-                <select
-                  value={marketplaceSort}
-                  onChange={(e) => setMarketplaceSort(e.target.value)}
-                  className="px-3 py-1.5 text-sm border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all text-gray-700 bg-white cursor-pointer font-medium"
-                >
-                  <option value="latest">Latest First</option>
-                  <option value="price-high">Price: High to Low</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="quantity-high">Quantity: High to Low</option>
-                  <option value="quantity-low">Quantity: Low to High</option>
-                </select>
+                {/* Filter & Sort */}
+                <div className="flex gap-1.5">
+                  <select
+                    value={marketplaceSort}
+                    onChange={(e) => setMarketplaceSort(e.target.value)}
+                    className="px-2.5 py-1 text-[11px] border border-gray-300 rounded-md focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100 transition-all text-gray-700 bg-white cursor-pointer font-semibold"
+                  >
+                    <option value="latest">Latest</option>
+                    <option value="price-high">Price ↓</option>
+                    <option value="price-low">Price ↑</option>
+                    <option value="quantity-high">Qty ↓</option>
+                    <option value="quantity-low">Qty ↑</option>
+                  </select>
 
-                <select
-                  value={marketplaceFilter}
-                  onChange={(e) => setMarketplaceFilter(e.target.value)}
-                  className="px-3 py-1.5 text-sm border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all text-gray-700 bg-white cursor-pointer font-medium"
-                >
-                  <option value="all">All Sectors</option>
-                  <option value="finance">Finance</option>
-                  <option value="tech">Technology</option>
-                  <option value="manufacturing">Manufacturing</option>
-                  <option value="healthcare">Healthcare</option>
-                  <option value="retail">Retail</option>
-                </select>
+                  <select
+                    value={marketplaceFilter}
+                    onChange={(e) => setMarketplaceFilter(e.target.value)}
+                    className="px-2.5 py-1 text-[11px] border border-gray-300 rounded-md focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100 transition-all text-gray-700 bg-white cursor-pointer font-semibold"
+                  >
+                    <option value="all">All Sectors</option>
+                    <option value="finance">Finance</option>
+                    <option value="tech">Tech</option>
+                    <option value="manufacturing">Manufacturing</option>
+                    <option value="healthcare">Healthcare</option>
+                    <option value="retail">Retail</option>
+                  </select>
+                </div>
               </div>
             </div>
 

@@ -1,11 +1,20 @@
 import React from 'react';
-import { Info, Building2, User } from 'lucide-react';
+import { Info, Building2, User, Heart } from 'lucide-react';
 import { formatCurrency, formatNumber } from '../utils/helpers';
 
 // Utility to format price without .00 if not needed
 function formatPriceNoDecimals(price) {
   if (Number(price) % 1 === 0) return `₹${Number(price).toLocaleString('en-IN')}`;
   return `₹${Number(price).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+// Utility to format quantity in shorthand (1K, 10K, 1L, etc.)
+function formatQuantityShort(qty) {
+  const num = Number(qty);
+  if (num >= 10000000) return `${(num / 10000000).toFixed(1)}Cr`; // Crore
+  if (num >= 100000) return `${(num / 100000).toFixed(1)}L`; // Lakh
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`; // Thousand
+  return num.toString();
 }
 
 const MarketplaceCard = ({
@@ -33,14 +42,18 @@ const MarketplaceCard = ({
   const accentText = isSell ? 'text-emerald-700' : 'text-yellow-700';
   const accentHover = isSell ? 'hover:bg-emerald-100' : 'hover:bg-yellow-100';
   const borderAccent = isSell ? 'border-emerald-200' : 'border-yellow-200';
+  const iconColor = isSell ? 'text-emerald-600' : 'text-yellow-600';
   
   // Logo fallback using Google S2 service for company favicon
   const logoUrl = companyLogo || `https://www.google.com/s2/favicons?domain=${companyName?.toLowerCase().replace(/\s+/g, '')}.com&sz=64`;
   
   return (
-    <div className={`bg-white rounded-lg shadow-sm p-3 w-full border ${borderAccent} relative hover:shadow-md transition-shadow`}>
+    <div className={`bg-white rounded-lg shadow-sm p-3 w-full border ${borderAccent} relative hover:shadow-md transition-shadow overflow-hidden`}>
+      {/* Full-width Colored Line at Top */}
+      <div className={`h-1 rounded-t-lg absolute left-0 top-0 right-0 ${accentColor}`}></div>
+      
       {/* Top Row with Badges */}
-      <div className="flex items-center justify-between mb-1.5">
+      <div className="flex items-center justify-between mb-1.5 mt-1">
         <div className="flex gap-1">
           <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${isSell ? 'bg-emerald-100 text-emerald-700' : 'bg-yellow-100 text-yellow-700'}`}>
             {isSell ? 'Sell' : 'Buy'}
@@ -49,8 +62,7 @@ const MarketplaceCard = ({
             Unlisted
           </span>
         </div>
-        <span className="text-[10px] text-gray-500 font-semibold">21 Nov 2025</span>
-        <div className={`w-2/12 h-1 rounded-t-lg absolute left-0 top-0 ${accentColor}`}></div>
+        <span className="text-[10px] text-gray-500 font-semibold">21 Nov</span>
       </div>
       
       {/* Company Row */}
@@ -70,7 +82,7 @@ const MarketplaceCard = ({
             <span className="relative group ml-0.5">
               <Info size={12} className="text-blue-500 cursor-pointer" />
               <div className="hidden group-hover:block absolute z-10 left-0 top-4 bg-white border border-gray-200 rounded-lg shadow-lg p-2 text-[10px] text-gray-700 min-w-[180px]">
-                <div className="mb-0.5"><b>Company:</b> {companyName}</div>
+                <div className="mb-0.5"><b>Company:</b> {companyName || 'N/A'}</div>
                 <div className="mb-0.5"><b>PAN:</b> {companyPan || 'N/A'}</div>
                 <div className="mb-0.5"><b>ISIN:</b> {companyIsin || 'N/A'}</div>
                 <div><b>CIN:</b> {companyCin || 'N/A'}</div>
@@ -78,11 +90,11 @@ const MarketplaceCard = ({
             </span>
           </div>
           <div className="flex items-center gap-1 mt-0.5">
-            <Building2 size={10} className="text-gray-500" />
+            <Building2 size={10} className={iconColor} />
             <span className="text-[10px] text-gray-600">{companySector || 'Financial Services'}</span>
           </div>
           <div className="flex items-center gap-1 mt-0.5">
-            <User size={10} className="text-gray-500" />
+            <User size={10} className={iconColor} />
             <span className="text-[10px] text-gray-600">{isSell ? 'Seller:' : 'Buyer:'} @{user}</span>
           </div>
         </div>
@@ -95,7 +107,7 @@ const MarketplaceCard = ({
         </div>
         <div className="flex items-center justify-between">
           <span className="text-[10px] text-gray-500">Quantity</span>
-          <span className="font-semibold text-base text-gray-900">{formatNumber(shares)} Lakh</span>
+          <span className="font-semibold text-base text-gray-900">{formatQuantityShort(shares)}</span>
         </div>
       </div>
       {/* Actions */}
@@ -115,13 +127,11 @@ const MarketplaceCard = ({
               Share
             </button>
             <button
-              className="w-8 h-8 rounded-lg flex items-center justify-center border border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
+              className="w-8 h-8 rounded-lg flex items-center justify-center border border-gray-300 bg-white text-red-500 hover:bg-red-50"
               onClick={onShare}
-              title="Share"
+              title="Like"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
-              </svg>
+              <Heart size={14} className="fill-current" />
             </button>
           </>
         ) : (
@@ -139,13 +149,11 @@ const MarketplaceCard = ({
               Share
             </button>
             <button
-              className="w-8 h-8 rounded-lg flex items-center justify-center border border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
+              className="w-8 h-8 rounded-lg flex items-center justify-center border border-gray-300 bg-white text-red-500 hover:bg-red-50"
               onClick={onShare}
-              title="Share"
+              title="Like"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
-              </svg>
+              <Heart size={14} className="fill-current" />
             </button>
           </>
         )}
