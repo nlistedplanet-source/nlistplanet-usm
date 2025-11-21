@@ -2,14 +2,14 @@ import express from 'express';
 import Listing from '../models/Listing.js';
 import Company from '../models/Company.js';
 import Notification from '../models/Notification.js';
-import { protect } from '../middleware/auth.js';
+import { protect, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // @route   GET /api/listings
 // @desc    Get all active listings (marketplace)
-// @access  Public
-router.get('/', async (req, res, next) => {
+// @access  Public (with optional auth to filter own listings)
+router.get('/', optionalAuth, async (req, res, next) => {
   try {
     const { 
       type, // 'sell' or 'buy'
