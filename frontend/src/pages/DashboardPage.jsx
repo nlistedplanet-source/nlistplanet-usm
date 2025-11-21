@@ -478,6 +478,7 @@ const DashboardPage = () => {
                     companyLogo={listing.companyId?.Logo || listing.companyId?.logo}
                     companyName={listing.companyName}
                     companySymbol={listing.companyId?.ScripName || listing.companyId?.symbol}
+                    companySector={listing.companyId?.Sector || listing.companyId?.sector || 'Financial Services'}
                     companyPan={listing.companyId?.PAN || listing.companyId?.pan}
                     companyIsin={listing.companyId?.ISIN || listing.companyId?.isin}
                     companyCin={listing.companyId?.CIN || listing.companyId?.cin}
