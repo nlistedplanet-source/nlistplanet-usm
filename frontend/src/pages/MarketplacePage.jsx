@@ -27,100 +27,107 @@ const MarketplacePage = () => {
     loadPreviewListings();
   }, []);
 
+  // UI state for search, tab, filter/sort
+  const [search, setSearch] = useState("");
+  const [activeTab, setActiveTab] = useState("all"); // all, buy, sell
+  const [sort, setSort] = useState("latest");
+  const [filter, setFilter] = useState("");
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-emerald-50">
+      {/* Marketplace Header */}
+      <div className="max-w-7xl mx-auto px-4 pt-12 pb-6">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-2 tracking-tight">Discover & Trade Unlisted Shares</h1>
+        {/* Subtitle removed */}
+        <div className="flex flex-col md:flex-row md:items-center gap-4 mt-6">
+          {/* Search Box */}
+          <div className="flex-1 flex items-center bg-white rounded-xl shadow px-3 py-2 border border-gray-200">
+            <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input
+              type="text"
+              className="w-full outline-none bg-transparent text-base"
+              placeholder="Search company, symbol, sector..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
+          {/* Buy/Sell Tabs */}
+          <div className="flex gap-2">
+            <button onClick={()=>setActiveTab('all')} className={`px-4 py-2 rounded-lg font-semibold text-sm border ${activeTab==='all'?'bg-emerald-500 text-white border-emerald-500':'bg-white text-gray-700 border-gray-200'} transition`}>All</button>
+            <button onClick={()=>setActiveTab('buy')} className={`px-4 py-2 rounded-lg font-semibold text-sm border ${activeTab==='buy'?'bg-yellow-400 text-white border-yellow-400':'bg-white text-gray-700 border-gray-200'} transition`}>Buy Posts</button>
+            <button onClick={()=>setActiveTab('sell')} className={`px-4 py-2 rounded-lg font-semibold text-sm border ${activeTab==='sell'?'bg-emerald-500 text-white border-emerald-500':'bg-white text-gray-700 border-gray-200'} transition`}>Sell Posts</button>
+          </div>
+          {/* Filter/Sort */}
+          <div className="flex gap-2 items-center">
+            <select value={sort} onChange={e=>setSort(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium">
+              <option value="latest">Latest</option>
+              <option value="price_high">Price: High to Low</option>
+              <option value="price_low">Price: Low to High</option>
+              <option value="quantity_high">Quantity: High to Low</option>
+              <option value="quantity_low">Quantity: Low to High</option>
+            </select>
+            {/* Example filter, can add more */}
+            <select value={filter} onChange={e=>setFilter(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium">
+              <option value="">All Sectors</option>
+              <option value="finance">Finance</option>
+              <option value="tech">Tech</option>
+              <option value="manufacturing">Manufacturing</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       {/* Buy Section */}
       <section className="max-w-7xl mx-auto py-16 px-4">
-        <div className="grid md:grid-cols-2 gap-12 items-center mb-12">
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-emerald-100 p-3 rounded-xl">
-                <Unlock className="text-emerald-600" size={32} />
-              </div>
-              <h2 className="text-4xl font-bold text-emerald-600">Buy Unlisted Shares</h2>
-            </div>
-            <p className="text-lg text-gray-700 mb-6">
-              Get access to exclusive investment opportunities. Unlock premium companies and grow your portfolio with India's fastest-growing unlisted shares.
-            </p>
-          </div>
-          <div className="flex justify-center">
-            <img src="/images/illustrations/unlock_investment.svg" alt="Unlock Investment" className="w-80 h-80 object-contain" onError={(e) => e.target.style.display = 'none'} />
-          </div>
-        </div>
-
-        {/* Buy Preview Cards */}
+        {/* Combined Listings based on active tab */}
         <div className="grid md:grid-cols-3 gap-6">
           {loading ? (
             <p className="col-span-3 text-center text-gray-500">Loading...</p>
-          ) : buyListings.length > 0 ? (
-            buyListings.map((listing) => (
-              <MarketplaceCard
-                key={listing._id}
-                type="buy"
-                companyLogo={listing.companyId?.logo}
-                companyName={listing.companyName}
-                companySymbol={listing.companyId?.symbol}
-                companyPan={listing.companyId?.pan}
-                companyIsin={listing.companyId?.isin}
-                companyCin={listing.companyId?.cin}
-                price={listing.price}
-                shares={listing.quantity}
-                user={listing.username}
-                onPrimary={() => {}}
-                onSecondary={() => {}}
-                onShare={() => {}}
-              />
-            ))
           ) : (
-            <p className="col-span-3 text-center text-gray-500">No buy listings available</p>
-          )}
-        </div>
-      </section>
-
-      {/* Sell Section */}
-      <section className="max-w-7xl mx-auto py-16 px-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl">
-        <div className="grid md:grid-cols-2 gap-12 items-center mb-12">
-          <div className="flex justify-center order-2 md:order-1">
-            <img src="/images/illustrations/customer_network.svg" alt="Large Customer Base" className="w-80 h-80 object-contain" onError={(e) => e.target.style.display = 'none'} />
-          </div>
-          <div className="order-1 md:order-2">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-indigo-100 p-3 rounded-xl">
-                <Users className="text-indigo-600" size={32} />
-              </div>
-              <h2 className="text-4xl font-bold text-indigo-600">Sell Your Shares Easily</h2>
-            </div>
-            <p className="text-lg text-gray-700 mb-6">
-              Join a large investor base and sell your shares quickly at the best price. Trusted by thousands of sellers across India with secure transactions.
-            </p>
-          </div>
-        </div>
-
-        {/* Sell Preview Cards */}
-        <div className="grid md:grid-cols-3 gap-6">
-          {loading ? (
-            <p className="col-span-3 text-center text-gray-500">Loading...</p>
-          ) : sellListings.length > 0 ? (
-            sellListings.map((listing) => (
-              <MarketplaceCard
-                key={listing._id}
-                type="sell"
-                companyLogo={listing.companyId?.logo}
-                companyName={listing.companyName}
-                companySymbol={listing.companyId?.symbol}
-                companyPan={listing.companyId?.pan}
-                companyIsin={listing.companyId?.isin}
-                companyCin={listing.companyId?.cin}
-                price={listing.price}
-                shares={listing.quantity}
-                user={listing.username}
-                onPrimary={() => {}}
-                onSecondary={() => {}}
-                onShare={() => {}}
-              />
-            ))
-          ) : (
-            <p className="col-span-3 text-center text-gray-500">No sell listings available</p>
+            <>
+              {/* Show based on active tab */}
+              {(activeTab === 'all' || activeTab === 'sell') && sellListings.length > 0 && sellListings.map((listing) => (
+                <MarketplaceCard
+                  key={listing._id}
+                  type="sell"
+                  companyLogo={listing.companyId?.logo || listing.companyId?.Logo}
+                  companyName={listing.companyName}
+                  companySymbol={listing.companyId?.symbol || listing.companyId?.ScripName}
+                  companySector={listing.companyId?.sector || listing.companyId?.Sector}
+                  companyPan={listing.companyId?.pan || listing.companyId?.PAN}
+                  companyIsin={listing.companyId?.isin || listing.companyId?.ISIN}
+                  companyCin={listing.companyId?.cin || listing.companyId?.CIN}
+                  price={listing.price}
+                  shares={listing.quantity}
+                  user={listing.username}
+                  onPrimary={() => {}}
+                  onSecondary={() => {}}
+                  onShare={() => {}}
+                />
+              ))}
+              {(activeTab === 'all' || activeTab === 'buy') && buyListings.length > 0 && buyListings.map((listing) => (
+                <MarketplaceCard
+                  key={listing._id}
+                  type="buy"
+                  companyLogo={listing.companyId?.logo || listing.companyId?.Logo}
+                  companyName={listing.companyName}
+                  companySymbol={listing.companyId?.symbol || listing.companyId?.ScripName}
+                  companySector={listing.companyId?.sector || listing.companyId?.Sector}
+                  companyPan={listing.companyId?.pan || listing.companyId?.PAN}
+                  companyIsin={listing.companyId?.isin || listing.companyId?.ISIN}
+                  companyCin={listing.companyId?.cin || listing.companyId?.CIN}
+                  price={listing.price}
+                  shares={listing.quantity}
+                  user={listing.username}
+                  onPrimary={() => {}}
+                  onSecondary={() => {}}
+                  onShare={() => {}}
+                />
+              ))}
+              {((activeTab === 'sell' && sellListings.length === 0) || (activeTab === 'buy' && buyListings.length === 0) || (activeTab === 'all' && sellListings.length === 0 && buyListings.length === 0)) && (
+                <p className="col-span-3 text-center text-gray-500">No listings available</p>
+              )}
+            </>
           )}
         </div>
       </section>
