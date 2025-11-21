@@ -463,8 +463,96 @@ const DashboardPage = () => {
         {/* Marketplace Tab */}
         {activeTab === 'marketplace' && (
           <div className="w-full">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Marketplace - All Listings</h2>
-            <p className="text-gray-600 mb-4">View all buy and sell posts from other users (excluding your own posts)</p>
+            {/* Creative Title */}
+            <div className="mb-8 text-center">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+                Discover & Trade Unlisted Shares
+              </h1>
+              <p className="text-gray-600">View all buy and sell posts from other users (excluding your own posts)</p>
+            </div>
+
+            {/* Modern Search Box */}
+            <div className="mb-6 relative">
+              <div className="relative max-w-2xl mx-auto">
+                <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search by company name, sector, or user..."
+                  value={marketplaceSearch}
+                  onChange={(e) => setMarketplaceSearch(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-2xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all text-gray-700 placeholder-gray-400 shadow-sm"
+                />
+              </div>
+            </div>
+
+            {/* Buy/Sell Tabs + Filter/Sort */}
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+              {/* Buy/Sell Tabs */}
+              <div className="flex gap-2 bg-gray-100 p-1.5 rounded-xl">
+                <button
+                  onClick={() => setActiveMarketTab('all')}
+                  className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
+                    activeMarketTab === 'all'
+                      ? 'bg-white text-emerald-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  All Posts
+                </button>
+                <button
+                  onClick={() => setActiveMarketTab('buy')}
+                  className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
+                    activeMarketTab === 'buy'
+                      ? 'bg-white text-yellow-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Buy Posts
+                </button>
+                <button
+                  onClick={() => setActiveMarketTab('sell')}
+                  className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
+                    activeMarketTab === 'sell'
+                      ? 'bg-white text-emerald-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Sell Posts
+                </button>
+              </div>
+
+              {/* Filter & Sort */}
+              <div className="flex gap-3">
+                <select
+                  value={marketplaceSort}
+                  onChange={(e) => setMarketplaceSort(e.target.value)}
+                  className="px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all text-gray-700 bg-white cursor-pointer font-medium"
+                >
+                  <option value="latest">Latest First</option>
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="quantity-high">Quantity: High to Low</option>
+                  <option value="quantity-low">Quantity: Low to High</option>
+                </select>
+
+                <select
+                  value={marketplaceFilter}
+                  onChange={(e) => setMarketplaceFilter(e.target.value)}
+                  className="px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all text-gray-700 bg-white cursor-pointer font-medium"
+                >
+                  <option value="all">All Sectors</option>
+                  <option value="finance">Finance</option>
+                  <option value="tech">Technology</option>
+                  <option value="manufacturing">Manufacturing</option>
+                  <option value="healthcare">Healthcare</option>
+                  <option value="retail">Retail</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Listings Grid */}
             {marketplaceLoading ? (
               <div className="flex justify-center items-center h-32">
                 <span className="text-gray-600">Loading marketplace...</span>
@@ -475,25 +563,63 @@ const DashboardPage = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {marketplaceListings.map((listing) => (
-                  <MarketplaceCard
-                    key={listing._id}
-                    type={listing.type}
-                    companyLogo={listing.companyId?.Logo || listing.companyId?.logo}
-                    companyName={listing.companyName}
-                    companySymbol={listing.companyId?.ScripName || listing.companyId?.symbol}
-                    companySector={listing.companyId?.Sector || listing.companyId?.sector || 'Financial Services'}
-                    companyPan={listing.companyId?.PAN || listing.companyId?.pan}
-                    companyIsin={listing.companyId?.ISIN || listing.companyId?.isin}
-                    companyCin={listing.companyId?.CIN || listing.companyId?.cin}
-                    price={calculateTotalWithFee(listing.price)}
-                    shares={listing.quantity}
-                    user={listing.username}
-                    onPrimary={() => {}}
-                    onSecondary={() => {}}
-                    onShare={() => {}}
-                  />
-                ))}
+                {marketplaceListings
+                  .filter((listing) => {
+                    // Filter by tab (all/buy/sell)
+                    if (activeMarketTab === 'buy' && listing.type !== 'buy') return false;
+                    if (activeMarketTab === 'sell' && listing.type !== 'sell') return false;
+                    
+                    // Filter by search
+                    if (marketplaceSearch) {
+                      const searchLower = marketplaceSearch.toLowerCase();
+                      const companyMatch = listing.companyName?.toLowerCase().includes(searchLower);
+                      const sectorMatch = (listing.companyId?.Sector || listing.companyId?.sector || '')?.toLowerCase().includes(searchLower);
+                      const userMatch = listing.username?.toLowerCase().includes(searchLower);
+                      if (!companyMatch && !sectorMatch && !userMatch) return false;
+                    }
+                    
+                    // Filter by sector
+                    if (marketplaceFilter !== 'all') {
+                      const sector = (listing.companyId?.Sector || listing.companyId?.sector || '').toLowerCase();
+                      if (!sector.includes(marketplaceFilter.toLowerCase())) return false;
+                    }
+                    
+                    return true;
+                  })
+                  .sort((a, b) => {
+                    // Sort logic
+                    if (marketplaceSort === 'latest') {
+                      return new Date(b.createdAt) - new Date(a.createdAt);
+                    } else if (marketplaceSort === 'price-high') {
+                      return b.price - a.price;
+                    } else if (marketplaceSort === 'price-low') {
+                      return a.price - b.price;
+                    } else if (marketplaceSort === 'quantity-high') {
+                      return b.quantity - a.quantity;
+                    } else if (marketplaceSort === 'quantity-low') {
+                      return a.quantity - b.quantity;
+                    }
+                    return 0;
+                  })
+                  .map((listing) => (
+                    <MarketplaceCard
+                      key={listing._id}
+                      type={listing.type}
+                      companyLogo={listing.companyId?.Logo || listing.companyId?.logo}
+                      companyName={listing.companyName}
+                      companySymbol={listing.companyId?.ScripName || listing.companyId?.symbol}
+                      companySector={listing.companyId?.Sector || listing.companyId?.sector || 'Financial Services'}
+                      companyPan={listing.companyId?.PAN || listing.companyId?.pan}
+                      companyIsin={listing.companyId?.ISIN || listing.companyId?.isin}
+                      companyCin={listing.companyId?.CIN || listing.companyId?.cin}
+                      price={calculateTotalWithFee(listing.price)}
+                      shares={listing.quantity}
+                      user={listing.username}
+                      onPrimary={() => {}}
+                      onSecondary={() => {}}
+                      onShare={() => {}}
+                    />
+                  ))}
               </div>
             )}
           </div>
