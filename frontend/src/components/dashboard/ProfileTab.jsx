@@ -9,9 +9,6 @@ const ProfileTab = () => {
   const { user, logout, updateProfile, changePassword } = useAuth();
   const navigate = useNavigate();
   
-  // Debug log
-  console.log('ProfileTab - user:', user);
-  
   // Helper function to format date as DD-MM-YYYY
   const formatDate = (dateString) => {
     if (!dateString) return '—';
@@ -198,7 +195,7 @@ const ProfileTab = () => {
           <form onSubmit={handleUpdateProfile} className="space-y-6">
             {/* Step Indicator */}
             <div className="flex items-center justify-between mb-4">
-              {[1, 2, 3, 4].map(step => (
+              {[1, 2, 3].map(step => (
                 <div key={step} className="flex items-center">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm ${
                     currentStep === step ? 'bg-purple-600 text-white' : 
@@ -206,7 +203,7 @@ const ProfileTab = () => {
                   }`}>
                     {currentStep > step ? '✓' : step}
                   </div>
-                  {step < 4 && <div className={`w-12 h-1 ${currentStep > step ? 'bg-green-500' : 'bg-gray-200'}`} />}
+                  {step < 3 && <div className={`w-12 h-1 ${currentStep > step ? 'bg-green-500' : 'bg-gray-200'}`} />}
                 </div>
               ))}
             </div>
@@ -411,83 +408,6 @@ const ProfileTab = () => {
               </div>
             )}
 
-            {/* Step 4: Demat & Documents */}
-            {currentStep === 4 && (
-              <div className="space-y-4">
-                <h4 className="font-bold text-gray-900">Demat Account & Documents</h4>
-                <div>
-                  <label className="block text-sm font-semibold text-dark-700 mb-2">DP ID</label>
-                  <input
-                    type="text"
-                    value={profileData.dpId || ''}
-                    onChange={(e) => setProfileData({ ...profileData, dpId: e.target.value })}
-                    className="input-mobile"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-dark-700 mb-2">Client ID</label>
-                  <input
-                    type="text"
-                    value={profileData.clientId || ''}
-                    onChange={(e) => setProfileData({ ...profileData, clientId: e.target.value })}
-                    className="input-mobile"
-                  />
-                </div>
-                <hr className="my-4" />
-                <h5 className="font-semibold text-gray-800">Upload Documents</h5>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-2">PAN Card</label>
-                    <input
-                      type="file"
-                      onChange={(e) => handleFileUpload('pan', e)}
-                      accept="image/*,.pdf"
-                      className="input-mobile"
-                    />
-                    {kycDocuments.pan.preview && (
-                      <p className="text-xs text-green-600 mt-1">✓ Uploaded</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-2">Aadhaar Card</label>
-                    <input
-                      type="file"
-                      onChange={(e) => handleFileUpload('aadhaar', e)}
-                      accept="image/*,.pdf"
-                      className="input-mobile"
-                    />
-                    {kycDocuments.aadhaar.preview && (
-                      <p className="text-xs text-green-600 mt-1">✓ Uploaded</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-2">Bank Proof</label>
-                    <input
-                      type="file"
-                      onChange={(e) => handleFileUpload('bank', e)}
-                      accept="image/*,.pdf"
-                      className="input-mobile"
-                    />
-                    {kycDocuments.bank.preview && (
-                      <p className="text-xs text-green-600 mt-1">✓ Uploaded</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-dark-700 mb-2">CLM Copy (Optional)</label>
-                    <input
-                      type="file"
-                      onChange={(e) => handleFileUpload('demat', e)}
-                      accept="image/*,.pdf"
-                      className="input-mobile"
-                    />
-                    {kycDocuments.demat.preview && (
-                      <p className="text-xs text-green-600 mt-1">✓ Uploaded</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Navigation Buttons */}
             <div className="flex gap-2 pt-4">
               {currentStep > 1 && (
@@ -607,29 +527,6 @@ const ProfileTab = () => {
                       <p className="font-semibold text-gray-900">{user.gender || '—'}</p>
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <h5 className="text-sm font-semibold text-gray-800 mb-2">Documents</h5>
-                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">PAN Card</p>
-                          {kycDocuments.pan.preview ? (
-                            <p className="text-xs text-green-600">✓ Uploaded</p>
-                          ) : (
-                            <p className="text-xs text-red-600">❌ Not Uploaded</p>
-                          )}
-                        </div>
-                        {kycDocuments.pan.preview && (
-                          <button
-                            onClick={() => window.open(kycDocuments.pan.preview, '_blank')}
-                            className="px-3 py-1 bg-purple-600 text-white rounded text-xs font-semibold hover:bg-purple-700"
-                          >
-                            View Document
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
                 </div>
               )}
 
@@ -662,29 +559,6 @@ const ProfileTab = () => {
                     <div className="p-3 bg-gray-50 rounded-lg">
                       <p className="text-xs text-gray-500 mb-1">Country</p>
                       <p className="font-semibold text-gray-900">{user.address?.country || 'India'}</p>
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <h5 className="text-sm font-semibold text-gray-800 mb-2">Documents</h5>
-                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">Address Proof (Aadhaar)</p>
-                          {kycDocuments.aadhaar.preview ? (
-                            <p className="text-xs text-green-600">✓ Uploaded</p>
-                          ) : (
-                            <p className="text-xs text-red-600">❌ Not Uploaded</p>
-                          )}
-                        </div>
-                        {kycDocuments.aadhaar.preview && (
-                          <button
-                            onClick={() => window.open(kycDocuments.aadhaar.preview, '_blank')}
-                            className="px-3 py-1 bg-purple-600 text-white rounded text-xs font-semibold hover:bg-purple-700"
-                          >
-                            View Document
-                          </button>
-                        )}
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -727,29 +601,6 @@ const ProfileTab = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <h5 className="text-sm font-semibold text-gray-800 mb-2">Documents</h5>
-                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">Bank Proof</p>
-                          {kycDocuments.bank.preview ? (
-                            <p className="text-xs text-green-600">✓ Uploaded</p>
-                          ) : (
-                            <p className="text-xs text-red-600">❌ Not Uploaded</p>
-                          )}
-                        </div>
-                        {kycDocuments.bank.preview && (
-                          <button
-                            onClick={() => window.open(kycDocuments.bank.preview, '_blank')}
-                            className="px-3 py-1 bg-purple-600 text-white rounded text-xs font-semibold hover:bg-purple-700"
-                          >
-                            View Document
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
                 </div>
               )}
 
@@ -766,29 +617,6 @@ const ProfileTab = () => {
                       <div className="p-3 bg-gray-50 rounded-lg">
                         <p className="text-xs text-gray-500 mb-1">Client ID</p>
                         <p className="font-semibold text-gray-900">{user.dematAccount?.clientId || '—'}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <h5 className="text-sm font-semibold text-gray-800 mb-2">Documents</h5>
-                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">CLM Copy (Optional)</p>
-                          {kycDocuments.demat.preview ? (
-                            <p className="text-xs text-green-600">✓ Uploaded</p>
-                          ) : (
-                            <p className="text-xs text-orange-600">⚠️ Not Uploaded</p>
-                          )}
-                        </div>
-                        {kycDocuments.demat.preview && (
-                          <button
-                            onClick={() => window.open(kycDocuments.demat.preview, '_blank')}
-                            className="px-3 py-1 bg-purple-600 text-white rounded text-xs font-semibold hover:bg-purple-700"
-                          >
-                            View Document
-                          </button>
-                        )}
                       </div>
                     </div>
                   </div>
