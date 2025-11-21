@@ -10,6 +10,16 @@ const ProfileTab = () => {
   const { user, logout, updateProfile, changePassword } = useAuth();
   const navigate = useNavigate();
   
+  // Helper function to format date as DD-MM-YYYY
+  const formatDate = (dateString) => {
+    if (!dateString) return '—';
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+  
   // If no user, show loading or placeholder
   if (!user) {
     return (
@@ -42,6 +52,7 @@ const ProfileTab = () => {
   
   // KYC document upload state
   const [currentStep, setCurrentStep] = useState(1);
+  const [activeInfoTab, setActiveInfoTab] = useState('personal'); // Tab state for display view
   const [kycDocuments, setKycDocuments] = useState({
     pan: { file: null, preview: null, extracted: null },
     aadhaar: { file: null, preview: null, extracted: null },
@@ -249,138 +260,637 @@ const ProfileTab = () => {
           </div>
         </div>
 
+        {/* Profile Information Section Title with KYC Badge */}
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-md font-bold text-gray-900">Profile Information</h3>
+          {user.kycStatus === 'approved' ? (
+            <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-green-100 text-green-700 flex items-center gap-1">
+              <Shield size={12} />
+              KYC Verified
+            </span>
+          ) : user.kycStatus === 'pending' ? (
+            <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-yellow-100 text-yellow-700">
+              KYC Pending
+            </span>
+          ) : (
+            <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-red-100 text-red-700">
+              KYC Required
+            </span>
+          )}
+        </div>
+
+        {/* Edit Profile Button Below Badge */}
+        {!isEditing && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="px-3 py-1.5 bg-purple-600 text-white rounded text-xs font-semibold hover:bg-purple-700 flex items-center gap-1 mb-4"
+          >
+            <Edit2 size={12} />
+            Edit Profile
+          </button>
+        )}
+
         {isEditing ? (
-          <form onSubmit={handleUpdateProfile} className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-dark-700 mb-2">
-                Username
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={generatedUsername}
-                  readOnly
-                  className="input-mobile flex-1 bg-gray-50"
-                />
+          <form onSubmit={handleUpdateProfile} className="space-y-6">
+            {/* Step Indicator */}
+            <div className="flex items-center justify-between mb-4">
+              {[1, 2, 3, 4].map(step => (
+                <div key={step} className="flex items-center">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm ${
+                    currentStep === step ? 'bg-purple-600 text-white' : 
+                    currentStep > step ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
+                  }`}>
+                    {currentStep > step ? '✓' : step}
+                  </div>
+                  {step < 4 && <div className={`w-12 h-1 ${currentStep > step ? 'bg-green-500' : 'bg-gray-200'}`} />}
+                </div>
+              ))}
+            </div>
+
+            {/* Step 1: Basic Info */}
+            {currentStep === 1 && (
+              <div className="space-y-4">
+                <h4 className="font-bold text-gray-900">Basic Information</h4>
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">Username</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={generatedUsername}
+                      readOnly
+                      className="input-mobile flex-1 bg-gray-50"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleShuffleUsername}
+                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-semibold"
+                    >
+                      🔄
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">Full Name</label>
+                  <input
+                    type="text"
+                    value={profileData.fullName}
+                    onChange={(e) => setProfileData({ ...profileData, fullName: e.target.value })}
+                    className="input-mobile"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={profileData.phone}
+                    onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                    className="input-mobile"
+                    required
+                    maxLength="10"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">Date of Birth</label>
+                  <input
+                    type="date"
+                    value={profileData.dob || ''}
+                    onChange={(e) => setProfileData({ ...profileData, dob: e.target.value })}
+                    className="input-mobile"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">Gender</label>
+                  <select
+                    value={profileData.gender || ''}
+                    onChange={(e) => setProfileData({ ...profileData, gender: e.target.value })}
+                    className="input-mobile"
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Address */}
+            {currentStep === 2 && (
+              <div className="space-y-4">
+                <h4 className="font-bold text-gray-900">Address Details</h4>
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">Address Line 1</label>
+                  <input
+                    type="text"
+                    value={profileData.addressLine1 || ''}
+                    onChange={(e) => setProfileData({ ...profileData, addressLine1: e.target.value })}
+                    className="input-mobile"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">Address Line 2</label>
+                  <input
+                    type="text"
+                    value={profileData.addressLine2 || ''}
+                    onChange={(e) => setProfileData({ ...profileData, addressLine2: e.target.value })}
+                    className="input-mobile"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-2">City</label>
+                    <input
+                      type="text"
+                      value={profileData.city || ''}
+                      onChange={(e) => setProfileData({ ...profileData, city: e.target.value })}
+                      className="input-mobile"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-2">State</label>
+                    <input
+                      type="text"
+                      value={profileData.state || ''}
+                      onChange={(e) => setProfileData({ ...profileData, state: e.target.value })}
+                      className="input-mobile"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-2">Pincode</label>
+                    <input
+                      type="text"
+                      value={profileData.pincode || ''}
+                      onChange={(e) => setProfileData({ ...profileData, pincode: e.target.value })}
+                      className="input-mobile"
+                      maxLength="6"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-2">Country</label>
+                    <input
+                      type="text"
+                      value={profileData.country || 'India'}
+                      onChange={(e) => setProfileData({ ...profileData, country: e.target.value })}
+                      className="input-mobile"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Bank & Nominee */}
+            {currentStep === 3 && (
+              <div className="space-y-4">
+                <h4 className="font-bold text-gray-900">Bank Account & Nominee</h4>
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">Account Type</label>
+                  <select
+                    value={profileData.accountType || ''}
+                    onChange={(e) => setProfileData({ ...profileData, accountType: e.target.value })}
+                    className="input-mobile"
+                  >
+                    <option value="">Select Type</option>
+                    <option value="Savings">Savings</option>
+                    <option value="Current">Current</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">Account Number</label>
+                  <input
+                    type="text"
+                    value={profileData.accountNumber || ''}
+                    onChange={(e) => setProfileData({ ...profileData, accountNumber: e.target.value })}
+                    className="input-mobile"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">IFSC Code</label>
+                  <input
+                    type="text"
+                    value={profileData.ifsc || ''}
+                    onChange={(e) => setProfileData({ ...profileData, ifsc: e.target.value })}
+                    className="input-mobile"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">Bank Name</label>
+                  <input
+                    type="text"
+                    value={profileData.bankName || ''}
+                    onChange={(e) => setProfileData({ ...profileData, bankName: e.target.value })}
+                    className="input-mobile"
+                  />
+                </div>
+                <hr className="my-4" />
+                <h5 className="font-semibold text-gray-800">Nominee Details</h5>
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">Nominee Name</label>
+                  <input
+                    type="text"
+                    value={profileData.nomineeName || ''}
+                    onChange={(e) => setProfileData({ ...profileData, nomineeName: e.target.value })}
+                    className="input-mobile"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">Relationship</label>
+                  <input
+                    type="text"
+                    value={profileData.nomineeRelationship || ''}
+                    onChange={(e) => setProfileData({ ...profileData, nomineeRelationship: e.target.value })}
+                    className="input-mobile"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Demat & Documents */}
+            {currentStep === 4 && (
+              <div className="space-y-4">
+                <h4 className="font-bold text-gray-900">Demat Account & Documents</h4>
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">DP ID</label>
+                  <input
+                    type="text"
+                    value={profileData.dpId || ''}
+                    onChange={(e) => setProfileData({ ...profileData, dpId: e.target.value })}
+                    className="input-mobile"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-dark-700 mb-2">Client ID</label>
+                  <input
+                    type="text"
+                    value={profileData.clientId || ''}
+                    onChange={(e) => setProfileData({ ...profileData, clientId: e.target.value })}
+                    className="input-mobile"
+                  />
+                </div>
+                <hr className="my-4" />
+                <h5 className="font-semibold text-gray-800">Upload Documents</h5>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-2">PAN Card</label>
+                    <input
+                      type="file"
+                      onChange={(e) => handleFileUpload('pan', e)}
+                      accept="image/*,.pdf"
+                      className="input-mobile"
+                    />
+                    {kycDocuments.pan.preview && (
+                      <p className="text-xs text-green-600 mt-1">✓ Uploaded</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-2">Aadhaar Card</label>
+                    <input
+                      type="file"
+                      onChange={(e) => handleFileUpload('aadhaar', e)}
+                      accept="image/*,.pdf"
+                      className="input-mobile"
+                    />
+                    {kycDocuments.aadhaar.preview && (
+                      <p className="text-xs text-green-600 mt-1">✓ Uploaded</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-2">Bank Proof</label>
+                    <input
+                      type="file"
+                      onChange={(e) => handleFileUpload('bank', e)}
+                      accept="image/*,.pdf"
+                      className="input-mobile"
+                    />
+                    {kycDocuments.bank.preview && (
+                      <p className="text-xs text-green-600 mt-1">✓ Uploaded</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark-700 mb-2">CLM Copy (Optional)</label>
+                    <input
+                      type="file"
+                      onChange={(e) => handleFileUpload('demat', e)}
+                      accept="image/*,.pdf"
+                      className="input-mobile"
+                    />
+                    {kycDocuments.demat.preview && (
+                      <p className="text-xs text-green-600 mt-1">✓ Uploaded</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex gap-2 pt-4">
+              {currentStep > 1 && (
                 <button
                   type="button"
-                  onClick={handleShuffleUsername}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-semibold"
+                  onClick={handlePreviousStep}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-semibold"
                 >
-                  🔄 Shuffle
+                  ← Previous
                 </button>
-              </div>
-              <p className="text-xs text-dark-500 mt-1">Click shuffle to generate new username suggestions</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-dark-700 mb-2">
-                Full Name
-              </label>
-              <input
-                type="text"
-                value={profileData.fullName}
-                onChange={(e) => setProfileData({ ...profileData, fullName: e.target.value })}
-                className="input-mobile"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-dark-700 mb-2">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                value={profileData.phone}
-                onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                className="input-mobile"
-                required
-                maxLength="10"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-semibold flex items-center gap-2"
-              >
-                {loading ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Save size={16} />
-                    Save
-                  </>
-                )}
-              </button>
+              )}
+              {currentStep < 4 ? (
+                <button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-semibold flex items-center gap-2"
+                >
+                  Next →
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-semibold flex items-center gap-2"
+                >
+                  {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Save size={16} />Save All</>}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {
                   setIsEditing(false);
+                  setCurrentStep(1);
                   setGeneratedUsername(user.username);
-                  setProfileData({
-                    username: user.username,
-                    fullName: user.fullName,
-                    phone: user.phone
-                  });
+                  setProfileData({ username: user.username, fullName: user.fullName, phone: user.phone });
                 }}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-semibold"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-semibold ml-auto"
               >
                 Cancel
               </button>
             </div>
           </form>
         ) : (
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 p-3 bg-dark-50 rounded-lg">
-              <User size={20} className="text-dark-500" />
-              <div className="flex-1">
-                <p className="text-xs text-dark-500">Username</p>
-                <p className="font-semibold text-dark-900">@{user.username}</p>
-              </div>
+          <div className="space-y-4">
+            {/* Horizontal Tabs */}
+            <div className="flex gap-2 border-b border-gray-200 overflow-x-auto">
+              <button
+                onClick={() => setActiveInfoTab('personal')}
+                className={`px-4 py-2 font-semibold whitespace-nowrap border-b-2 transition-colors ${
+                  activeInfoTab === 'personal'
+                    ? 'border-purple-600 text-purple-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Personal
+              </button>
+              <button
+                onClick={() => setActiveInfoTab('address')}
+                className={`px-4 py-2 font-semibold whitespace-nowrap border-b-2 transition-colors ${
+                  activeInfoTab === 'address'
+                    ? 'border-purple-600 text-purple-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Address
+              </button>
+              <button
+                onClick={() => setActiveInfoTab('bank')}
+                className={`px-4 py-2 font-semibold whitespace-nowrap border-b-2 transition-colors ${
+                  activeInfoTab === 'bank'
+                    ? 'border-purple-600 text-purple-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Bank & Finance
+              </button>
+              <button
+                onClick={() => setActiveInfoTab('clm')}
+                className={`px-4 py-2 font-semibold whitespace-nowrap border-b-2 transition-colors ${
+                  activeInfoTab === 'clm'
+                    ? 'border-purple-600 text-purple-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                CLM & Documents
+              </button>
             </div>
 
-            <div className="flex items-center gap-3 p-3 bg-dark-50 rounded-lg">
-              <FileText size={20} className="text-dark-500" />
-              <div className="flex-1">
-                <p className="text-xs text-dark-500">User ID (Non-editable)</p>
-                <p className="font-semibold text-dark-900 font-mono">{user.userId || user._id?.slice(-8).toUpperCase()}</p>
-              </div>
-            </div>
+            {/* Tab Content */}
+            <div className="mt-4">
+              {/* Personal Tab */}
+              {activeInfoTab === 'personal' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">Full Name</p>
+                      <p className="font-semibold text-gray-900">{user.fullName || '—'}</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">Email</p>
+                      <p className="font-semibold text-gray-900">{user.email || '—'}</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">Mobile</p>
+                      <p className="font-semibold text-gray-900">{user.phone || '—'}</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">User ID</p>
+                      <p className="font-semibold text-gray-900 font-mono">{user.userId || user._id?.slice(-8).toUpperCase() || '—'}</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">Date of Birth</p>
+                      <p className="font-semibold text-gray-900">{formatDate(user.dob)}</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">Gender</p>
+                      <p className="font-semibold text-gray-900">{user.gender || '—'}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <h5 className="text-sm font-semibold text-gray-800 mb-2">Documents</h5>
+                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">PAN Card</p>
+                          {kycDocuments.pan.preview ? (
+                            <p className="text-xs text-green-600">✓ Uploaded</p>
+                          ) : (
+                            <p className="text-xs text-red-600">❌ Not Uploaded</p>
+                          )}
+                        </div>
+                        {kycDocuments.pan.preview && (
+                          <button
+                            onClick={() => window.open(kycDocuments.pan.preview, '_blank')}
+                            className="px-3 py-1 bg-purple-600 text-white rounded text-xs font-semibold hover:bg-purple-700"
+                          >
+                            View Document
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-            <div className="flex items-center gap-3 p-3 bg-dark-50 rounded-lg">
-              <User size={20} className="text-dark-500" />
-              <div>
-                <p className="text-xs text-dark-500">Full Name</p>
-                <p className="font-semibold text-dark-900">{user.fullName}</p>
-              </div>
-            </div>
+              {/* Address Tab */}
+              {activeInfoTab === 'address' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">Address</p>
+                      <p className="font-semibold text-gray-900">
+                        {user.address?.line1 || '—'}
+                        {user.address?.line2 && `, ${user.address.line2}`}
+                        {user.address?.line3 && `, ${user.address.line3}`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">City</p>
+                      <p className="font-semibold text-gray-900">{user.address?.city || '—'}</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">State</p>
+                      <p className="font-semibold text-gray-900">{user.address?.state || '—'}</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">Pincode</p>
+                      <p className="font-semibold text-gray-900">{user.address?.pincode || '—'}</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">Country</p>
+                      <p className="font-semibold text-gray-900">{user.address?.country || 'India'}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <h5 className="text-sm font-semibold text-gray-800 mb-2">Documents</h5>
+                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">Address Proof (Aadhaar)</p>
+                          {kycDocuments.aadhaar.preview ? (
+                            <p className="text-xs text-green-600">✓ Uploaded</p>
+                          ) : (
+                            <p className="text-xs text-red-600">❌ Not Uploaded</p>
+                          )}
+                        </div>
+                        {kycDocuments.aadhaar.preview && (
+                          <button
+                            onClick={() => window.open(kycDocuments.aadhaar.preview, '_blank')}
+                            className="px-3 py-1 bg-purple-600 text-white rounded text-xs font-semibold hover:bg-purple-700"
+                          >
+                            View Document
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-            <div className="flex items-center gap-3 p-3 bg-dark-50 rounded-lg">
-              <Mail size={20} className="text-dark-500" />
-              <div>
-                <p className="text-xs text-dark-500">Email</p>
-                <p className="font-semibold text-dark-900">{user.email}</p>
-              </div>
-            </div>
+              {/* Bank & Finance Tab */}
+              {activeInfoTab === 'bank' && (
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900 mb-3">Bank Account</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-xs text-gray-500 mb-1">Account Type</p>
+                        <p className="font-semibold text-gray-900">{user.bankAccount?.accountType || '—'}</p>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-xs text-gray-500 mb-1">Account Number</p>
+                        <p className="font-semibold text-gray-900">{user.bankAccount?.accountNumber || '—'}</p>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-xs text-gray-500 mb-1">IFSC</p>
+                        <p className="font-semibold text-gray-900">{user.bankAccount?.ifsc || '—'}</p>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-xs text-gray-500 mb-1">Bank Name</p>
+                        <p className="font-semibold text-gray-900">{user.bankAccount?.bankName || '—'}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900 mb-3">Nominee</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-xs text-gray-500 mb-1">Name</p>
+                        <p className="font-semibold text-gray-900">{user.nominee?.name || '—'}</p>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-xs text-gray-500 mb-1">Relationship</p>
+                        <p className="font-semibold text-gray-900">{user.nominee?.relationship || '—'}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <h5 className="text-sm font-semibold text-gray-800 mb-2">Documents</h5>
+                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">Bank Proof</p>
+                          {kycDocuments.bank.preview ? (
+                            <p className="text-xs text-green-600">✓ Uploaded</p>
+                          ) : (
+                            <p className="text-xs text-red-600">❌ Not Uploaded</p>
+                          )}
+                        </div>
+                        {kycDocuments.bank.preview && (
+                          <button
+                            onClick={() => window.open(kycDocuments.bank.preview, '_blank')}
+                            className="px-3 py-1 bg-purple-600 text-white rounded text-xs font-semibold hover:bg-purple-700"
+                          >
+                            View Document
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-            <div className="flex items-center gap-3 p-3 bg-dark-50 rounded-lg">
-              <Phone size={20} className="text-dark-500" />
-              <div>
-                <p className="text-xs text-dark-500">Phone</p>
-                <p className="font-semibold text-dark-900">{user.phone}</p>
-              </div>
+              {/* CLM & Documents Tab */}
+              {activeInfoTab === 'clm' && (
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900 mb-3">Demat Account</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-xs text-gray-500 mb-1">DP ID</p>
+                        <p className="font-semibold text-gray-900">{user.dematAccount?.dpId || '—'}</p>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-xs text-gray-500 mb-1">Client ID</p>
+                        <p className="font-semibold text-gray-900">{user.dematAccount?.clientId || '—'}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <h5 className="text-sm font-semibold text-gray-800 mb-2">Documents</h5>
+                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">CLM Copy (Optional)</p>
+                          {kycDocuments.demat.preview ? (
+                            <p className="text-xs text-green-600">✓ Uploaded</p>
+                          ) : (
+                            <p className="text-xs text-orange-600">⚠️ Not Uploaded</p>
+                          )}
+                        </div>
+                        {kycDocuments.demat.preview && (
+                          <button
+                            onClick={() => window.open(kycDocuments.demat.preview, '_blank')}
+                            className="px-3 py-1 bg-purple-600 text-white rounded text-xs font-semibold hover:bg-purple-700"
+                          >
+                            View Document
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-
-            <button
-              onClick={() => setIsEditing(true)}
-              className="w-full btn-mobile btn-secondary flex items-center justify-center gap-2"
-            >
-              <Edit2 size={18} />
-              Edit Profile
-            </button>
           </div>
         )}
       </div>
