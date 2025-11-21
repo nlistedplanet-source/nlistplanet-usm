@@ -3,7 +3,6 @@ import { User, Mail, Phone, Edit2, Key, LogOut, Shield, Shuffle, Calendar, MapPi
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { kycAPI } from '../../utils/api';
 
 // ProfileTab Component - Updated Design v2.0
 const ProfileTab = () => {
@@ -33,7 +32,6 @@ const ProfileTab = () => {
   }
   
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showKYCModal, setShowKYCModal] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -1082,18 +1080,7 @@ const ProfileTab = () => {
         )}
       </div>
 
-      {/* KYC Edit Modal */}
-      {showKYCModal && (
-        <KYCEditModal 
-          user={user} 
-          onClose={() => setShowKYCModal(false)}
-          onSuccess={() => {
-            setShowKYCModal(false);
-            toast.success('Profile updated successfully!');
-            window.location.reload(); // Reload to get updated user data
-          }}
-        />
-      )}
+      {/* KYC Verification Section Removed */}
 
       {/* Change Password Modal */}
       {showPasswordModal && (
@@ -1175,8 +1162,7 @@ const ProfileTab = () => {
   );
 };
 
-// KYC Edit Modal Component
-const KYCEditModal = ({ user, onClose, onSuccess }) => {
+export default ProfileTab;
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: user.fullName || '',

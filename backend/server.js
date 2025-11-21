@@ -120,7 +120,9 @@ try {
   console.error('[Routes Error] Portfolio:', err);
 }
 
-  // KYC routes removedtry {
+  // KYC routes removed
+
+try {
   app.use('/api/admin', adminRoutes);
   console.log('[Routes] Admin routes loaded');
 } catch (err) {
