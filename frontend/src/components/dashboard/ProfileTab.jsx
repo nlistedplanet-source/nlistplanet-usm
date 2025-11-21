@@ -220,8 +220,6 @@ const ProfileTab = () => {
 
   return (
     <div>
-      <h2 className="text-lg font-bold text-dark-900 mb-6">Profile Settings</h2>
-
       {/* Profile Card */}
       <div className="card-mobile mb-6">
         <div className="flex items-center gap-4 mb-6">
@@ -250,12 +248,6 @@ const ProfileTab = () => {
               }`}>
                 {user.role === 'admin' ? 'Admin' : 'User'}
               </span>
-              {user.kycStatus === 'approved' && (
-                <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-green-100 text-green-700 flex items-center gap-1">
-                  <Shield size={12} />
-                  KYC Verified
-                </span>
-              )}
             </div>
           </div>
         </div>
