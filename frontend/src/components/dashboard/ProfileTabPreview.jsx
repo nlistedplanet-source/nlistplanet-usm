@@ -4,6 +4,16 @@ import toast from 'react-hot-toast';
 
 // Standalone ProfileTab for Preview - No AuthContext dependency
 const ProfileTabPreview = ({ mockUser }) => {
+  // Helper function to format date as DD-MM-YYYY
+  const formatDate = (dateString) => {
+    if (!dateString) return '—';
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -142,19 +152,8 @@ const ProfileTabPreview = ({ mockUser }) => {
           </div>
         </div>
 
-        {/* Edit Profile Button at Top */}
-        {!isEditing && (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-semibold flex items-center gap-2 mb-4"
-          >
-            <Edit2 size={14} />
-            Edit Profile
-          </button>
-        )}
-
-        {/* Profile Information Section Title */}
-        <div className="flex items-center justify-between mb-4">
+        {/* Profile Information Section Title with KYC Badge */}
+        <div className="flex items-center justify-between mb-3">
           <h3 className="text-md font-bold text-gray-900">Profile Information</h3>
           {user.kycStatus === 'approved' ? (
             <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-green-100 text-green-700 flex items-center gap-1">
@@ -171,6 +170,17 @@ const ProfileTabPreview = ({ mockUser }) => {
             </span>
           )}
         </div>
+
+        {/* Edit Profile Button Below Badge */}
+        {!isEditing && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="px-3 py-1.5 bg-purple-600 text-white rounded text-xs font-semibold hover:bg-purple-700 flex items-center gap-1 mb-4"
+          >
+            <Edit2 size={12} />
+            Edit Profile
+          </button>
+        )}
 
         {isEditing ? (
           <form onSubmit={handleUpdateProfile} className="space-y-6">
@@ -576,10 +586,10 @@ const ProfileTabPreview = ({ mockUser }) => {
                       <p className="text-xs text-gray-500 mb-1">User ID</p>
                       <p className="font-semibold text-gray-900 font-mono">{user.userId || '—'}</p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-500 mb-1">Date of Birth</p>
-                      <p className="font-semibold text-gray-900">{user.dob ? new Date(user.dob).toLocaleDateString() : '—'}</p>
-                    </div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-xs text-gray-500 mb-1">Date of Birth</p>
+                    <p className="font-semibold text-gray-900">{formatDate(user.dob)}</p>
+                  </div>
                     <div className="p-3 bg-gray-50 rounded-lg">
                       <p className="text-xs text-gray-500 mb-1">Gender</p>
                       <p className="font-semibold text-gray-900">{user.gender || '—'}</p>
