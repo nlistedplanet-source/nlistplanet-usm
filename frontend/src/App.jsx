@@ -41,9 +41,9 @@ function AppContent() {
   const location = useLocation();
   const [showBottomNav, setShowBottomNav] = useState(true);
 
-  // Hide bottom nav on login/register/forgot-password/dashboard-preview pages
+  // Hide bottom nav on login/register/forgot-password/dashboard-preview/dashboard pages
   useEffect(() => {
-    const hideNavPaths = ['/login', '/register', '/forgot-password', '/dashboard-preview'];
+    const hideNavPaths = ['/login', '/register', '/forgot-password', '/dashboard-preview', '/dashboard'];
     const path = window.location.pathname;
     setShowBottomNav(!hideNavPaths.includes(path));
   }, []);
@@ -58,7 +58,7 @@ function AppContent() {
       {showBottomNav && <TopBar />}
 
       {/* Main Content */}
-      <main className={location.pathname === '/' || location.pathname === '/dashboard-preview' ? '' : 'pt-16'}>
+      <main className={location.pathname === '/' || location.pathname === '/dashboard-preview' || location.pathname === '/dashboard' ? '' : 'pt-16'}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
