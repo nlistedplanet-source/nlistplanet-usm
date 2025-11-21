@@ -453,6 +453,8 @@ const DashboardPage = () => {
         </div>
           </>
         )}
+          </>
+        )}
 
         {/* Marketplace Tab */}
         {activeTab === 'marketplace' && (
