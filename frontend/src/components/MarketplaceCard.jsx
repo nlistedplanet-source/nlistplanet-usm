@@ -23,13 +23,15 @@ const MarketplaceCard = ({
   onSecondary,
   onShare,
 }) => {
-  const isBuy = type === 'buy';
+  const isSell = type === 'sell';
   // Accent color and background based on type
-  const accentColor = isBuy ? 'bg-emerald-500' : 'bg-yellow-400';
-  const accentBg = isBuy ? 'bg-emerald-50' : 'bg-yellow-50';
-  const accentText = isBuy ? 'text-emerald-700' : 'text-yellow-700';
-  const accentHover = isBuy ? 'hover:bg-emerald-100' : 'hover:bg-yellow-100';
-  const borderAccent = isBuy ? 'border-emerald-200' : 'border-yellow-200';
+  // Sell post = green (buy opportunity for others)
+  // Buy post = yellow (sell opportunity for others)
+  const accentColor = isSell ? 'bg-emerald-500' : 'bg-yellow-400';
+  const accentBg = isSell ? 'bg-emerald-50' : 'bg-yellow-50';
+  const accentText = isSell ? 'text-emerald-700' : 'text-yellow-700';
+  const accentHover = isSell ? 'hover:bg-emerald-100' : 'hover:bg-yellow-100';
+  const borderAccent = isSell ? 'border-emerald-200' : 'border-yellow-200';
   return (
     <div className={`bg-white rounded-xl shadow-sm p-4 w-full border ${borderAccent} relative hover:shadow-md transition-shadow`}>
       {/* Top Row */}
@@ -60,7 +62,7 @@ const MarketplaceCard = ({
             </span>
           </div>
           <div className="flex items-center gap-1 mt-0.5">
-            <span className="text-xs text-gray-500">{isBuy ? 'Financial Services' : 'Manufacturing'}</span>
+            <span className="text-xs text-gray-500">{isSell ? 'Financial Services' : 'Manufacturing'}</span>
             <span className="text-xs text-gray-400">@{user}</span>
           </div>
         </div>
@@ -78,7 +80,7 @@ const MarketplaceCard = ({
       </div>
       {/* Actions */}
       <div className="flex gap-2 mt-2">
-        {isBuy ? (
+        {isSell ? (
           <>
             <button
               className="flex-1 py-2 rounded-lg font-semibold text-sm bg-gray-800 text-emerald-400 hover:bg-gray-900 shadow"
