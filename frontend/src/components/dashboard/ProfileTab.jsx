@@ -9,6 +9,9 @@ const ProfileTab = () => {
   const { user, logout, updateProfile, changePassword } = useAuth();
   const navigate = useNavigate();
   
+  // Debug log
+  console.log('ProfileTab - user:', user);
+  
   // Helper function to format date as DD-MM-YYYY
   const formatDate = (dateString) => {
     if (!dateString) return '—';
