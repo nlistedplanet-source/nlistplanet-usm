@@ -1,7 +1,6 @@
 import express from 'express';
 import Company from '../models/Company.js';
-import auth from '../middleware/auth.js';
-import admin from '../middleware/admin.js';
+import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -109,7 +108,7 @@ router.get('/:id', async (req, res, next) => {
 // @route   POST /api/companies
 // @desc    Create new company (admin only)
 // @access  Private/Admin
-router.post('/', auth, admin, async (req, res, next) => {
+router.post('/', protect, authorize('admin'), async (req, res, next) => {
   try {
     const { Logo, CompanyName, ScripName, ISIN, PAN, CIN, RegistrationDate, Sector } = req.body;
 
@@ -162,7 +161,7 @@ router.post('/', auth, admin, async (req, res, next) => {
 // @route   PUT /api/companies/:id
 // @desc    Update company (admin only)
 // @access  Private/Admin
-router.put('/:id', auth, admin, async (req, res, next) => {
+router.put('/:id', protect, authorize('admin'), async (req, res, next) => {
   try {
     const { Logo, CompanyName, ScripName, ISIN, PAN, CIN, RegistrationDate, Sector } = req.body;
 
@@ -247,7 +246,7 @@ router.put('/:id', auth, admin, async (req, res, next) => {
 // @route   DELETE /api/companies/:id
 // @desc    Delete company (admin only)
 // @access  Private/Admin
-router.delete('/:id', auth, admin, async (req, res, next) => {
+router.delete('/:id', protect, authorize('admin'), async (req, res, next) => {
   try {
     const company = await Company.findById(req.params.id);
     
