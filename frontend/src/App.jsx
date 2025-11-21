@@ -55,7 +55,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-dark-50">
       {/* Top Bar */}
-      {showBottomNav && <TopBar />}
+      {showBottomNav && location.pathname !== '/dashboard' && <TopBar />}
 
       {/* Main Content */}
       <main className={location.pathname === '/' || location.pathname === '/dashboard-preview' || location.pathname === '/dashboard' ? '' : 'pt-16'}>
