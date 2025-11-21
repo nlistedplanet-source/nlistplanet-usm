@@ -18,7 +18,6 @@ import transactionRoutes from './routes/transactions.js';
 import referralRoutes from './routes/referrals.js';
 import adminRoutes from './routes/admin.js';
 import portfolioRoutes from './routes/portfolio.js';
-import kycRoutes from './routes/kyc.js';
 
 // Load environment variables
 dotenv.config();
@@ -121,14 +120,7 @@ try {
   console.error('[Routes Error] Portfolio:', err);
 }
 
-try {
-  app.use('/api/kyc', kycRoutes);
-  console.log('[Routes] KYC routes loaded');
-} catch (err) {
-  console.error('[Routes Error] KYC:', err);
-}
-
-try {
+  // KYC routes removedtry {
   app.use('/api/admin', adminRoutes);
   console.log('[Routes] Admin routes loaded');
 } catch (err) {

@@ -49,16 +49,19 @@ const ProfileTab = () => {
     phone: user?.phone || ''
   });
   const [generatedUsername, setGeneratedUsername] = useState(user?.username || '');
-  
-  // KYC document upload state
-  const [currentStep, setCurrentStep] = useState(1);
   const [activeInfoTab, setActiveInfoTab] = useState('personal'); // Tab state for display view
-  const [kycDocuments, setKycDocuments] = useState({
-    pan: { file: null, preview: null, extracted: null },
-    aadhaar: { file: null, preview: null, extracted: null },
-    bank: { file: null, preview: null, extracted: null },
-    demat: { file: null, preview: null, extracted: null }
-  });
+  
+  // Sync profileData with user object when user changes
+  React.useEffect(() => {
+    if (user) {
+      setProfileData({
+        username: user.username || '',
+        fullName: user.fullName || '',
+        phone: user.phone || ''
+      });
+      setGeneratedUsername(user.username || '');
+    }
+  }, [user]);
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -123,98 +126,6 @@ const ProfileTab = () => {
       toast.error('Failed to update profile');
     } finally {
       setLoading(false);
-    }
-  };
-
-  // File upload handler for KYC documents
-  const handleFileUpload = (docType, event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setKycDocuments(prev => ({
-        ...prev,
-        [docType]: { 
-          file, 
-          preview: reader.result,
-          extracted: null // Mock extraction - in real app, call OCR API
-        }
-      }));
-      toast.success(`${docType.toUpperCase()} uploaded successfully`);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  // KYC step navigation
-  const handleNextStep = () => {
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handlePreviousStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  // KYC submission
-  const handleSubmitKYC = async () => {
-    setLoading(true);
-    try {
-      const kycData = {
-        documents: {
-          pan: kycDocuments.pan.preview,
-          aadhaar: kycDocuments.aadhaar.preview,
-          bankProof: kycDocuments.bank.preview,
-          cdslStatement: kycDocuments.demat.preview
-        }
-      };
-      await kycAPI.submitKYC(kycData);
-      toast.success('KYC submitted successfully!');
-      setCurrentStep(1);
-      setKycDocuments({
-        pan: { file: null, preview: null, extracted: null },
-        aadhaar: { file: null, preview: null, extracted: null },
-        bank: { file: null, preview: null, extracted: null },
-        demat: { file: null, preview: null, extracted: null }
-      });
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to submit KYC');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getDocumentStatusIcon = (docStatus) => {
-    switch (docStatus) {
-      case 'approved':
-        return <CheckCircle size={16} className="text-green-600" />;
-      case 'pending':
-        return <AlertCircle size={16} className="text-yellow-600" />;
-      case 'rejected':
-        return <XCircle size={16} className="text-red-600" />;
-      default:
-        return <XCircle size={16} className="text-gray-400" />;
-    }
-  };
-
-  const getDocumentStatusText = (docStatus) => {
-    switch (docStatus) {
-      case 'approved':
-        return 'Verified';
-      case 'pending':
-        return 'Under Review';
-      case 'rejected':
-        return 'Rejected';
-      default:
-        return 'Not Uploaded';
     }
   };
 
@@ -931,76 +842,7 @@ const ProfileTab = () => {
         </button>
       </div>
 
-      {/* KYC Verification Section - Inline */}
-      <div className="card-mobile mt-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-dark-900 flex items-center gap-2">
-            <Shield size={20} className="text-purple-600" />
-            KYC Verification
-          </h3>
-          <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${
-            user.kycStatus === 'approved' ? 'bg-green-100 text-green-700' :
-            user.kycStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-            'bg-blue-100 text-blue-700'
-          }`}>
-            {user.kycStatus === 'approved' ? 'Verified ✓' :
-             user.kycStatus === 'pending' ? 'Under Review' :
-             'Not Started'}
-          </span>
-        </div>
-
-        {/* KYC Status Banner */}
-        {user.kycStatus === 'approved' ? (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
-            <div className="flex items-center gap-3">
-              <Shield size={24} className="text-green-600" />
-              <div>
-                <p className="font-semibold text-green-900">KYC Verified ✓</p>
-                <p className="text-sm text-green-700">Your account is fully verified</p>
-              </div>
-            </div>
-          </div>
-        ) : user.kycStatus === 'pending' ? (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4">
-            <div className="flex items-center gap-3">
-              <Shield size={24} className="text-yellow-600" />
-              <div>
-                <p className="font-semibold text-yellow-900">Under Review</p>
-                <p className="text-sm text-yellow-700">Your KYC documents are being verified by admin</p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-            <div className="flex items-center gap-3">
-              <Shield size={24} className="text-blue-600" />
-              <div>
-                <p className="font-semibold text-blue-900">Complete Your KYC</p>
-                <p className="text-sm text-blue-700">Upload required documents to verify your identity</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* KYC Form - Only show if not approved */}
-        {user.kycStatus !== 'approved' && (
-          <div className="space-y-4">
-            {/* Progress Bar */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-dark-900">Step {currentStep} of 4</span>
-                <span className="text-xs text-dark-600">{Math.round((currentStep / 4) * 100)}% Complete</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-gradient-to-r from-purple-600 to-indigo-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(currentStep / 4) * 100}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Step 1: PAN Card */}
-            {currentStep === 1 && (
+      {/* KYC Verification Section Removed */
               <div className="border border-gray-200 rounded-xl p-4 bg-white">
                 <h4 className="font-bold text-dark-900 mb-3 flex items-center gap-2">
                   <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm">1</span>
