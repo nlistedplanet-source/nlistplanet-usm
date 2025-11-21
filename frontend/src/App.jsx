@@ -7,7 +7,6 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Pages
 import HomePage from './pages/HomePage';
-import MarketplacePage from './pages/MarketplacePage';
 import HowItWorksPage from './pages/HowItWorksPage';
 import DashboardPage from './pages/DashboardPage';
 import DashboardPreview from './pages/DashboardPreview';
@@ -61,7 +60,6 @@ function AppContent() {
       <main className={location.pathname === '/' || location.pathname === '/dashboard-preview' || location.pathname === '/dashboard' ? '' : 'pt-16'}>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/marketplace" element={<MarketplacePage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />
           <Route path="/dashboard-preview" element={<DashboardPreview />} />
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />

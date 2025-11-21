@@ -52,6 +52,10 @@ const DashboardPage = () => {
   const [recentActivities, setRecentActivities] = useState([]);
   const [marketplaceListings, setMarketplaceListings] = useState([]);
   const [marketplaceLoading, setMarketplaceLoading] = useState(false);
+  const [marketplaceSearch, setMarketplaceSearch] = useState('');
+  const [activeMarketTab, setActiveMarketTab] = useState('all');
+  const [marketplaceSort, setMarketplaceSort] = useState('latest');
+  const [marketplaceFilter, setMarketplaceFilter] = useState('all');
 
   // Fetch portfolio data
   useEffect(() => {
