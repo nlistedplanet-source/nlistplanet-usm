@@ -14,6 +14,7 @@ if (!process.env.REACT_APP_API_URL) {
 export const listingsAPI = {
   getAll: (params) => axios.get('/listings', { params }),
   getMy: (params) => axios.get('/listings/my', { params }),
+  getMyPlacedBids: () => axios.get('/listings/my-placed-bids'),
   create: (data) => axios.post('/listings', data),
   placeBid: (id, data) => axios.post(`/listings/${id}/bid`, data),
   boost: (id) => axios.put(`/listings/${id}/boost`),

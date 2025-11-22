@@ -29,6 +29,7 @@ import toast from 'react-hot-toast';
 import MyPostsTab from '../components/dashboard/MyPostsTab';
 import BidsTab from '../components/dashboard/BidsTab';
 import OffersTab from '../components/dashboard/OffersTab';
+import MyActivityTab from '../components/dashboard/MyActivityTab';
 import NotificationsTab from '../components/dashboard/NotificationsTab';
 import ReferralsTab from '../components/dashboard/ReferralsTab';
 import ProfileTab from '../components/dashboard/ProfileTab';
@@ -196,6 +197,7 @@ const DashboardPage = () => {
     { id: 'posts', label: 'My Posts', icon: FileText },
     { id: 'bids', label: 'Bids Received', icon: TrendingUp },
     { id: 'offers', label: 'Offers Made', icon: TrendingDown },
+    { id: 'activity', label: 'My Activity', icon: Activity },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'referrals', label: 'Referrals', icon: Gift },
     { id: 'profile', label: 'Profile', icon: UserIcon },
@@ -774,6 +776,11 @@ const DashboardPage = () => {
         {activeTab === 'offers' && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <OffersTab />
+          </div>
+        )}
+        {activeTab === 'activity' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <MyActivityTab />
           </div>
         )}
         {activeTab === 'notifications' && (
