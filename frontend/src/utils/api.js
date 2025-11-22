@@ -17,6 +17,9 @@ export const listingsAPI = {
   create: (data) => axios.post('/listings', data),
   placeBid: (id, data) => axios.post(`/listings/${id}/bid`, data),
   boost: (id) => axios.put(`/listings/${id}/boost`),
+  acceptBid: (listingId, bidId) => axios.put(`/listings/${listingId}/bids/${bidId}/accept`),
+  rejectBid: (listingId, bidId) => axios.put(`/listings/${listingId}/bids/${bidId}/reject`),
+  counterBid: (listingId, bidId, data) => axios.put(`/listings/${listingId}/bids/${bidId}/counter`, data),
 };
 
 // Notifications API
