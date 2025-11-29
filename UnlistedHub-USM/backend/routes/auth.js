@@ -313,6 +313,151 @@ router.post(
   }
 });
 
+// @route   POST /api/auth/resend-verification
+// @desc    Resend verification email
+// @access  Public
+router.post(
+  '/resend-verification',
+  authLimiter,
+  body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Valid email required' });
+    }
+    next();
+  },
+  async (req, res, next) => {
+    try {
+      const { email } = req.body;
+
+      // Find user
+      const user = await User.findOne({ email: email.toLowerCase() });
+
+      if (!user) {
+        // Don't reveal if email exists for security
+        return res.json({
+          success: true,
+          message: 'If an account exists with this email, a verification link has been sent.'
+        });
+      }
+
+      // Check if already verified
+      if (user.isVerified) {
+        return res.status(400).json({
+          success: false,
+          message: 'This email is already verified. You can log in now.'
+        });
+      }
+
+      // Generate new verification token
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      user.verificationToken = verificationToken;
+      user.verificationTokenExpiry = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+      await user.save();
+
+      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+      logAuthEvent('resend_verification', email, 'success', ip, req.headers['user-agent']);
+
+      // Send verification email
+      try {
+        await sendVerificationEmail(user, verificationToken);
+      } catch (emailError) {
+        console.error('Failed to send verification email:', emailError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to send verification email. Please try again later.'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Verification email sent successfully! Please check your inbox.'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// @route   PUT /api/auth/update-email
+// @desc    Update email for unverified user
+// @access  Public
+router.put(
+  '/update-email',
+  authLimiter,
+  body('currentEmail').isEmail().normalizeEmail().withMessage('Valid current email required'),
+  body('newEmail').isEmail().normalizeEmail().withMessage('Valid new email required'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Valid emails required' });
+    }
+    next();
+  },
+  async (req, res, next) => {
+    try {
+      const { currentEmail, newEmail } = req.body;
+
+      // Find user with current email
+      const user = await User.findOne({ email: currentEmail.toLowerCase() });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'No account found with this email.'
+        });
+      }
+
+      // Only allow email update for unverified users
+      if (user.isVerified) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email cannot be changed for verified accounts. Please contact support.'
+        });
+      }
+
+      // Check if new email already exists
+      const existingUser = await User.findOne({ email: newEmail.toLowerCase() });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'This email is already registered.'
+        });
+      }
+
+      // Update email and generate new verification token
+      user.email = newEmail.toLowerCase();
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      user.verificationToken = verificationToken;
+      user.verificationTokenExpiry = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+      await user.save();
+
+      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+      logAuthEvent('email_updated', newEmail, 'success', ip, req.headers['user-agent']);
+
+      // Send verification email to new address
+      try {
+        await sendVerificationEmail(user, verificationToken);
+      } catch (emailError) {
+        console.error('Failed to send verification email:', emailError);
+        return res.status(500).json({
+          success: false,
+          message: 'Email updated but failed to send verification. Please resend verification email.'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Email updated successfully! Please check your new email for verification link.',
+        email: user.email
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 // @route   GET /api/auth/verify-email/:token
 // @desc    Verify user email
 // @access  Public

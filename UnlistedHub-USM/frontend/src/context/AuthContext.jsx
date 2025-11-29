@@ -126,11 +126,21 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       
       toast.success('Login successful!');
-      return true;
+      return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed';
-      toast.error(message);
-      return false;
+      const isUnverified = message.includes('verify your email');
+      
+      if (!isUnverified) {
+        toast.error(message);
+      }
+      
+      return { 
+        success: false, 
+        message,
+        isUnverified,
+        username
+      };
     }
   };
 
@@ -188,6 +198,33 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const resendVerification = async (email) => {
+    try {
+      const response = await axios.post(`${BASE_API_URL}/auth/resend-verification`, { email });
+      toast.success(response.data.message);
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to resend verification email';
+      toast.error(message);
+      return { success: false, message };
+    }
+  };
+
+  const updateEmail = async (currentEmail, newEmail) => {
+    try {
+      const response = await axios.put(`${BASE_API_URL}/auth/update-email`, {
+        currentEmail,
+        newEmail
+      });
+      toast.success(response.data.message);
+      return { success: true, email: response.data.email };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to update email';
+      toast.error(message);
+      return { success: false, message };
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -196,6 +233,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateProfile,
     changePassword,
+    resendVerification,
+    updateEmail,
     isAuthenticated: !!user
   };
 

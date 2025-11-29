@@ -1,22 +1,34 @@
 import nodemailer from 'nodemailer';
 
-// Create transporter
+// Create transporter (fixed: use createTransport)
 const createTransporter = () => {
-  return nodemailer.createTransporter({
-    host: process.env.EMAIL_HOST,
-    port: parseInt(process.env.EMAIL_PORT),
-    secure: process.env.EMAIL_SECURE === 'true',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD
-    }
+  const host = process.env.EMAIL_HOST;
+  const port = parseInt(process.env.EMAIL_PORT || '587', 10);
+  const secure = String(process.env.EMAIL_SECURE).toLowerCase() === 'true';
+  const user = process.env.EMAIL_USER;
+  const pass = process.env.EMAIL_PASSWORD;
+
+  const transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure,
+    auth: { user, pass }
   });
+
+  return transporter;
 };
 
 // Send email
 export const sendEmail = async ({ to, subject, html }) => {
   try {
     const transporter = createTransporter();
+    // Verify transporter configuration for clearer diagnostics
+    try {
+      await transporter.verify();
+      console.log('[Email] Transporter verified. Ready to send.');
+    } catch (verifyErr) {
+      console.error('[Email] Transporter verification failed:', verifyErr);
+    }
     
     const mailOptions = {
       from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM_ADDRESS}>`,

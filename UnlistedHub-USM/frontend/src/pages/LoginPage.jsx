@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn, RefreshCw, Edit3, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import signinHero from '../assets/signin_hero.png';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, resendVerification, updateEmail } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
+  const [showUpdateEmail, setShowUpdateEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -26,17 +31,157 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    const success = await login(formData.username, formData.password);
+    const result = await login(formData.username, formData.password);
     
-    if (success) {
+    if (result.success) {
       navigate('/dashboard');
+    } else if (result.isUnverified) {
+      // Extract email from username or show modal
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const email = emailPattern.test(formData.username) ? formData.username : '';
+      setUnverifiedEmail(email);
+      setShowVerifyModal(true);
     }
     
     setLoading(false);
   };
 
+  const handleResendVerification = async () => {
+    if (!unverifiedEmail) {
+      return;
+    }
+    
+    setResendLoading(true);
+    await resendVerification(unverifiedEmail);
+    setResendLoading(false);
+  };
+
+  const handleUpdateEmail = async () => {
+    if (!newEmail || !unverifiedEmail) {
+      return;
+    }
+    
+    setResendLoading(true);
+    const result = await updateEmail(unverifiedEmail, newEmail);
+    if (result.success) {
+      setUnverifiedEmail(result.email);
+      setNewEmail('');
+      setShowUpdateEmail(false);
+    }
+    setResendLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-white flex">
+      {/* Verification Modal */}
+      {showVerifyModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Email Not Verified</h3>
+                <p className="text-sm text-gray-500 mt-1">Please verify your email to continue</p>
+              </div>
+              <button 
+                onClick={() => setShowVerifyModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {!showUpdateEmail ? (
+              <>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-yellow-800">
+                    A verification link was sent to: <br />
+                    <span className="font-semibold">{unverifiedEmail || 'your registered email'}</span>
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={handleResendVerification}
+                    disabled={resendLoading || !unverifiedEmail}
+                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <RefreshCw size={18} className={resendLoading ? 'animate-spin' : ''} />
+                    {resendLoading ? 'Sending...' : 'Resend Verification Email'}
+                  </button>
+
+                  <button
+                    onClick={() => setShowUpdateEmail(true)}
+                    className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium flex items-center justify-center gap-2"
+                  >
+                    <Edit3 size={18} />
+                    Update Email Address
+                  </button>
+
+                  <button
+                    onClick={() => setShowVerifyModal(false)}
+                    className="w-full py-2 text-gray-500 hover:text-gray-700 text-sm"
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Current Email
+                  </label>
+                  <input
+                    type="email"
+                    value={unverifiedEmail}
+                    disabled
+                    className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600"
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    New Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="Enter your new email"
+                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500"
+                    autoFocus
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={handleUpdateEmail}
+                    disabled={resendLoading || !newEmail}
+                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium disabled:opacity-50"
+                  >
+                    {resendLoading ? 'Updating...' : 'Update & Send Verification'}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowUpdateEmail(false);
+                      setNewEmail('');
+                    }}
+                    className="w-full py-2 text-gray-500 hover:text-gray-700 text-sm"
+                  >
+                    Back
+                  </button>
+                </div>
+              </>
+            )}
+          </motion.div>
+        </div>
+      )}
+
       {/* Illustration Section - 60% */}
       <motion.div 
         initial={{ x: -50, opacity: 0 }}
