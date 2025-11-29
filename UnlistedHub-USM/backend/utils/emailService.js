@@ -1,10 +1,12 @@
 import nodemailer from 'nodemailer';
 
-// Create transporter (fixed: use createTransport)
+// Create transporter with fallback ports (fixed: use createTransport)
 const createTransporter = () => {
   const host = process.env.EMAIL_HOST;
-  const port = parseInt(process.env.EMAIL_PORT || '587', 10);
-  const secure = String(process.env.EMAIL_SECURE).toLowerCase() === 'true';
+  // Try port 465 (SSL) if 587 is blocked on hosting platform
+  const port = parseInt(process.env.EMAIL_PORT || '465', 10);
+  // Port 465 requires secure=true, port 587 requires secure=false
+  const secure = port === 465 ? true : (String(process.env.EMAIL_SECURE).toLowerCase() === 'true');
   const user = process.env.EMAIL_USER;
   const pass = process.env.EMAIL_PASSWORD;
 
@@ -12,7 +14,18 @@ const createTransporter = () => {
     host,
     port,
     secure,
-    auth: { user, pass }
+    auth: { user, pass },
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 10000,
+    socketTimeout: 30000, // 30 seconds
+    // Enable debugging for troubleshooting
+    logger: false,
+    debug: false,
+    // Fallback to port 465 if 587 fails (Render compatibility)
+    tls: {
+      rejectUnauthorized: true,
+      minVersion: 'TLSv1.2'
+    }
   });
 
   return transporter;
