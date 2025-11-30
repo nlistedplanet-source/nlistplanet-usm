@@ -349,7 +349,7 @@ const DashboardPage = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 md:ml-64 pb-20 md:pb-0">
+      <main className="flex-1 md:ml-64 pb-24 md:pb-0">
         <div className="p-4 md:p-8">
         
         {/* Tab Content */}
