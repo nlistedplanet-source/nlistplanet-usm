@@ -1,4 +1,41 @@
 import nodemailer from 'nodemailer';
+import axios from 'axios';
+
+// Brevo API fallback for when SMTP ports are blocked (Render compatibility)
+const sendViaBrevoAPI = async ({ to, subject, html, fromName, fromEmail, replyTo }) => {
+  const apiKey = process.env.BREVO_API_KEY || process.env.EMAIL_PASSWORD;
+  
+  if (!apiKey) {
+    throw new Error('Brevo API key not configured');
+  }
+
+  try {
+    const response = await axios.post(
+      'https://api.brevo.com/v3/smtp/email',
+      {
+        sender: { name: fromName, email: fromEmail },
+        to: [{ email: to }],
+        replyTo: { email: replyTo },
+        subject,
+        htmlContent: html
+      },
+      {
+        headers: {
+          'api-key': apiKey,
+          'Content-Type': 'application/json',
+          'accept': 'application/json'
+        },
+        timeout: 15000
+      }
+    );
+    
+    console.log('[Email] ✅ Sent via Brevo API:', response.data.messageId);
+    return { success: true, messageId: response.data.messageId };
+  } catch (error) {
+    console.error('[Email] ❌ Brevo API error:', error.response?.data || error.message);
+    throw error;
+  }
+};
 
 // Create transporter with fallback ports (fixed: use createTransport)
 const createTransporter = () => {
@@ -31,31 +68,47 @@ const createTransporter = () => {
   return transporter;
 };
 
-// Send email
+// Send email with SMTP fallback to Brevo API
 export const sendEmail = async ({ to, subject, html }) => {
+  const fromName = process.env.EMAIL_FROM_NAME;
+  const fromEmail = process.env.EMAIL_FROM_ADDRESS;
+  const replyTo = process.env.EMAIL_REPLY_TO;
+
+  // Try Brevo API first (works when SMTP ports blocked on Render)
+  if (process.env.BREVO_API_KEY || process.env.NODE_ENV === 'production') {
+    try {
+      return await sendViaBrevoAPI({ to, subject, html, fromName, fromEmail, replyTo });
+    } catch (apiError) {
+      console.error('[Email] Brevo API failed, trying SMTP fallback...');
+      // Fall through to SMTP attempt
+    }
+  }
+
+  // SMTP fallback (for local development or if API fails)
   try {
     const transporter = createTransporter();
     // Verify transporter configuration for clearer diagnostics
     try {
       await transporter.verify();
-      console.log('[Email] Transporter verified. Ready to send.');
+      console.log('[Email] ✅ SMTP Transporter verified.');
     } catch (verifyErr) {
-      console.error('[Email] Transporter verification failed:', verifyErr);
+      console.error('[Email] ⚠️ SMTP verification failed:', verifyErr.message);
+      // Try sending anyway, verification can fail but sending might work
     }
     
     const mailOptions = {
-      from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM_ADDRESS}>`,
+      from: `"${fromName}" <${fromEmail}>`,
       to,
       subject,
       html,
-      replyTo: process.env.EMAIL_REPLY_TO
+      replyTo
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent:', info.messageId);
+    console.log('[Email] ✅ Sent via SMTP:', info.messageId);
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('Email send error:', error);
+    console.error('[Email] ❌ SMTP send error:', error.message);
     return { success: false, error: error.message };
   }
 };
