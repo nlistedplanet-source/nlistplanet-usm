@@ -116,89 +116,167 @@ export const sendEmail = async ({ to, subject, html }) => {
 // Send verification email
 export const sendVerificationEmail = async (user, verificationToken) => {
   const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
+  const logoUrl = `${process.env.FRONTEND_URL}/images/logos/new_logo.png`;
   
   const html = `
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Verify Your Email</title>
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <title>Verify Your Email - NList Planet</title>
+      <!--[if mso]>
+      <style type="text/css">
+        body, table, td {font-family: Arial, Helvetica, sans-serif !important;}
+      </style>
+      <![endif]-->
     </head>
-    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7fa;">
-      <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); background-attachment: fixed;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
         <tr>
-          <td align="center" style="padding: 40px 0;">
-            <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <td align="center" style="padding: 40px 20px;">
+            
+            <!-- Main Container -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
               
-              <!-- Header -->
+              <!-- Logo Header -->
               <tr>
-                <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
-                  <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">
-                    🎉 Welcome to NList Planet!
-                  </h1>
+                <td align="center" style="padding: 40px 30px 20px 30px; background-color: #ffffff;">
+                  <img src="${logoUrl}" alt="NList Planet" width="180" style="display: block; max-width: 180px; height: auto; border: 0; outline: none; text-decoration: none;" />
                 </td>
               </tr>
               
-              <!-- Content -->
+              <!-- Hero Section -->
               <tr>
-                <td style="padding: 40px 30px;">
-                  <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 24px;">
+                <td style="padding: 0 30px 30px 30px; text-align: center; background-color: #ffffff;">
+                  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 30px; margin-bottom: 30px;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 700; line-height: 1.2;">
+                      🎉 Welcome Aboard!
+                    </h1>
+                  </div>
+                  
+                  <h2 style="margin: 0 0 15px 0; color: #1a1a1a; font-size: 24px; font-weight: 600;">
                     Hi ${user.fullName}! 👋
                   </h2>
                   
-                  <p style="margin: 0 0 20px 0; color: #666666; font-size: 16px; line-height: 1.6;">
-                    Thank you for signing up with <strong>NList Planet</strong> - your trusted platform for unlisted shares trading.
+                  <p style="margin: 0 0 25px 0; color: #4a5568; font-size: 16px; line-height: 1.6;">
+                    Thank you for joining <strong style="color: #667eea;">NList Planet</strong> - India's trusted platform for unlisted shares trading.
                   </p>
+                </td>
+              </tr>
+              
+              <!-- Content Section -->
+              <tr>
+                <td style="padding: 0 30px 30px 30px; background-color: #ffffff;">
                   
-                  <p style="margin: 0 0 30px 0; color: #666666; font-size: 16px; line-height: 1.6;">
-                    To get started, please verify your email address by clicking the button below:
-                  </p>
+                  <div style="background-color: #f7fafc; border-radius: 12px; padding: 25px; margin-bottom: 30px; border-left: 4px solid #667eea;">
+                    <p style="margin: 0 0 15px 0; color: #2d3748; font-size: 16px; line-height: 1.6; font-weight: 500;">
+                      📧 Let's verify your email address
+                    </p>
+                    <p style="margin: 0; color: #4a5568; font-size: 15px; line-height: 1.6;">
+                      Click the button below to activate your account and start exploring unlisted investment opportunities.
+                    </p>
+                  </div>
                   
                   <!-- CTA Button -->
-                  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                     <tr>
                       <td align="center" style="padding: 0 0 30px 0;">
-                        <a href="${verificationUrl}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 50px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
-                          ✓ Verify Email Address
+                        <a href="${verificationUrl}" style="display: inline-block; padding: 18px 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 50px; font-size: 17px; font-weight: 600; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); transition: transform 0.2s;">
+                          ✓ Verify My Email Address
                         </a>
                       </td>
                     </tr>
                   </table>
                   
-                  <p style="margin: 0 0 15px 0; color: #999999; font-size: 14px; line-height: 1.6;">
-                    Or copy and paste this link into your browser:
-                  </p>
-                  
-                  <p style="margin: 0 0 30px 0; padding: 15px; background-color: #f8f9fa; border-radius: 8px; word-break: break-all; font-size: 14px; color: #667eea;">
-                    <a href="${verificationUrl}" style="color: #667eea; text-decoration: none;">${verificationUrl}</a>
-                  </p>
-                  
-                  <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 4px; margin-bottom: 30px;">
-                    <p style="margin: 0; color: #856404; font-size: 14px; line-height: 1.6;">
-                      ⏰ <strong>Important:</strong> This verification link will expire in 24 hours.
+                  <!-- Alternative Link -->
+                  <div style="background-color: #f7fafc; border-radius: 12px; padding: 20px; margin-bottom: 25px;">
+                    <p style="margin: 0 0 10px 0; color: #718096; font-size: 14px; text-align: center;">
+                      Or copy and paste this link into your browser:
+                    </p>
+                    <p style="margin: 0; padding: 12px; background-color: #ffffff; border-radius: 8px; word-break: break-all; font-size: 13px; border: 1px solid #e2e8f0; text-align: center;">
+                      <a href="${verificationUrl}" style="color: #667eea; text-decoration: none; font-family: monospace;">${verificationUrl}</a>
                     </p>
                   </div>
                   
-                  <p style="margin: 0; color: #666666; font-size: 14px; line-height: 1.6;">
-                    If you didn't create an account with NList Planet, please ignore this email.
-                  </p>
+                  <!-- Warning Box -->
+                  <div style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-radius: 12px; padding: 20px; margin-bottom: 25px; border-left: 4px solid #ffc107;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                      <tr>
+                        <td width="30" valign="top" style="padding-right: 10px;">
+                          <span style="font-size: 24px;">⏰</span>
+                        </td>
+                        <td>
+                          <p style="margin: 0; color: #856404; font-size: 14px; line-height: 1.6;">
+                            <strong>Important:</strong> This verification link will expire in <strong>24 hours</strong>. Please verify your email soon to avoid any delays.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+                  
+                  <!-- Security Note -->
+                  <div style="background-color: #edf2f7; border-radius: 12px; padding: 20px; text-align: center;">
+                    <p style="margin: 0 0 10px 0; color: #2d3748; font-size: 14px; line-height: 1.6;">
+                      🔒 <strong>Security Notice</strong>
+                    </p>
+                    <p style="margin: 0; color: #4a5568; font-size: 13px; line-height: 1.5;">
+                      If you didn't create an account with NList Planet, please ignore this email. Your security is our priority.
+                    </p>
+                  </div>
+                  
                 </td>
               </tr>
               
               <!-- Footer -->
               <tr>
-                <td style="background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef;">
-                  <p style="margin: 0 0 10px 0; color: #999999; font-size: 14px;">
-                    Need help? Contact us at <a href="mailto:hello@nlistplanet.com" style="color: #667eea; text-decoration: none;">hello@nlistplanet.com</a>
-                  </p>
-                  <p style="margin: 0; color: #cccccc; font-size: 12px;">
-                    © 2025 NList Planet. All rights reserved.
-                  </p>
+                <td style="background: linear-gradient(to right, #f7fafc, #edf2f7); padding: 35px 30px; border-top: 3px solid #667eea;">
+                  
+                  <!-- Social Links -->
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 20px;">
+                    <tr>
+                      <td align="center">
+                        <p style="margin: 0 0 15px 0; color: #4a5568; font-size: 15px; font-weight: 600;">
+                          Stay Connected
+                        </p>
+                        <p style="margin: 0 0 20px 0; color: #718096; font-size: 14px;">
+                          Need help? We're here for you!<br/>
+                          Email: <a href="mailto:hello@nlistplanet.com" style="color: #667eea; text-decoration: none; font-weight: 500;">hello@nlistplanet.com</a>
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                  
+                  <!-- Divider -->
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 20px;">
+                    <tr>
+                      <td style="border-top: 1px solid #cbd5e0;"></td>
+                    </tr>
+                  </table>
+                  
+                  <!-- Copyright -->
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                    <tr>
+                      <td align="center">
+                        <p style="margin: 0 0 8px 0; color: #718096; font-size: 13px; line-height: 1.5;">
+                          © ${new Date().getFullYear()} <strong>NList Planet</strong>. All rights reserved.
+                        </p>
+                        <p style="margin: 0; color: #a0aec0; font-size: 12px;">
+                          India's Premier Unlisted Shares Marketplace
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                  
                 </td>
               </tr>
               
             </table>
+            
+            <!-- Spacer for mobile -->
+            <div style="height: 40px;"></div>
+            
           </td>
         </tr>
       </table>
@@ -208,7 +286,7 @@ export const sendVerificationEmail = async (user, verificationToken) => {
 
   return sendEmail({
     to: user.email,
-    subject: '✨ Verify Your Email - NList Planet',
+    subject: '✨ Verify Your Email - Welcome to NList Planet!',
     html
   });
 };
