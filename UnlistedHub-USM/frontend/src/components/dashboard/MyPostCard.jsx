@@ -6,6 +6,23 @@ import { listingsAPI } from '../../utils/api';
 import toast from 'react-hot-toast';
 
 const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
+  // Helper function to get proper logo URL
+  const getLogoUrl = (logo) => {
+    if (!logo) return null;
+    // If logo is already a full URL, return it
+    if (logo.startsWith('http://') || logo.startsWith('https://')) {
+      return logo;
+    }
+    // If logo is a relative path, construct full URL
+    if (logo.startsWith('/')) {
+      return `${window.location.origin}${logo}`;
+    }
+    // If logo is just a filename, assume it's in /images/logos/
+    return `${window.location.origin}/images/logos/${logo}`;
+  };
+
+  const logoUrl = getLogoUrl(listing.companyId?.Logo || listing.companyId?.logo);
+
   const [actionLoading, setActionLoading] = useState(null);
   const [showCounterModal, setShowCounterModal] = useState(false);
   const [selectedBid, setSelectedBid] = useState(null);
@@ -248,17 +265,24 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
         {/* Company Info */}
         <div className="px-3 py-2 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            {listing.companyId?.Logo || listing.companyId?.logo ? (
+            {logoUrl ? (
               <img 
-                src={listing.companyId.Logo || listing.companyId.logo} 
+                src={logoUrl} 
                 alt={listing.companyId?.ScriptName || listing.companyName}
                 className="w-10 h-10 rounded-md object-cover border border-purple-300 shadow-sm"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.style.display = 'none';
+                  e.target.nextElementSibling.style.display = 'flex';
+                }}
               />
-            ) : (
-              <div className="w-10 h-10 rounded-md bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-sm border border-purple-300">
-                {(listing.companyId?.ScriptName || listing.companyName)?.charAt(0) || 'C'}
-              </div>
-            )}
+            ) : null}
+            <div 
+              className="w-10 h-10 rounded-md bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-sm border border-purple-300"
+              style={{ display: logoUrl ? 'none' : 'flex' }}
+            >
+              {(listing.companyId?.ScriptName || listing.companyName)?.charAt(0) || 'C'}
+            </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-semibold text-gray-900">
