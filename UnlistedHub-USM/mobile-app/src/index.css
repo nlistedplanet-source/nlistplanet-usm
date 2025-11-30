@@ -102,9 +102,26 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 
+  .pt-safe {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  /* Min height with bottom nav */
+  .min-h-screen-nav {
+    min-height: calc(100vh - 80px);
+  }
+
   /* Touch feedback */
   .touch-feedback {
     @apply active:scale-95 transition-transform duration-100;
+  }
+
+  .active\:scale-98:active {
+    transform: scale(0.98);
   }
 
   /* Disable scrollbar */
@@ -113,6 +130,15 @@
   }
 
   .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-none {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }

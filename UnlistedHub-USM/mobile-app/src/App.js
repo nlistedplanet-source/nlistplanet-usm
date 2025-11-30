@@ -10,6 +10,11 @@ import CheckEmailPage from './pages/auth/CheckEmailPage';
 import EmailVerificationPage from './pages/auth/EmailVerificationPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 
+// Main Pages
+import HomePage from './pages/dashboard/HomePage';
+import MarketplacePage from './pages/marketplace/MarketplacePage';
+import ProfilePage from './pages/profile/ProfilePage';
+
 // Components
 import LoadingScreen from './components/common/LoadingScreen';
 import BottomNav from './components/common/BottomNav';
@@ -82,15 +87,28 @@ function AppContent() {
           } 
         />
 
-        {/* Protected Routes - Placeholder for now */}
+        {/* Protected Routes */}
         <Route 
           path="/home" 
           element={
             <ProtectedRoute>
-              <div className="p-6 pb-24">
-                <h1 className="text-2xl font-bold">Home Dashboard</h1>
-                <p className="text-gray-600 mt-2">Welcome to NList Planet Mobile!</p>
-              </div>
+              <HomePage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/marketplace" 
+          element={
+            <ProtectedRoute>
+              <MarketplacePage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           } 
         />
