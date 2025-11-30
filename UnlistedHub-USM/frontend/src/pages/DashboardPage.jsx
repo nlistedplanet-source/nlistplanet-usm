@@ -247,7 +247,7 @@ const DashboardPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex text-[11px]">
       {/* Left Sidebar Navigation */}
-      <aside className="w-64 bg-white border-r border-gray-200 fixed left-0 top-0 h-full overflow-y-auto hidden md:block z-30">
+      <aside className="w-64 bg-white border-r border-gray-200 fixed left-0 top-0 h-full overflow-y-auto z-30">
         {/* User Profile - Compact */}
         <div className="p-4 border-b border-gray-100">
           <div className="flex items-center gap-3">
@@ -349,8 +349,8 @@ const DashboardPage = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 md:ml-64 pb-24 md:pb-0">
-        <div className="p-4 md:p-8">
+      <main className="flex-1 ml-64">
+        <div className="p-8">
         
         {/* Tab Content */}
         {activeTab === 'overview' && (

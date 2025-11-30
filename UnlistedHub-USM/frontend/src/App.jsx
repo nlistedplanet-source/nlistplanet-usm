@@ -17,10 +17,8 @@ import CheckEmailPage from './pages/CheckEmailPage';
 import EmailVerificationPage from './pages/EmailVerificationPage';
 
 // Components
-import BottomNav from './components/BottomNav';
 import TopBar from './components/TopBar';
 import LoadingScreen from './components/LoadingScreen';
-import DeviceDebug from './components/DeviceDebug';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -88,12 +86,6 @@ function AppContent() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-
-      {/* Bottom Navigation */}
-      {showBottomNav && user && <BottomNav />}
-
-      {/* Device Debug (only in development) */}
-      <DeviceDebug />
 
       {/* Toast Notifications */}
       <Toaster 
