@@ -2,12 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0ea5e9" />
-    <meta name="description" content="UnlistedHub USM - P2P Marketplace for Unlisted Shares Trading" />
+    <meta name="description" content="NList Planet - P2P Marketplace for Unlisted Shares Trading" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="%PUBLIC_URL%/images/logos/favicon.png" />
@@ -23,10 +25,21 @@
       * {
         -webkit-tap-highlight-color: transparent;
         -webkit-touch-callout: none;
+        box-sizing: border-box;
+      }
+      
+      html {
+        font-size: 16px;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+        text-size-adjust: 100%;
       }
       
       body {
         margin: 0;
+        padding: 0;
+        width: 100%;
+        overflow-x: hidden;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
           'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
           sans-serif;
@@ -40,11 +53,26 @@
       #root {
         min-height: 100vh;
         min-height: -webkit-fill-available;
+        width: 100%;
+        overflow-x: hidden;
       }
       
       /* Remove input zoom on iOS */
-      input, select, textarea {
+      input, select, textarea, button {
         font-size: 16px !important;
+      }
+      
+      /* Force mobile layout on small screens */
+      @media (max-width: 767px) {
+        html {
+          width: 100vw;
+          overflow-x: hidden;
+        }
+        body {
+          width: 100vw;
+          max-width: 100vw;
+          overflow-x: hidden;
+        }
       }
     </style>
   </head>

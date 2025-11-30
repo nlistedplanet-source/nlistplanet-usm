@@ -20,6 +20,7 @@ import EmailVerificationPage from './pages/EmailVerificationPage';
 import BottomNav from './components/BottomNav';
 import TopBar from './components/TopBar';
 import LoadingScreen from './components/LoadingScreen';
+import DeviceDebug from './components/DeviceDebug';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -90,6 +91,9 @@ function AppContent() {
 
       {/* Bottom Navigation */}
       {showBottomNav && user && <BottomNav />}
+
+      {/* Device Debug (only in development) */}
+      <DeviceDebug />
 
       {/* Toast Notifications */}
       <Toaster 
