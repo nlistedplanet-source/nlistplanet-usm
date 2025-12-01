@@ -15,23 +15,29 @@
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <title>NlistPlanet - Trade Unlisted Shares</title>
     
-    <!-- Desktop Redirect Script -->
+    <!-- Desktop Redirect Script (limited to production domain) -->
     <script>
-      (function() {
-        // Check if device is desktop
-        const isDesktop = !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const isLargeScreen = window.innerWidth >= 1024;
-        
-        // Only redirect if on desktop device AND large screen
-        if (isDesktop && isLargeScreen) {
-          // Desktop app URL
-          const desktopAppUrl = 'https://nlistplanet.com';
-          
-          // Check if we're not already on the desktop site
-          if (!window.location.href.includes(desktopAppUrl.replace('https://', '').replace('http://', ''))) {
-            // Redirect to desktop app
-            window.location.href = desktopAppUrl;
+      (function () {
+        try {
+          const host = window.location.hostname;
+          const params = new URLSearchParams(window.location.search);
+          const disableRedirect = params.get('preview') === '1' || params.get('no-redirect') === '1';
+          const isProdMobileDomain = host === 'mobile.nlistplanet.com' || host === 'm.nlistplanet.com';
+
+          // Detect desktop devices and large screens
+          const isDesktop = !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+          const isLargeScreen = window.innerWidth >= 1024;
+
+          // Redirect ONLY on production mobile domain, not on previews/local, unless bypassed
+          if (isProdMobileDomain && !disableRedirect && isDesktop && isLargeScreen) {
+            const desktopAppUrl = 'https://nlistplanet.com';
+            if (!window.location.href.includes(desktopAppUrl.replace('https://', '').replace('http://', ''))) {
+              window.location.href = desktopAppUrl;
+            }
           }
+        } catch (e) {
+          // fail open: never block the app from loading
+          console.warn('Redirect script skipped:', e);
         }
       })();
     </script>
