@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { isValidEmail, isValidPhone, isValidPassword } from '../../utils/helpers';
 import { haptic } from '../../utils/helpers';
 import toast from 'react-hot-toast';
+import BrandLogo from '../../components/common/BrandLogo';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -97,9 +98,7 @@ const RegisterPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 overflow-y-auto pb-safe">
       {/* Header */}
       <div className="px-6 pt-8 pb-6">
-        <div className="w-16 h-16 bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
-          <span className="text-2xl font-bold text-white">N</span>
-        </div>
+        <BrandLogo size={64} className="mb-4 rounded-2xl" />
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
         <p className="text-gray-600">Join the marketplace today</p>
       </div>

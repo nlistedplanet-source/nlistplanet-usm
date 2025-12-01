@@ -17,6 +17,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { formatDate, haptic } from '../../utils/helpers';
 import toast from 'react-hot-toast';
+import { BrandLogo } from '../../components/common';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -104,11 +105,16 @@ const ProfilePage = () => {
       {/* Profile Header */}
       <div className="bg-gradient-to-br from-primary-600 to-primary-700 px-6 pt-safe pb-8 rounded-b-3xl shadow-lg">
         <div className="flex items-center gap-4 mb-4">
-          {/* Avatar */}
-          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg">
-            <span className="text-3xl font-bold text-primary-700">
-              {user?.fullName?.charAt(0) || user?.username?.charAt(0) || 'U'}
-            </span>
+          {/* Avatar with Logo Overlay */}
+          <div className="relative">
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg">
+              <span className="text-3xl font-bold text-primary-700">
+                {user?.fullName?.charAt(0) || user?.username?.charAt(0) || 'U'}
+              </span>
+            </div>
+            <div className="absolute -bottom-1 -right-1">
+              <BrandLogo size={28} className="rounded-full shadow-md" />
+            </div>
           </div>
 
           {/* User Info */}

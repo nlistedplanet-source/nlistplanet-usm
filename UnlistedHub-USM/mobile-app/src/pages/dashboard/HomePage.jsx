@@ -14,7 +14,7 @@ import { portfolioAPI } from '../../utils/api';
 import { formatCurrency, formatPercentage, timeAgo, haptic } from '../../utils/helpers';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-import BrandLogo from '../../components/common/BrandLogo';
+import { BrandLogo } from '../../components/common';
 
 const HomePage = () => {
   const navigate = useNavigate();

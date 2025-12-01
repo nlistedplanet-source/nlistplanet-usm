@@ -2,10 +2,12 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import LoadingScreen from './components/common/LoadingScreen';
-import ErrorBoundary from './components/common/ErrorBoundary';
-import BottomNav from './components/common/BottomNav';
-import InstallPrompt from './components/common/InstallPrompt';
+import { 
+  LoadingScreen, 
+  ErrorBoundary, 
+  BottomNav, 
+  InstallPrompt 
+} from './components/common';
 
 // Lazy load pages for better performance
 const HomePage = lazy(() => import('./pages/dashboard/HomePage'));

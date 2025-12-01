@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { isValidEmail } from '../../utils/helpers';
 import { haptic } from '../../utils/helpers';
 import toast from 'react-hot-toast';
-import BrandLogo from '../../components/common/BrandLogo';
+import { BrandLogo } from '../../components/common';
 
 const LoginPage = () => {
   const navigate = useNavigate();
