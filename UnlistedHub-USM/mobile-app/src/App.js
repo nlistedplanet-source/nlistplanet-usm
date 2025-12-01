@@ -22,6 +22,9 @@ import BidsPage from './pages/trading/BidsPage';
 import OffersReceivedPage from './pages/trading/OffersReceivedPage';
 import ActivityPage from './pages/activity/ActivityPage';
 
+// Notification Pages
+import NotificationsPage from './pages/notifications/NotificationsPage';
+
 // Components
 import LoadingScreen from './components/common/LoadingScreen';
 import BottomNav from './components/common/BottomNav';
@@ -156,6 +159,14 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <ActivityPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/notifications" 
+          element={
+            <ProtectedRoute>
+              <NotificationsPage />
             </ProtectedRoute>
           } 
         />

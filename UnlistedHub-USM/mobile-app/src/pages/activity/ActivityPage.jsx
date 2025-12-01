@@ -4,6 +4,7 @@ import {
   Package,
   Send,
   Inbox,
+  Bell,
   ChevronRight,
   TrendingUp
 } from 'lucide-react';
@@ -13,6 +14,15 @@ const ActivityPage = () => {
   const navigate = useNavigate();
 
   const activitySections = [
+    {
+      id: 'notifications',
+      title: 'Notifications',
+      description: 'View all your notifications and updates',
+      icon: Bell,
+      iconBg: 'bg-gradient-to-br from-orange-50 to-orange-100',
+      iconColor: 'text-orange-700',
+      path: '/notifications',
+    },
     {
       id: 'my-posts',
       title: 'My Posts',
@@ -85,27 +95,34 @@ const ActivityPage = () => {
       {/* Quick Stats (Optional - can be populated with real data later) */}
       <div className="px-6 mt-8">
         <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Stats</h2>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-3">
+          <div className="bg-white rounded-2xl p-4 text-center shadow-mobile">
+            <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+              <Bell className="w-5 h-5 text-orange-700" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">-</p>
+            <p className="text-xs text-gray-500 mt-1">Unread</p>
+          </div>
           <div className="bg-white rounded-2xl p-4 text-center shadow-mobile">
             <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-2">
               <Package className="w-5 h-5 text-purple-700" />
             </div>
             <p className="text-2xl font-bold text-gray-900">-</p>
-            <p className="text-xs text-gray-500 mt-1">Active Posts</p>
+            <p className="text-xs text-gray-500 mt-1">Posts</p>
           </div>
           <div className="bg-white rounded-2xl p-4 text-center shadow-mobile">
             <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-2">
               <Send className="w-5 h-5 text-blue-700" />
             </div>
             <p className="text-2xl font-bold text-gray-900">-</p>
-            <p className="text-xs text-gray-500 mt-1">Pending Bids</p>
+            <p className="text-xs text-gray-500 mt-1">Bids</p>
           </div>
           <div className="bg-white rounded-2xl p-4 text-center shadow-mobile">
             <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-2">
               <Inbox className="w-5 h-5 text-green-700" />
             </div>
             <p className="text-2xl font-bold text-gray-900">-</p>
-            <p className="text-xs text-gray-500 mt-1">New Offers</p>
+            <p className="text-xs text-gray-500 mt-1">Offers</p>
           </div>
         </div>
       </div>
