@@ -24,8 +24,8 @@
         
         // Only redirect if on desktop device AND large screen
         if (isDesktop && isLargeScreen) {
-          // Desktop app URL (update with your actual desktop app URL)
-          const desktopAppUrl = window.location.port === '3001' ? 'http://localhost:3001' : 'https://nlistplanet.com';
+          // Desktop app URL
+          const desktopAppUrl = 'https://nlistplanet.com';
           
           // Check if we're not already on the desktop site
           if (!window.location.href.includes(desktopAppUrl.replace('https://', '').replace('http://', ''))) {
