@@ -32,8 +32,8 @@ export const AuthProvider = ({ children }) => {
           // Verify token is still valid
           try {
             const response = await authAPI.getProfile();
-            setUser(response.data.data);
-            storage.set('user', response.data.data);
+            setUser(response.data.user);
+            storage.set('user', response.data.user);
           } catch (error) {
             // Token invalid, clear auth
             logout();
