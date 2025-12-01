@@ -17,6 +17,27 @@
     
     <title>Nlist Planet - Desktop | Unlisted Shares Mall</title>
     
+    <!-- Mobile Redirect Script -->
+    <script>
+      (function() {
+        // Check if device is mobile
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isSmallScreen = window.innerWidth < 1024;
+        
+        // Only redirect if on mobile device or small screen
+        if (isMobile || isSmallScreen) {
+          // Mobile app URL (update with your actual mobile app URL)
+          const mobileAppUrl = 'http://localhost:3000'; // Change to production URL: 'https://mobile.nlistplanet.com'
+          
+          // Check if we're not already on the mobile site
+          if (!window.location.href.includes(mobileAppUrl.replace('https://', '').replace('http://', ''))) {
+            // Redirect to mobile app
+            window.location.href = mobileAppUrl;
+          }
+        }
+      })();
+    </script>
+    
     <style>
       * {
         box-sizing: border-box;
