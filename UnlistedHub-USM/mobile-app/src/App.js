@@ -14,6 +14,7 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import HomePage from './pages/dashboard/HomePage';
 import MarketplacePage from './pages/marketplace/MarketplacePage';
 import ProfilePage from './pages/profile/ProfilePage';
+import ListingDetailPage from './pages/listing/ListingDetailPage';
 
 // Components
 import LoadingScreen from './components/common/LoadingScreen';
@@ -109,6 +110,14 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <ProfilePage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/listing/:id" 
+          element={
+            <ProtectedRoute>
+              <ListingDetailPage />
             </ProtectedRoute>
           } 
         />

@@ -26,6 +26,7 @@ const MarketplacePage = () => {
 
   useEffect(() => {
     filterListings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listings, searchQuery, activeFilter]);
 
   const fetchListings = async () => {
@@ -69,6 +70,7 @@ const MarketplacePage = () => {
     setFilteredListings(filtered);
   }, [listings, searchQuery, activeFilter]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSearch = useCallback(
     debounce((value) => setSearchQuery(value), 300),
     []

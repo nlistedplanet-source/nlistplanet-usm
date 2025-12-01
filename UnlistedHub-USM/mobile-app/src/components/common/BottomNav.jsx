@@ -3,11 +3,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, TrendingUp, PlusCircle, Bell, User } from 'lucide-react';
 import { notificationsAPI } from '../../utils/api';
 import { haptic } from '../../utils/helpers';
+import CreateListingModal from '../modals/CreateListingModal';
 
 const BottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Fetch unread notifications
   useEffect(() => {
@@ -37,11 +39,22 @@ const BottomNav = () => {
 
   const handleNavClick = (path) => {
     haptic.light();
-    navigate(path);
+    
+    if (path === '/create') {
+      setShowCreateModal(true);
+    } else {
+      navigate(path);
+    }
+  };
+
+  const handleCreateSuccess = () => {
+    setShowCreateModal(false);
+    navigate('/marketplace'); // Navigate to marketplace after creating listing
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 safe-area-bottom">
+    <>
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 safe-area-bottom">
       <div className="flex items-center justify-around px-2 py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -80,6 +93,14 @@ const BottomNav = () => {
         })}
       </div>
     </nav>
+
+    {/* Create Listing Modal */}
+    <CreateListingModal 
+      isOpen={showCreateModal}
+      onClose={() => setShowCreateModal(false)}
+      onSuccess={handleCreateSuccess}
+    />
+    </>
   );
 };
 
