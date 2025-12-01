@@ -4,6 +4,10 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { register } from './utils/registerServiceWorker';
 
+// Common Components
+import ErrorBoundary from './components/common/ErrorBoundary';
+import InstallPrompt from './components/common/InstallPrompt';
+
 // Auth Pages
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
@@ -258,11 +262,13 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }
 
