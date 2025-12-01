@@ -14,6 +14,7 @@ import { portfolioAPI } from '../../utils/api';
 import { formatCurrency, formatPercentage, timeAgo, haptic } from '../../utils/helpers';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import BrandLogo from '../../components/common/BrandLogo';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -76,9 +77,12 @@ const HomePage = () => {
       {/* Header */}
       <div className="bg-gradient-to-br from-primary-600 to-primary-700 px-6 pt-safe pb-8 rounded-b-3xl shadow-lg">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <p className="text-primary-100 text-sm font-medium">Welcome back,</p>
-            <h1 className="text-white text-2xl font-bold">{user?.fullName || user?.username}</h1>
+          <div className="flex items-center gap-3">
+            <BrandLogo size={40} className="shadow-md" />
+            <div>
+              <p className="text-primary-100 text-sm font-medium">Welcome back,</p>
+              <h1 className="text-white text-2xl font-bold">{user?.fullName || user?.username}</h1>
+            </div>
           </div>
           <button 
             onClick={handleRefresh}

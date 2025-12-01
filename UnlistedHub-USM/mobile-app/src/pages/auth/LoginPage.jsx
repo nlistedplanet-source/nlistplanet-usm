@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { isValidEmail } from '../../utils/helpers';
 import { haptic } from '../../utils/helpers';
 import toast from 'react-hot-toast';
+import BrandLogo from '../../components/common/BrandLogo';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -71,9 +72,7 @@ const LoginPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex flex-col">
       {/* Header */}
       <div className="px-6 pt-12 pb-8">
-        <div className="w-16 h-16 bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-          <span className="text-2xl font-bold text-white">N</span>
-        </div>
+        <BrandLogo size={64} className="mb-6 rounded-2xl" />
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back!</h1>
         <p className="text-gray-600">Sign in to continue trading</p>
       </div>
