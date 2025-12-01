@@ -35,9 +35,6 @@ import KYCPage from './pages/kyc/KYCPage';
 import ReferralsPage from './pages/referrals/ReferralsPage';
 import SettingsPage from './pages/settings/SettingsPage';
 
-// Common Components
-import InstallPrompt from './components/common/InstallPrompt';
-
 // Components
 import LoadingScreen from './components/common/LoadingScreen';
 import BottomNav from './components/common/BottomNav';

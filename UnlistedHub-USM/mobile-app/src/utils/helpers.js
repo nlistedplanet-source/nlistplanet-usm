@@ -243,3 +243,10 @@ export const haptic = {
     }
   }
 };
+
+// Trigger haptic feedback function for easier import
+export const triggerHaptic = (type = 'light') => {
+  if (haptic[type]) {
+    haptic[type]();
+  }
+};
