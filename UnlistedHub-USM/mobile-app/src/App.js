@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { register } from './utils/registerServiceWorker';
 
 // Auth Pages
 import LoginPage from './pages/auth/LoginPage';
@@ -29,6 +30,9 @@ import NotificationsPage from './pages/notifications/NotificationsPage';
 import KYCPage from './pages/kyc/KYCPage';
 import ReferralsPage from './pages/referrals/ReferralsPage';
 import SettingsPage from './pages/settings/SettingsPage';
+
+// Common Components
+import InstallPrompt from './components/common/InstallPrompt';
 
 // Components
 import LoadingScreen from './components/common/LoadingScreen';
@@ -213,6 +217,9 @@ function AppContent() {
       {/* Bottom Navigation (only for authenticated users) */}
       {user && <BottomNav />}
 
+      {/* Install Prompt */}
+      <InstallPrompt />
+
       {/* Toast Notifications */}
       <Toaster 
         position="top-center"
@@ -245,6 +252,11 @@ function AppContent() {
 }
 
 function App() {
+  useEffect(() => {
+    // Register service worker for PWA
+    register();
+  }, []);
+
   return (
     <Router>
       <AuthProvider>
