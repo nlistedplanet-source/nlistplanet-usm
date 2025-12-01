@@ -51,7 +51,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await authAPI.login({ email, password });
+      // Backend expects field name `username` (can be email or username)
+      const response = await authAPI.login({ username: email, password });
       const { token: newToken, user: newUser } = response.data.data;
 
       setToken(newToken);
