@@ -2,9 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=1024" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0ea5e9" />
-    <meta name="description" content="NList Planet - P2P Marketplace for Unlisted Shares Trading (Desktop Version)" />
+    <meta name="description" content="NList Planet - P2P Marketplace for Unlisted Shares Trading" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     
     <!-- Favicon -->
@@ -15,43 +15,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     
-    <title>Nlist Planet - Desktop | Unlisted Shares Mall</title>
-    
-    <!-- Mobile Redirect Script -->
-    <script>
-      (function() {
-        // Check if device is mobile
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const isSmallScreen = window.innerWidth < 1024;
-        
-        // Only redirect if on mobile device or small screen
-        if (isMobile || isSmallScreen) {
-          // Mobile app URL
-          const mobileAppUrl = 'https://mobile.nlistplanet.com';
-          
-          // Check if we're not already on the mobile site
-          if (!window.location.href.includes(mobileAppUrl.replace('https://', '').replace('http://', ''))) {
-            // Redirect to mobile app
-            window.location.href = mobileAppUrl;
-          }
-        }
-      })();
-    </script>
+    <title>Nlist Planet | Unlisted Shares Mall</title>
     
     <style>
       * {
         box-sizing: border-box;
       }
       
-      html {
-        font-size: 16px;
-        min-width: 1024px;
-      }
-      
       body {
         margin: 0;
         padding: 0;
-        min-width: 1024px;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
           'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
           sans-serif;
@@ -61,7 +34,6 @@
       
       #root {
         min-height: 100vh;
-        min-width: 1024px;
       }
     </style>
   </head>
