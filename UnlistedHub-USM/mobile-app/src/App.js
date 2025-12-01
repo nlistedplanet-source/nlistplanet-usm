@@ -1,74 +1,126 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import LoadingScreen from './components/common/LoadingScreen';
+import ErrorBoundary from './components/common/ErrorBoundary';
+import BottomNav from './components/common/BottomNav';
+import InstallPrompt from './components/common/InstallPrompt';
 
-// Simple placeholder component
-function MobilePlaceholder() {
+// Lazy load pages for better performance
+const HomePage = lazy(() => import('./pages/dashboard/HomePage'));
+const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
+const EmailVerificationPage = lazy(() => import('./pages/auth/EmailVerificationPage'));
+const CheckEmailPage = lazy(() => import('./pages/auth/CheckEmailPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
+const MarketplacePage = lazy(() => import('./pages/marketplace/MarketplacePage'));
+const ListingDetailPage = lazy(() => import('./pages/listing/ListingDetailPage'));
+const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'));
+const ActivityPage = lazy(() => import('./pages/activity/ActivityPage'));
+const KYCPage = lazy(() => import('./pages/kyc/KYCPage'));
+const ReferralsPage = lazy(() => import('./pages/referrals/ReferralsPage'));
+const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'));
+const NotificationsPage = lazy(() => import('./pages/notifications/NotificationsPage'));
+const MyPostsPage = lazy(() => import('./pages/trading/MyPostsPage'));
+const BidsPage = lazy(() => import('./pages/trading/BidsPage'));
+const OffersReceivedPage = lazy(() => import('./pages/trading/OffersReceivedPage'));
+
+// Protected Route wrapper
+function ProtectedRoute({ children }) {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+// Public Route wrapper (redirect if already authenticated)
+function PublicRoute({ children }) {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
+
+// Layout with bottom navigation
+function AppLayout({ children }) {
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '20px',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
-    }}>
-      <div style={{
-        textAlign: 'center',
-        color: 'white',
-        maxWidth: '400px'
-      }}>
-        <div style={{ fontSize: '64px', marginBottom: '20px' }}>📱</div>
-        <h1 style={{ fontSize: '32px', margin: '0 0 16px 0', fontWeight: '700' }}>
-          NlistPlanet Mobile
-        </h1>
-        <p style={{ fontSize: '18px', opacity: 0.9, marginBottom: '24px' }}>
-          Mobile app is under development!
-        </p>
-        <p style={{ fontSize: '14px', opacity: 0.7 }}>
-          Visit nlistplanet.com on desktop for full experience
-        </p>
-        <button
-          onClick={() => window.location.reload()}
-          style={{
-            marginTop: '24px',
-            padding: '12px 24px',
-            background: 'white',
-            color: '#667eea',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            fontWeight: '600',
-            cursor: 'pointer'
-          }}
-        >
-          Reload Page
-        </button>
-      </div>
-    </div>
+    <>
+      {children}
+      <BottomNav />
+    </>
+  );
+}
+
+function AppRoutes() {
+  return (
+    <ErrorBoundary>
+      <Suspense fallback={<LoadingScreen />}>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+          <Route path="/verify-email" element={<EmailVerificationPage />} />
+          <Route path="/check-email" element={<CheckEmailPage />} />
+          <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+
+          {/* Protected routes with bottom nav */}
+          <Route path="/" element={<ProtectedRoute><AppLayout><HomePage /></AppLayout></ProtectedRoute>} />
+          <Route path="/marketplace" element={<ProtectedRoute><AppLayout><MarketplacePage /></AppLayout></ProtectedRoute>} />
+          <Route path="/listing/:id" element={<ProtectedRoute><ListingDetailPage /></ProtectedRoute>} />
+          <Route path="/activity" element={<ProtectedRoute><AppLayout><ActivityPage /></AppLayout></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><AppLayout><ProfilePage /></AppLayout></ProtectedRoute>} />
+          
+          {/* Additional protected routes */}
+          <Route path="/kyc" element={<ProtectedRoute><KYCPage /></ProtectedRoute>} />
+          <Route path="/referrals" element={<ProtectedRoute><ReferralsPage /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+          <Route path="/my-posts" element={<ProtectedRoute><MyPostsPage /></ProtectedRoute>} />
+          <Route path="/bids" element={<ProtectedRoute><BidsPage /></ProtectedRoute>} />
+          <Route path="/offers" element={<ProtectedRoute><OffersReceivedPage /></ProtectedRoute>} />
+
+          {/* Catch all - redirect to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="*" element={<MobilePlaceholder />} />
-      </Routes>
-
-      <Toaster 
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#1e293b',
-            color: '#fff',
-            borderRadius: '12px',
-            padding: '12px 16px',
-          },
-        }}
-      />
+      <AuthProvider>
+        <AppRoutes />
+        <InstallPrompt />
+        <Toaster 
+          position="top-center"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: '#1e293b',
+              color: '#fff',
+              borderRadius: '12px',
+              padding: '12px 16px',
+            },
+          }}
+        />
+      </AuthProvider>
     </Router>
   );
 }
