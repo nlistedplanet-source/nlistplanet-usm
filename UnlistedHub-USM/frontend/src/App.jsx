@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
+// Device Detection
+import { isMobileDevice } from './utils/deviceDetection';
+
 // Context Providers
 import { AuthProvider, useAuth } from './context/AuthContext';
 
-// Pages
+// Desktop Pages
 import HomePage from './pages/HomePage';
 import HowItWorksPage from './pages/HowItWorksPage';
 import DashboardPage from './pages/DashboardPage';
@@ -16,9 +19,12 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import CheckEmailPage from './pages/CheckEmailPage';
 import EmailVerificationPage from './pages/EmailVerificationPage';
 
-// Components
+// Desktop Components
 import TopBar from './components/TopBar';
 import LoadingScreen from './components/LoadingScreen';
+
+// Mobile App (lazy loaded)
+const MobileApp = React.lazy(() => import('./MobileApp'));
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -105,6 +111,47 @@ function AppContent() {
 }
 
 function App() {
+  const [deviceType, setDeviceType] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Detect device type on mount
+    const checkDevice = () => {
+      setDeviceType(isMobileDevice() ? 'mobile' : 'desktop');
+      setIsLoading(false);
+    };
+
+    checkDevice();
+
+    // Re-check on window resize (debounced)
+    let resizeTimer;
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(checkDevice, 250);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimer);
+    };
+  }, []);
+
+  // Show loading screen while detecting device
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  // Render mobile app for mobile devices
+  if (deviceType === 'mobile') {
+    return (
+      <React.Suspense fallback={<LoadingScreen />}>
+        <MobileApp />
+      </React.Suspense>
+    );
+  }
+
+  // Render desktop app for desktop devices
   return (
     <Router>
       <AuthProvider>
