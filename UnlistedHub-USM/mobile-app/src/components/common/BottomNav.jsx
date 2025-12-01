@@ -31,7 +31,7 @@ const BottomNav = () => {
     { icon: Home, label: 'Home', path: '/home' },
     { icon: TrendingUp, label: 'Market', path: '/marketplace' },
     { icon: PlusCircle, label: 'Post', path: '/create', highlight: true },
-    { icon: Bell, label: 'Activity', path: '/notifications', badge: unreadCount },
+    { icon: Bell, label: 'Activity', path: '/activity', badge: unreadCount },
     { icon: User, label: 'Profile', path: '/profile' },
   ];
 

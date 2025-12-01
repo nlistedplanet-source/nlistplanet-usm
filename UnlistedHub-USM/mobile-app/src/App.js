@@ -16,6 +16,12 @@ import MarketplacePage from './pages/marketplace/MarketplacePage';
 import ProfilePage from './pages/profile/ProfilePage';
 import ListingDetailPage from './pages/listing/ListingDetailPage';
 
+// Trading Pages
+import MyPostsPage from './pages/trading/MyPostsPage';
+import BidsPage from './pages/trading/BidsPage';
+import OffersReceivedPage from './pages/trading/OffersReceivedPage';
+import ActivityPage from './pages/activity/ActivityPage';
+
 // Components
 import LoadingScreen from './components/common/LoadingScreen';
 import BottomNav from './components/common/BottomNav';
@@ -118,6 +124,38 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <ListingDetailPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/my-posts" 
+          element={
+            <ProtectedRoute>
+              <MyPostsPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/bids" 
+          element={
+            <ProtectedRoute>
+              <BidsPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/offers" 
+          element={
+            <ProtectedRoute>
+              <OffersReceivedPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/activity" 
+          element={
+            <ProtectedRoute>
+              <ActivityPage />
             </ProtectedRoute>
           } 
         />
