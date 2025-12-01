@@ -25,6 +25,11 @@ import ActivityPage from './pages/activity/ActivityPage';
 // Notification Pages
 import NotificationsPage from './pages/notifications/NotificationsPage';
 
+// Additional Pages
+import KYCPage from './pages/kyc/KYCPage';
+import ReferralsPage from './pages/referrals/ReferralsPage';
+import SettingsPage from './pages/settings/SettingsPage';
+
 // Components
 import LoadingScreen from './components/common/LoadingScreen';
 import BottomNav from './components/common/BottomNav';
@@ -167,6 +172,30 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <NotificationsPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/kyc" 
+          element={
+            <ProtectedRoute>
+              <KYCPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/referrals" 
+          element={
+            <ProtectedRoute>
+              <ReferralsPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings" 
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
             </ProtectedRoute>
           } 
         />

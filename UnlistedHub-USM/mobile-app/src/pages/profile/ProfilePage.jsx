@@ -42,42 +42,60 @@ const ProfilePage = () => {
       label: 'KYC Verification',
       description: user?.kycStatus === 'verified' ? 'Verified' : 'Not verified',
       badge: user?.kycStatus === 'verified' ? 'verified' : user?.kycStatus === 'pending' ? 'pending' : null,
-      onClick: () => navigate('/kyc')
+      onClick: () => {
+        haptic.light();
+        navigate('/kyc');
+      }
     },
     {
       id: 'referrals',
       icon: Gift,
       label: 'Referrals',
       description: 'Invite friends and earn',
-      onClick: () => navigate('/referrals')
+      onClick: () => {
+        haptic.light();
+        navigate('/referrals');
+      }
     },
     {
-      id: 'notifications',
+      id: 'settings',
       icon: Bell,
-      label: 'Notification Settings',
-      description: 'Manage your alerts',
-      onClick: () => navigate('/settings/notifications')
+      label: 'Settings',
+      description: 'App preferences and notifications',
+      onClick: () => {
+        haptic.light();
+        navigate('/settings');
+      }
     },
     {
       id: 'privacy',
       icon: FileText,
       label: 'Privacy Policy',
       description: 'View privacy terms',
-      onClick: () => window.open('https://nlistplanet.com/privacy', '_blank')
+      onClick: () => {
+        haptic.light();
+        toast('Opening Privacy Policy...', { icon: '📄' });
+      }
     },
     {
       id: 'terms',
       icon: FileText,
       label: 'Terms of Service',
       description: 'View terms and conditions',
-      onClick: () => window.open('https://nlistplanet.com/terms', '_blank')
+      onClick: () => {
+        haptic.light();
+        toast('Opening Terms of Service...', { icon: '📋' });
+      }
     },
     {
       id: 'help',
       icon: HelpCircle,
       label: 'Help & Support',
       description: 'Get help with your account',
-      onClick: () => navigate('/support')
+      onClick: () => {
+        haptic.light();
+        toast('Support: support@nlistplanet.com', { icon: '💬' });
+      }
     },
   ];
 
