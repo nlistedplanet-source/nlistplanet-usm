@@ -4,7 +4,10 @@ import { formatCurrency, formatDate, formatNumber, calculateTotalWithFee } from 
 
 const ListingCard = ({ listing, onBidOffer, onShare, onBoost, isOwner }) => {
   const isSell = listing.type === 'sell';
-  const totalPrice = calculateTotalWithFee(listing.price);
+  // For SELL listings: listing.price is what seller wants, buyer pays listing.price + 2% fee
+  // For BUY listings: listing.price is what buyer offers, seller gets listing.price - 2% fee
+  const displayPrice = isSell ? calculateTotalWithFee(listing.price) : listing.price;
+  const totalAmount = displayPrice * listing.quantity;
   const bidsCount = isSell ? listing.bids?.length || 0 : listing.offers?.length || 0;
 
   return (
@@ -101,7 +104,7 @@ const ListingCard = ({ listing, onBidOffer, onShare, onBoost, isOwner }) => {
           <p className="text-xs text-dark-500 mb-1">
             {isSell ? 'Buyer Pays' : 'Seller Gets'}
           </p>
-          <p className="text-lg font-bold text-dark-900">{formatCurrency(totalPrice)}</p>
+          <p className="text-lg font-bold text-dark-900">{formatCurrency(displayPrice)}</p>
         </div>
         <div className="bg-dark-50 rounded-lg p-3">
           <p className="text-xs text-dark-500 mb-1">Quantity</p>
@@ -117,7 +120,7 @@ const ListingCard = ({ listing, onBidOffer, onShare, onBoost, isOwner }) => {
         <div className="flex items-center justify-between">
           <span className="text-sm text-dark-600">Total Amount:</span>
           <span className="text-xl font-bold text-primary-700">
-            {formatCurrency(totalPrice * listing.quantity)}
+            {formatCurrency(totalAmount)}
           </span>
         </div>
       </div>

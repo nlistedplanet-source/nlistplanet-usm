@@ -341,10 +341,6 @@ const DashboardPage = () => {
             <LogOut size={20} />
             <span>Logout</span>
           </button>
-          <div className="mt-4 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-3 text-center">
-            <p className="text-xs text-gray-600 mb-1">Ad Space</p>
-            <p className="text-xs text-gray-400">Premium ads here</p>
-          </div>
         </div>
       </aside>
 
