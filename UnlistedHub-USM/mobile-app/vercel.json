@@ -1,9 +1,16 @@
 {
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    // Allow static assets and PWA files to be served directly
+    { "source": "/static/(.*)", "destination": "/static/$1" },
+    { "source": "/manifest.json", "destination": "/manifest.json" },
+    { "source": "/asset-manifest.json", "destination": "/asset-manifest.json" },
+    { "source": "/favicon.ico", "destination": "/favicon.ico" },
+    { "source": "/logo192.png", "destination": "/logo192.png" },
+    { "source": "/logo512.png", "destination": "/logo512.png" },
+    { "source": "/robots.txt", "destination": "/robots.txt" },
+    { "source": "/service-worker.js", "destination": "/service-worker.js" },
+    // SPA fallback for all other routes
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
@@ -33,6 +40,21 @@
         }
       ]
     },
+    {
+      "source": "/asset-manifest.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400" }
+      ]
+    },
+    {
+      "source": "/favicon.ico",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400" }
+      ]
+    },
+    { "source": "/logo192.png", "headers": [ { "key": "Cache-Control", "value": "public, max-age=86400" } ] },
+    { "source": "/logo512.png", "headers": [ { "key": "Cache-Control", "value": "public, max-age=86400" } ] },
+    { "source": "/robots.txt", "headers": [ { "key": "Cache-Control", "value": "public, max-age=86400" } ] },
     {
       "source": "/(.*)",
       "headers": [
