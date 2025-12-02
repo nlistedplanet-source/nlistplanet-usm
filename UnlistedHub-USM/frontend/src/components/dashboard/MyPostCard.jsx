@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import SoldConfirmModal from '../SoldConfirmModal';
 import { Share2, Zap, Edit, Trash2, CheckCircle, XCircle, MessageSquare, Loader, Eye, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatCurrency, formatDate, formatNumber, numberToWords, formatShortAmount, formatShortQuantity } from '../../utils/helpers';
 import * as htmlToImage from 'html-to-image';
@@ -35,6 +36,9 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
   const [modifyQuantity, setModifyQuantity] = useState('');
   const [modifyMinQuantity, setModifyMinQuantity] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSoldModal, setShowSoldModal] = useState(false);
+  const [markedSold, setMarkedSold] = useState(false);
+  const [soldPricePerShare, setSoldPricePerShare] = useState(null);
   const shareDomRef = useRef(null);
 
   const isSell = listing.type === 'sell';
@@ -131,6 +135,18 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const handleMarkSoldClick = () => {
+    setShowSoldModal(true);
+  };
+
+  const handleConfirmSold = ({ pricePerShare }) => {
+    setSoldPricePerShare(pricePerShare);
+    setMarkedSold(true);
+    setShowSoldModal(false);
+    toast.success('Marked as Sold. Listing inactivated.');
+    if (onRefresh) onRefresh();
   };
 
   const handleModify = () => {
@@ -239,10 +255,11 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-1 border-b border-gray-300 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+              markedSold ? 'bg-amber-100 text-amber-800 border-2 border-amber-400' : (
               listing.status === 'active' ? 'bg-green-100 text-green-700 border-2 border-green-400' :
-              'bg-gray-100 text-gray-700 border-2 border-gray-400'
+              'bg-gray-100 text-gray-700 border-2 border-gray-400')
             }`}>
-              🟢 {listing.status?.toUpperCase() || 'ACTIVE'}
+              {markedSold ? '🟠 SOLD' : `🟢 ${listing.status?.toUpperCase() || 'ACTIVE'}`}
             </div>
             <div className={`px-2 py-0.5 rounded-full text-[11px] font-bold border-2 ${
               isSell ? 'bg-red-50 text-red-700 border-red-400' : 'bg-green-50 text-green-700 border-green-400'
@@ -259,6 +276,11 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
               <Eye className="w-4 h-4 text-gray-500" />
               <span className="font-bold text-gray-900">{listing.views || 0}</span>
             </span>
+            {markedSold && soldPricePerShare && (
+              <span className="flex items-center gap-1 text-amber-800">
+                <span className="bg-amber-200 px-2 py-0.5 rounded-full border border-amber-400">Sold @ ₹{soldPricePerShare}</span>
+              </span>
+            )}
           </div>
         </div>
 
@@ -353,15 +375,24 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
           <button onClick={handleShare} className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm">
             <Share2 className="w-3.5 h-3.5" /> Share
           </button>
-          <button onClick={() => onBoost && onBoost(listing._id)} className="px-3 py-1 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm">
+          <button onClick={() => onBoost && onBoost(listing._id)} className="px-3 py-1 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm" disabled={markedSold}>
             <Zap className="w-3.5 h-3.5" /> Boost
           </button>
-          <button onClick={handleModify} disabled={actionLoading === 'modify'} className="px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm disabled:opacity-50">
-            <Edit className="w-3.5 h-3.5" /> Modify
-          </button>
-          <button onClick={handleDeleteClick} disabled={actionLoading === 'delete'} className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm disabled:opacity-50">
-            <Trash2 className="w-3.5 h-3.5" /> Delete
-          </button>
+          {activeBidsCount === 0 && !markedSold && (
+            <>
+              <button onClick={handleModify} disabled={actionLoading === 'modify'} className="px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm disabled:opacity-50">
+                <Edit className="w-3.5 h-3.5" /> Modify
+              </button>
+              <button onClick={handleDeleteClick} disabled={actionLoading === 'delete'} className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm disabled:opacity-50">
+                <Trash2 className="w-3.5 h-3.5" /> Delete
+              </button>
+            </>
+          )}
+          {!markedSold && (
+            <button onClick={handleMarkSoldClick} className="px-3 py-1 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm">
+              <CheckCircle className="w-3.5 h-3.5" /> Sold
+            </button>
+          )}
         </div>
 
         {/* Bids Table - Collapsible */}
@@ -641,6 +672,15 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Sold Confirm Modal */}
+      {showSoldModal && (
+        <SoldConfirmModal
+          listing={listing}
+          onClose={() => setShowSoldModal(false)}
+          onSubmit={handleConfirmSold}
+        />
       )}
 
       {/* Counter Modal */}

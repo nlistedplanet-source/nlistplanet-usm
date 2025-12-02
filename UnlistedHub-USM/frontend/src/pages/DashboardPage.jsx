@@ -84,8 +84,15 @@ const DashboardPage = () => {
           portfolioAPI.getHoldings(),
           portfolioAPI.getActivities({ limit: 10 })
         ]);
-
-        setPortfolioStats(statsRes.data.data);
+        const s = statsRes.data.data || {};
+        setPortfolioStats({
+          totalValue: Number(s.totalValue) || 0,
+          totalInvested: Number(s.totalInvested) || 0,
+          totalGain: Number(s.totalGain) || 0,
+          gainPercentage: Number(s.gainPercentage) || 0,
+          activeListings: Number(s.activeListings) || 0,
+          completedTrades: Number(s.completedTrades) || 0,
+        });
         setHoldings(holdingsRes.data.data);
         setRecentActivities(activitiesRes.data.data);
       } catch (error) {
@@ -126,11 +133,13 @@ const DashboardPage = () => {
   }, [activeTab, user]);
 
   const formatCurrency = (amount) => {
+    const safe = Number(amount);
+    const value = isNaN(safe) ? 0 : safe;
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
       maximumFractionDigits: 0
-    }).format(amount);
+    }).format(value);
   };
 
   // Handlers for marketplace card actions

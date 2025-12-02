@@ -150,60 +150,60 @@ const MyBidsOffersTab = () => {
             const waitingForSeller = !latestRound.sellerCounter && counterHistory.length > 0;
             
             return (
-              <div key={index} className="card-mobile border-2 border-gray-200">
+              <div key={index} className="bg-white rounded-lg shadow-sm hover:shadow transition-all border border-gray-200 overflow-hidden mb-2 p-2">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-200">
+                <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-200">
                   <div className="flex-1">
-                    <h4 className="font-bold text-dark-900 text-base">{activity.listing.companyName}</h4>
-                    <p className="text-xs text-dark-500 mt-0.5">
+                    <h4 className="font-bold text-dark-900 text-sm">{activity.listing.companyName}</h4>
+                    <p className="text-[10px] text-dark-500 mt-0.5">
                       {activity.type === 'bid' ? 'Seller' : 'Buyer'}: @{activity.listing.owner?.username || 'Unknown'}
                     </p>
-                    <p className="text-xs text-dark-500">
+                    <p className="text-[10px] text-dark-500">
                       Listed Price: {formatCurrency(calculateTotalWithFee(activity.listing.listingPrice))} x {activity.listing.quantity} shares
                     </p>
                   </div>
-                  <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(activity.status)}`}>
+                  <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${getStatusColor(activity.status)}`}>
                     {activity.status}
                   </span>
                 </div>
 
                 {/* Negotiation Rounds */}
-                <div className="space-y-3">
-                  <h5 className="text-sm font-bold text-dark-700 flex items-center gap-2">
-                    <RotateCcw size={14} />
+                <div className="space-y-2">
+                  <h5 className="text-xs font-bold text-dark-700 flex items-center gap-1">
+                    <RotateCcw size={12} />
                     Negotiation History
                   </h5>
                   
                   {rounds.map((round, idx) => (
-                    <div key={idx} className="border border-gray-300 rounded-lg overflow-hidden">
+                    <div key={idx} className="border border-gray-200 rounded-md overflow-hidden">
                       {/* Round Header */}
-                      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 px-3 py-2 border-b border-gray-300">
-                        <p className="text-xs font-bold text-purple-700">Round {round.roundNumber}</p>
+                      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 px-2 py-1 border-b border-gray-200">
+                        <p className="text-[10px] font-bold text-purple-700">Round {round.roundNumber}</p>
                       </div>
                       
                       {/* Your Bid */}
-                      <div className="p-3 bg-green-50 border-b border-gray-200">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-semibold text-green-700">
+                      <div className="p-2 bg-green-50 border-b border-gray-200">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="text-[10px] font-semibold text-green-700">
                             Your {round.roundNumber === 1 ? 'Bid' : 'Counter'}:
                           </span>
-                          <span className="text-sm font-bold text-green-800">
+                          <span className="text-xs font-bold text-green-800">
                             {formatCurrency(round.yourBid.price)}
                           </span>
                         </div>
-                        <p className="text-xs text-green-600">
+                        <p className="text-[10px] text-green-600">
                           {round.yourBid.quantity} shares
                         </p>
                         
                         {/* Modify/Delete buttons only on Round 1 and if pending */}
                         {round.roundNumber === 1 && activity.status === 'pending' && (
-                          <div className="flex gap-2 mt-2">
-                            <button className="flex-1 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-200 transition-colors flex items-center justify-center gap-1">
-                              <Edit size={12} />
+                          <div className="flex gap-1 mt-1">
+                            <button className="flex-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-[10px] font-semibold hover:bg-blue-200 transition-colors flex items-center justify-center gap-0.5">
+                              <Edit size={10} />
                               Modify
                             </button>
-                            <button className="flex-1 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-200 transition-colors flex items-center justify-center gap-1">
-                              <Trash2 size={12} />
+                            <button className="flex-1 px-2 py-1 bg-red-100 text-red-700 rounded text-[10px] font-semibold hover:bg-red-200 transition-colors flex items-center justify-center gap-0.5">
+                              <Trash2 size={10} />
                               Delete
                             </button>
                           </div>
@@ -212,41 +212,41 @@ const MyBidsOffersTab = () => {
                       
                       {/* Seller Counter */}
                       {round.sellerCounter ? (
-                        <div className="p-3 bg-orange-50">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-semibold text-orange-700">
+                        <div className="p-2 bg-orange-50">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="text-[10px] font-semibold text-orange-700">
                               {activity.type === 'bid' ? 'Seller' : 'Buyer'} (@{round.sellerCounter.username}) Counter:
                             </span>
-                            <span className="text-sm font-bold text-orange-800">
+                            <span className="text-xs font-bold text-orange-800">
                               {formatCurrency(round.sellerCounter.price)}
                             </span>
                           </div>
-                          <p className="text-xs text-orange-600 mb-2">
+                          <p className="text-[10px] text-orange-600 mb-1">
                             {round.sellerCounter.quantity} shares
                           </p>
                           
                           {/* Action buttons only on latest round */}
                           {idx === rounds.length - 1 && showActions && (
-                            <div className="flex gap-2 mt-2">
-                              <button className="flex-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1">
-                                <CheckCircle size={12} />
+                            <div className="flex gap-1 mt-1">
+                              <button className="flex-1 px-2 py-1 bg-green-600 text-white rounded text-[10px] font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-0.5">
+                                <CheckCircle size={10} />
                                 Accept
                               </button>
-                              <button className="flex-1 px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700 transition-colors flex items-center justify-center gap-1">
-                                <XCircle size={12} />
+                              <button className="flex-1 px-2 py-1 bg-red-600 text-white rounded text-[10px] font-semibold hover:bg-red-700 transition-colors flex items-center justify-center gap-0.5">
+                                <XCircle size={10} />
                                 Reject
                               </button>
-                              <button className="flex-1 px-3 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-1">
-                                <RotateCcw size={12} />
+                              <button className="flex-1 px-2 py-1 bg-purple-600 text-white rounded text-[10px] font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-0.5">
+                                <RotateCcw size={10} />
                                 Counter
                               </button>
                             </div>
                           )}
                         </div>
                       ) : idx === rounds.length - 1 && waitingForSeller ? (
-                        <div className="p-3 bg-blue-50">
-                          <p className="text-xs text-blue-700 italic flex items-center gap-2">
-                            <Clock size={14} />
+                        <div className="p-2 bg-blue-50">
+                          <p className="text-[10px] text-blue-700 italic flex items-center gap-1">
+                            <Clock size={12} />
                             Waiting for {activity.type === 'bid' ? 'seller' : 'buyer'} response...
                           </p>
                         </div>
@@ -256,23 +256,23 @@ const MyBidsOffersTab = () => {
                 </div>
 
                 {/* Footer - Timestamp */}
-                <div className="mt-3 pt-3 border-t border-gray-200">
-                  <p className="text-xs text-dark-500">
+                <div className="mt-2 pt-2 border-t border-gray-200">
+                  <p className="text-[10px] text-dark-500">
                     Created: {formatDate(activity.createdAt)}
                   </p>
                 </div>
 
                 {/* Final Status Messages */}
                 {activity.status === 'accepted' && (
-                  <div className="mt-3 flex items-center gap-2 bg-green-100 p-3 rounded-lg border-2 border-green-300">
-                    <CheckCircle size={18} className="text-green-600" />
-                    <span className="text-sm text-green-800 font-bold">✓ Deal Accepted!</span>
+                  <div className="mt-2 flex items-center gap-1 bg-green-100 p-2 rounded-lg border border-green-300">
+                    <CheckCircle size={14} className="text-green-600" />
+                    <span className="text-[10px] text-green-800 font-bold">✓ Deal Accepted!</span>
                   </div>
                 )}
                 {activity.status === 'rejected' && (
-                  <div className="mt-3 flex items-center gap-2 bg-red-100 p-3 rounded-lg border-2 border-red-300">
-                    <XCircle size={18} className="text-red-600" />
-                    <span className="text-sm text-red-800 font-bold">✗ Bid Rejected</span>
+                  <div className="mt-2 flex items-center gap-1 bg-red-100 p-2 rounded-lg border border-red-300">
+                    <XCircle size={14} className="text-red-600" />
+                    <span className="text-[10px] text-red-800 font-bold">✗ Bid Rejected</span>
                   </div>
                 )}
               </div>
