@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
@@ -505,9 +506,9 @@ const HomePage = () => {
                 © 2025 Nlist Planet. All rights reserved.
               </p>
               <div className="flex gap-6 items-center">
-                <a href="https://nlistplanet.com/privacy" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 text-sm">Privacy Policy</a>
-                <a href="https://nlistplanet.com/terms" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 text-sm">Terms of Service</a>
-                <a href="https://nlistplanet.com/cookies" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 text-sm">Cookie Policy</a>
+                <Link to="/privacy" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 text-sm">Privacy Policy</Link>
+                <Link to="/terms" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 text-sm">Terms of Service</Link>
+                <Link to="/cookies" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 text-sm">Cookie Policy</Link>
               </div>
             </div>
           </div>
