@@ -17,6 +17,41 @@
     
     <title>Nlist Planet | Unlisted Shares Mall</title>
     
+    <!-- Smart Redirect Script: Redirect mobile devices to mobile app -->
+    <script>
+      (function () {
+        try {
+          const host = window.location.hostname;
+          const params = new URLSearchParams(window.location.search);
+          const disableRedirect = params.get('preview') === '1' || params.get('no-redirect') === '1';
+          
+          // Skip redirect for preview/local domains
+          if (host.includes('vercel.app') || host === 'localhost' || host === '127.0.0.1') {
+            return;
+          }
+
+          // Detect mobile device and screen size
+          const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+          const isSmallScreen = window.innerWidth < 1024;
+
+          // Define domains
+          const isProdDesktopDomain = host === 'nlistplanet.com' || host === 'www.nlistplanet.com';
+          const mobileAppUrl = 'https://mobile.nlistplanet.com';
+
+          // Redirect logic (unless bypassed)
+          if (!disableRedirect && isProdDesktopDomain) {
+            // On desktop domain but using mobile device or small screen → redirect to mobile
+            if (isMobileDevice || isSmallScreen) {
+              window.location.href = mobileAppUrl + window.location.pathname + window.location.search;
+            }
+          }
+        } catch (e) {
+          // Fail open: never block the app from loading
+          console.warn('Redirect script skipped:', e);
+        }
+      })();
+    </script>
+    
     <style>
       * {
         box-sizing: border-box;
