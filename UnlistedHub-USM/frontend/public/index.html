@@ -24,24 +24,29 @@
           const host = window.location.hostname;
           const params = new URLSearchParams(window.location.search);
           const disableRedirect = params.get('preview') === '1' || params.get('no-redirect') === '1';
-          
+
           // Skip redirect for preview/local domains
           if (host.includes('vercel.app') || host === 'localhost' || host === '127.0.0.1') {
             return;
           }
 
-          // Detect mobile device and screen size
-          const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-          const isSmallScreen = window.innerWidth < 1024;
+          // Robust mobile detection
+          const ua = navigator.userAgent || '';
+          const isTouchCapable = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+          const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+          const isSmallViewport = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+          const isPortrait = window.matchMedia && window.matchMedia('(orientation: portrait)').matches;
+          const isMobileDevice = isMobileUA || (isTouchCapable && (isSmallViewport || isPortrait));
 
           // Define domains
           const isProdDesktopDomain = host === 'nlistplanet.com' || host === 'www.nlistplanet.com';
           const mobileAppUrl = 'https://mobile.nlistplanet.com';
+          const isAlreadyOnMobile = host === 'mobile.nlistplanet.com' || host === 'm.nlistplanet.com';
 
           // Redirect logic (unless bypassed)
-          if (!disableRedirect && isProdDesktopDomain) {
-            // On desktop domain but using mobile device or small screen → redirect to mobile
-            if (isMobileDevice || isSmallScreen) {
+          if (!disableRedirect && isProdDesktopDomain && !isAlreadyOnMobile) {
+            // On desktop domain but using mobile device or small viewport → redirect to mobile
+            if (isMobileDevice || isSmallViewport) {
               window.location.href = mobileAppUrl + window.location.pathname + window.location.search;
             }
           }
