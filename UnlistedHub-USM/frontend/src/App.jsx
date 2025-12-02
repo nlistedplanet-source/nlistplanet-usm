@@ -98,8 +98,22 @@ function AppContent() {
         </Routes>
       </main>
 
-      {/* Global Footer */}
-      <Footer />
+      {/* Global Footer - Hide on dashboard and auth pages */}
+      {!location.pathname.startsWith('/dashboard') && 
+       location.pathname !== '/login' && 
+       location.pathname !== '/register' && 
+       location.pathname !== '/forgot-password' &&
+       location.pathname !== '/check-email' &&
+       !location.pathname.startsWith('/verify-email') && (
+        <Footer />
+      )}
+
+      {/* Simple Copyright Footer for Dashboard */}
+      {location.pathname === '/dashboard' && (
+        <footer className="bg-dark-900 text-white py-4 text-center">
+          <p className="text-sm">© {new Date().getFullYear()} NList Planet. All rights reserved.</p>
+        </footer>
+      )}
 
       {/* Toast Notifications */}
       <Toaster 
