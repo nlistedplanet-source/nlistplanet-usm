@@ -16,6 +16,11 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import CheckEmailPage from './pages/CheckEmailPage';
 import EmailVerificationPage from './pages/EmailVerificationPage';
 
+// Legal Pages
+import PrivacyPolicy from './pages/legal/PrivacyPolicy';
+import TermsOfService from './pages/legal/TermsOfService';
+import CookiePolicy from './pages/legal/CookiePolicy';
+
 // Components
 import TopBar from './components/TopBar';
 import LoadingScreen from './components/LoadingScreen';
@@ -68,6 +73,11 @@ function AppContent() {
           <Route path="/forgot-password" element={user ? <Navigate to="/dashboard" /> : <ForgotPasswordPage />} />
           <Route path="/check-email" element={<CheckEmailPage />} />
           <Route path="/verify-email/:token" element={<EmailVerificationPage />} />
+          
+          {/* Legal Pages */}
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/cookies" element={<CookiePolicy />} />
           
           {/* Protected Routes */}
           <Route 
