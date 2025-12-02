@@ -4,6 +4,15 @@ import { listingsAPI } from '../utils/api';
 import { formatCurrency, calculateTotalWithFee, calculatePlatformFee, numberToWords } from '../utils/helpers';
 import toast from 'react-hot-toast';
 
+// Format quantity in shorthand
+const formatQuantityShort = (qty) => {
+  const num = Number(qty);
+  if (num >= 10000000) return `${(num / 10000000).toFixed(1)}Cr`;
+  if (num >= 100000) return `${(num / 100000).toFixed(1)}L`;
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+  return num.toLocaleString('en-IN');
+};
+
 const BidOfferModal = ({ listing, onClose, onSuccess }) => {
   const isSell = listing.type === 'sell';
   
@@ -114,20 +123,21 @@ const BidOfferModal = ({ listing, onClose, onSuccess }) => {
                   </p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="space-y-2">
                 <div>
-                  <p className="text-[10px] text-gray-500">{isSell ? 'Seller Wants (Net)' : 'Buyer Will Pay'}</p>
-                  <p className="font-bold text-sm text-gray-900">₹{listing.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  <p className="text-[10px] text-gray-500 mb-1">{isSell ? 'Price (with fee)' : 'Price (after fee)'}</p>
+                  <p className="font-bold text-lg text-emerald-700">₹{displayPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
-                <div>
-                  <p className="text-[10px] text-gray-500">{isSell ? 'You Pay (with fee)' : 'You Get (after fee)'}</p>
-                  <p className="font-bold text-sm text-emerald-700">₹{displayPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                </div>
-              </div>
-              <div className="mt-2 pt-2 border-t border-gray-200">
-                <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-gray-500">Available Quantity:</span>
-                  <span className="font-semibold text-gray-900">{listing.quantity.toLocaleString('en-IN')} shares</span>
+                <div className="pt-2 border-t border-gray-200">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-gray-500">Available Quantity:</span>
+                    <span className="font-semibold text-gray-900 group relative cursor-help">
+                      {formatQuantityShort(listing.quantity)}
+                      <span className="hidden group-hover:block absolute right-0 top-full mt-1 bg-gray-900 text-white text-[9px] px-2 py-1 rounded whitespace-nowrap z-10 shadow-lg">
+                        {listing.quantity.toLocaleString('en-IN')} shares
+                      </span>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -153,7 +163,7 @@ const BidOfferModal = ({ listing, onClose, onSuccess }) => {
                     required
                   />
                   <label className="absolute left-9 top-0 -translate-y-1/2 text-xs text-gray-600 transition-all duration-200 pointer-events-none bg-white px-2 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 peer-focus:top-0 peer-focus:text-xs peer-focus:text-emerald-600">
-                    {isSell ? 'Your Bid (You will pay)' : 'Your Offer (You want)'} <span className="text-red-500">*</span>
+                    Your Bid <span className="text-red-500">*</span>
                   </label>
                   {formData.price && parseFloat(formData.price) > 0 && (
                     <div className="absolute bottom-0.5 left-9 right-4 text-[8px] text-emerald-600 font-medium truncate leading-tight">
@@ -194,27 +204,6 @@ const BidOfferModal = ({ listing, onClose, onSuccess }) => {
                   Min: {listing.minLot} | Max: {listing.quantity} shares
                 </p>
               </div>
-
-              {/* Financial Breakdown */}
-              {formData.price && parseFloat(formData.price) > 0 && quantity > 0 && (
-                <div className="bg-blue-50 rounded-xl p-3 border border-blue-200">
-                  <p className="text-[10px] font-semibold text-blue-900 mb-2">Transaction Breakdown:</p>
-                  <div className="space-y-1 text-[10px]">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{isSell ? 'Buyer Pays:' : 'Buyer Pays:'}</span>
-                      <span className="font-semibold text-gray-900">{formatCurrency(buyerPays)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Platform Fee (2%):</span>
-                      <span className="font-semibold text-orange-600">{formatCurrency(platformFee)}</span>
-                    </div>
-                    <div className="flex justify-between pt-1 border-t border-blue-200">
-                      <span className="text-gray-600">Seller Gets (Net):</span>
-                      <span className="font-semibold text-emerald-600">{formatCurrency(sellerGets)}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Total Amount */}
               <div className="bg-emerald-50 rounded-xl p-3 border-2 border-emerald-200">
