@@ -129,7 +129,7 @@ const BidOfferModal = ({ listing, onClose, onSuccess }) => {
                     Your Price per Share <span className="text-red-500">*</span>
                   </label>
                   {formData.price && parseFloat(formData.price) > 0 && (
-                    <div className="absolute bottom-0.5 left-9 right-4 text-[8px] text-gray-500 truncate leading-tight">
+                    <div className="absolute bottom-0.5 left-9 right-4 text-[8px] text-emerald-600 font-medium truncate leading-tight">
                       {numberToWords(parseFloat(formData.price))}
                     </div>
                   )}
@@ -158,8 +158,8 @@ const BidOfferModal = ({ listing, onClose, onSuccess }) => {
                     Quantity <span className="text-red-500">*</span>
                   </label>
                   {formData.quantity && parseInt(formData.quantity) > 0 && (
-                    <div className="absolute bottom-0.5 left-9 right-4 text-[8px] text-gray-500 truncate leading-tight">
-                      {parseInt(formData.quantity).toLocaleString('en-IN')} shares
+                    <div className="absolute bottom-0.5 left-9 right-4 text-[8px] text-emerald-600 font-medium truncate leading-tight">
+                      {numberToWords(parseInt(formData.quantity))}
                     </div>
                   )}
                 </div>
@@ -176,7 +176,7 @@ const BidOfferModal = ({ listing, onClose, onSuccess }) => {
                     {formatCurrency(totalAmount)}
                   </span>
                 </div>
-                <p className="text-[9px] text-gray-600 leading-tight">
+                <p className="text-[9px] text-emerald-600 font-medium leading-tight">
                   {amountInWords}
                 </p>
               </div>
