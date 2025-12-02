@@ -52,6 +52,7 @@ const Footer = () => (
             <li><a href="https://nlistplanet.com/blog" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 text-sm">Blog</a></li>
             <li><Link to="/terms" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 text-sm">Terms & Conditions</Link></li>
             <li><Link to="/privacy" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 text-sm">Privacy Policy</Link></li>
+            <li><Link to="/cookies" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 text-sm">Cookie Policy</Link></li>
           </ul>
         </div>
 
