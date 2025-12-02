@@ -7,21 +7,42 @@ import toast from 'react-hot-toast';
 const BidOfferModal = ({ listing, onClose, onSuccess }) => {
   const isSell = listing.type === 'sell';
   
-  // Calculate display price (same as marketplace card)
-  // For sell posts: displayPrice = price / 0.98 (includes platform fee)
-  // For buy posts: displayPrice = price (no fee)
-  const displayPrice = isSell ? (listing.price / 0.98) : listing.price;
+  // SELL Post: listing.price = what seller wants (net amount)
+  //           displayPrice = what buyer must pay (with platform fee)
+  // BUY Request: listing.price = what buyer will pay (total)
+  //              displayPrice = what seller will get (after platform fee)
+  const displayPrice = isSell ? calculateTotalWithFee(listing.price) : listing.price;
   
   const [formData, setFormData] = useState({
-    price: listing.price.toString(),
+    price: '',
     quantity: listing.minLot.toString()
   });
   const [loading, setLoading] = useState(false);
 
-  // Correct calculation: base amount first, then fee
-  const baseAmount = parseFloat(formData.price || 0) * parseInt(formData.quantity || 0);
-  const platformFee = calculatePlatformFee(baseAmount);
-  const totalAmount = baseAmount + platformFee;
+  // Calculate amounts based on what user enters
+  const userPrice = parseFloat(formData.price || 0);
+  const quantity = parseInt(formData.quantity || 0);
+  
+  // For SELL posts: buyer enters total they'll pay, calculate what seller gets
+  // For BUY requests: seller enters what they want, calculate what buyer pays
+  let buyerPays, sellerGets, platformFee, totalAmount;
+  
+  if (isSell) {
+    // Buyer is bidding on a SELL post
+    // User enters: amount they'll pay (total including fee)
+    buyerPays = userPrice * quantity;
+    sellerGets = buyerPays * 0.98; // Seller gets 98%
+    platformFee = buyerPays * 0.02; // Platform takes 2%
+    totalAmount = buyerPays;
+  } else {
+    // Seller is offering on a BUY request
+    // User enters: amount they want (net after fee)
+    sellerGets = userPrice * quantity;
+    buyerPays = sellerGets / 0.98; // Buyer pays more to cover fee
+    platformFee = buyerPays - sellerGets;
+    totalAmount = buyerPays;
+  }
+  
   const amountInWords = numberToWords(totalAmount);
 
   const handleSubmit = async (e) => {
@@ -95,12 +116,18 @@ const BidOfferModal = ({ listing, onClose, onSuccess }) => {
               </div>
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <p className="text-[10px] text-gray-500">{isSell ? 'Seller Price' : 'Want to Buy At'}</p>
-                  <p className="font-bold text-sm text-gray-900">₹{displayPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  <p className="text-[10px] text-gray-500">{isSell ? 'Seller Wants (Net)' : 'Buyer Will Pay'}</p>
+                  <p className="font-bold text-sm text-gray-900">₹{listing.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-500">{isSell ? 'Available for Sell' : 'Required Shares'}</p>
-                  <p className="font-bold text-sm text-gray-900">{listing.quantity} shares</p>
+                  <p className="text-[10px] text-gray-500">{isSell ? 'You Pay (with fee)' : 'You Get (after fee)'}</p>
+                  <p className="font-bold text-sm text-emerald-700">₹{displayPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                </div>
+              </div>
+              <div className="mt-2 pt-2 border-t border-gray-200">
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-gray-500">Available Quantity:</span>
+                  <span className="font-semibold text-gray-900">{listing.quantity.toLocaleString('en-IN')} shares</span>
                 </div>
               </div>
             </div>
@@ -126,7 +153,7 @@ const BidOfferModal = ({ listing, onClose, onSuccess }) => {
                     required
                   />
                   <label className="absolute left-9 top-0 -translate-y-1/2 text-xs text-gray-600 transition-all duration-200 pointer-events-none bg-white px-2 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 peer-focus:top-0 peer-focus:text-xs peer-focus:text-emerald-600">
-                    Your Price per Share <span className="text-red-500">*</span>
+                    {isSell ? 'Your Bid (You will pay)' : 'Your Offer (You want)'} <span className="text-red-500">*</span>
                   </label>
                   {formData.price && parseFloat(formData.price) > 0 && (
                     <div className="absolute bottom-0.5 left-9 right-4 text-[8px] text-emerald-600 font-medium truncate leading-tight">
@@ -168,10 +195,31 @@ const BidOfferModal = ({ listing, onClose, onSuccess }) => {
                 </p>
               </div>
 
+              {/* Financial Breakdown */}
+              {formData.price && parseFloat(formData.price) > 0 && quantity > 0 && (
+                <div className="bg-blue-50 rounded-xl p-3 border border-blue-200">
+                  <p className="text-[10px] font-semibold text-blue-900 mb-2">Transaction Breakdown:</p>
+                  <div className="space-y-1 text-[10px]">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">{isSell ? 'Buyer Pays:' : 'Buyer Pays:'}</span>
+                      <span className="font-semibold text-gray-900">{formatCurrency(buyerPays)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Platform Fee (2%):</span>
+                      <span className="font-semibold text-orange-600">{formatCurrency(platformFee)}</span>
+                    </div>
+                    <div className="flex justify-between pt-1 border-t border-blue-200">
+                      <span className="text-gray-600">Seller Gets (Net):</span>
+                      <span className="font-semibold text-emerald-600">{formatCurrency(sellerGets)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Total Amount */}
               <div className="bg-emerald-50 rounded-xl p-3 border-2 border-emerald-200">
                 <div className="flex items-center justify-between mb-0.5">
-                  <span className="text-sm font-semibold text-gray-900">Total Amount:</span>
+                  <span className="text-sm font-semibold text-gray-900">{isSell ? 'You Will Pay:' : 'Buyer Will Pay:'}</span>
                   <span className="text-xl font-bold text-emerald-700">
                     {formatCurrency(totalAmount)}
                   </span>
