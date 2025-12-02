@@ -1,6 +1,5 @@
 {
   "rewrites": [
-    // Allow static assets and PWA files to be served directly
     { "source": "/static/(.*)", "destination": "/static/$1" },
     { "source": "/manifest.json", "destination": "/manifest.json" },
     { "source": "/asset-manifest.json", "destination": "/asset-manifest.json" },
@@ -9,7 +8,6 @@
     { "source": "/logo512.png", "destination": "/logo512.png" },
     { "source": "/robots.txt", "destination": "/robots.txt" },
     { "source": "/service-worker.js", "destination": "/service-worker.js" },
-    // SPA fallback for all other routes
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
