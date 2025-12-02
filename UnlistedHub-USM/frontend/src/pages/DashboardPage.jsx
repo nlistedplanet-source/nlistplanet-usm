@@ -738,27 +738,35 @@ const DashboardPage = () => {
                     }
                     return 0;
                   })
-                  .map((listing) => (
-                    <MarketplaceCard
-                      key={listing._id}
-                      type={listing.type}
-                      companyLogo={listing.companyId?.Logo || listing.companyId?.logo}
-                      companyName={listing.companyName}
-                      companySymbol={listing.companyId?.ScripName || listing.companyId?.symbol}
-                      companySector={listing.companyId?.Sector || listing.companyId?.sector || 'Financial Services'}
-                      companyPan={listing.companyId?.PAN || listing.companyId?.pan}
-                      companyIsin={listing.companyId?.ISIN || listing.companyId?.isin}
-                      companyCin={listing.companyId?.CIN || listing.companyId?.cin}
-                      price={listing.price}
-                      shares={listing.quantity}
-                      user={listing.username}
-                      onPrimary={() => handlePlaceBid(listing)}
-                      onSecondary={() => handleShare(listing)}
-                      onShare={() => handleShare(listing)}
-                      onLike={() => handleLike(listing)}
-                      isLiked={likedListings.has(listing._id)}
-                    />
-                  ))}
+                  .map((listing) => {
+                    // For SELL listings: show buyer price (seller price + platform fee)
+                    // For BUY requests: show original offer price
+                    const displayPrice = listing.type === 'sell' 
+                      ? calculateTotalWithFee(listing.price) 
+                      : listing.price;
+                    
+                    return (
+                      <MarketplaceCard
+                        key={listing._id}
+                        type={listing.type}
+                        companyLogo={listing.companyId?.Logo || listing.companyId?.logo}
+                        companyName={listing.companyName}
+                        companySymbol={listing.companyId?.ScripName || listing.companyId?.symbol}
+                        companySector={listing.companyId?.Sector || listing.companyId?.sector || 'Financial Services'}
+                        companyPan={listing.companyId?.PAN || listing.companyId?.pan}
+                        companyIsin={listing.companyId?.ISIN || listing.companyId?.isin}
+                        companyCin={listing.companyId?.CIN || listing.companyId?.cin}
+                        price={displayPrice}
+                        shares={listing.quantity}
+                        user={listing.username}
+                        onPrimary={() => handlePlaceBid(listing)}
+                        onSecondary={() => handleShare(listing)}
+                        onShare={() => handleShare(listing)}
+                        onLike={() => handleLike(listing)}
+                        isLiked={likedListings.has(listing._id)}
+                      />
+                    );
+                  })}
               </div>
             )}
           </div>
