@@ -37,6 +37,7 @@ import ReceivedBidsOffersTab from '../components/dashboard/ReceivedBidsOffersTab
 import NotificationsTab from '../components/dashboard/NotificationsTab';
 import ReferralsTab from '../components/dashboard/ReferralsTab';
 import ProfileTab from '../components/dashboard/ProfileTab';
+import HistoryTab from '../components/dashboard/HistoryTab';
 import CompaniesManagement from '../components/admin/CompaniesManagement';
 import UserManagement from '../components/admin/UserManagement';
 import ListingsManagement from '../components/admin/ListingsManagement';
@@ -218,6 +219,7 @@ const DashboardPage = () => {
     { id: 'posts', label: 'My Posts', icon: FileText },
     { id: 'my-bids-offers', label: 'My Bids & Offers', icon: TrendingUp },
     { id: 'received-bids-offers', label: 'Received Bids & Offers', icon: TrendingDown },
+    { id: 'history', label: 'History', icon: Package },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'referrals', label: 'Referrals', icon: Gift },
     { id: 'profile', label: 'Profile', icon: UserIcon },
@@ -854,6 +856,11 @@ const DashboardPage = () => {
         {activeTab === 'received-bids-offers' && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <ReceivedBidsOffersTab />
+          </div>
+        )}
+        {activeTab === 'history' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <HistoryTab />
           </div>
         )}
         {activeTab === 'notifications' && (
