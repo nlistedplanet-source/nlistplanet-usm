@@ -1,4 +1,18 @@
 {
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(android|iphone|ipad|ipod|mobile|blackberry|iemobile|opera mini|webos).*"
+        }
+      ],
+      "destination": "https://mobile.nlistplanet.com/:path*",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
