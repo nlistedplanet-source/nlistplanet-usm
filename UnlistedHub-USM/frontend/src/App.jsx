@@ -24,6 +24,7 @@ import CookiePolicy from './pages/legal/CookiePolicy';
 // Components
 import TopBar from './components/TopBar';
 import LoadingScreen from './components/LoadingScreen';
+import Footer from './components/Footer';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -96,6 +97,9 @@ function AppContent() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+
+      {/* Global Footer */}
+      <Footer />
 
       {/* Toast Notifications */}
       <Toaster 
