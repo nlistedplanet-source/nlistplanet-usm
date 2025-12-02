@@ -19,8 +19,8 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [lastActivity, setLastActivity] = useState(Date.now());
   
-  // Auto logout after 5 minutes of inactivity
-  const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
+  // Auto logout after 30 minutes of inactivity
+  const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
 
   // Configure axios defaults and interceptor
   useEffect(() => {
