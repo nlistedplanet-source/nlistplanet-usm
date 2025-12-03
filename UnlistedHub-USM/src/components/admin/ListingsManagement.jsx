@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, TrendingUp, TrendingDown, Trash2, Eye, Calendar, Package, DollarSign, Filter } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, Trash2, Eye, Package, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminAPI } from '../../utils/api';
 import { formatDate, formatCurrency, formatNumber } from '../../utils/helpers';
@@ -222,58 +222,48 @@ const ListingsManagement = () => {
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '70vh' }}>
+              <table className="min-w-[1400px] w-max text-xs border-collapse">
+                <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Company
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Type
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      User
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Price Breakdown
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Created
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Company</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Type</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">User</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Price/Share</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Quantity</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Base Amt</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Fee (2%)</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Total</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Created</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Status</th>
+                    <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-100">
                   {listings.map((listing) => (
                     <tr key={listing._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-2">
                           {listing.companyId?.logo ? (
-                            <img src={listing.companyId.logo} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                            <img src={listing.companyId.logo} alt="" className="w-7 h-7 rounded object-cover flex-shrink-0" />
                           ) : (
-                            <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
-                              <span className="text-primary-700 font-bold">
+                            <div className="w-7 h-7 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
+                              <span className="text-gray-500 font-bold text-xs">
                                 {listing.companyName?.[0] || 'C'}
                               </span>
                             </div>
                           )}
                           <div>
-                            <p className="font-semibold text-gray-900">{listing.companyName}</p>
+                            <p className="font-medium text-gray-900 text-xs truncate max-w-[150px]" title={listing.companyName}>{listing.companyName}</p>
                             {listing.companyId?.scriptName && (
-                              <p className="text-xs text-gray-500">{listing.companyId.scriptName}</p>
+                              <p className="text-[10px] text-gray-500">{listing.companyId.scriptName}</p>
                             )}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      <td className="px-3 py-2">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                           listing.type === 'sell' 
                             ? 'bg-green-100 text-green-700' 
                             : 'bg-blue-100 text-blue-700'
@@ -281,51 +271,37 @@ const ListingsManagement = () => {
                           {listing.type === 'sell' ? 'SELL' : 'BUY'}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-2">
                         <div>
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-xs font-medium text-gray-900 truncate max-w-[100px]" title={listing.userId?.fullName}>
                             {listing.userId?.fullName || 'N/A'}
                           </p>
-                          <p className="text-xs text-gray-500">@{listing.username}</p>
+                          <p className="text-[10px] text-gray-500">@{listing.username}</p>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs text-gray-500">Base:</span>
-                            <span className="text-sm font-semibold text-gray-900">
-                              {formatCurrency(listing.baseAmount || (listing.price * listing.quantity))}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs text-orange-600">Fee ({listing.platformFeePercentage || 2}%):</span>
-                            <span className="text-sm font-semibold text-orange-600">
-                              {formatCurrency(listing.platformFee || ((listing.price * listing.quantity * 2) / 100))}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5 pt-0.5 border-t border-gray-200">
-                            <span className="text-xs text-gray-700 font-medium">Total:</span>
-                            <span className="text-sm font-bold text-green-600">
-                              {formatCurrency(listing.totalAmount || (listing.price * listing.quantity * 1.02))}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1">
-                            <Package size={12} />
-                            {formatNumber(listing.quantity)} shares × {formatCurrency(listing.price)}
-                          </div>
-                        </div>
+                      <td className="px-3 py-2 text-xs font-semibold text-gray-900 whitespace-nowrap">
+                        {formatCurrency(listing.price)}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Calendar size={14} />
-                          {formatDate(listing.createdAt)}
-                        </div>
+                      <td className="px-3 py-2 text-xs text-gray-700 whitespace-nowrap">
+                        {formatNumber(listing.quantity)}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-2 text-xs text-gray-900 whitespace-nowrap">
+                        {formatCurrency(listing.baseAmount || (listing.price * listing.quantity))}
+                      </td>
+                      <td className="px-3 py-2 text-xs text-orange-600 font-medium whitespace-nowrap">
+                        {formatCurrency(listing.platformFee || ((listing.price * listing.quantity * 2) / 100))}
+                      </td>
+                      <td className="px-3 py-2 text-xs font-bold text-green-600 whitespace-nowrap">
+                        {formatCurrency(listing.totalAmount || (listing.price * listing.quantity * 1.02))}
+                      </td>
+                      <td className="px-3 py-2 text-[10px] text-gray-600 whitespace-nowrap">
+                        {formatDate(listing.createdAt)}
+                      </td>
+                      <td className="px-3 py-2">
                         <select
                           value={listing.status}
                           onChange={(e) => handleStatusChange(listing._id, e.target.value)}
-                          className={`px-3 py-1 rounded-full text-xs font-semibold border-0 ${
+                          className={`px-2 py-0.5 rounded text-[10px] font-semibold border-0 cursor-pointer ${
                             listing.status === 'active' ? 'bg-green-100 text-green-700' :
                             listing.status === 'sold' ? 'bg-purple-100 text-purple-700' :
                             listing.status === 'cancelled' ? 'bg-red-100 text-red-700' :
@@ -338,14 +314,16 @@ const ListingsManagement = () => {
                           <option value="expired">Expired</option>
                         </select>
                       </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => handleDelete(listing._id, listing.companyName)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center justify-center">
+                          <button
+                            onClick={() => handleDelete(listing._id, listing.companyName)}
+                            className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
