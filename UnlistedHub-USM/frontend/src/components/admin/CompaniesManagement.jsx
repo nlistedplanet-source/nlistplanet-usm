@@ -177,25 +177,25 @@ const CompaniesManagement = () => {
           <Loader className="animate-spin text-emerald-500" size={40} />
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto max-w-full" style={{ maxHeight: '70vh' }}>
-            <table className="w-full min-w-[1200px] text-xs">
-              <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
+        <div className="bg-white rounded-xl shadow-sm">
+          <div className="overflow-auto" style={{ maxHeight: '70vh' }}>
+            <table className="w-full min-w-[1400px] text-xs border-collapse">
+              <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
                 <tr>
-                  <th className="px-2 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Company</th>
-                  <th className="px-2 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Script</th>
-                  <th className="px-2 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">ISIN</th>
-                  <th className="px-2 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">PAN</th>
-                  <th className="px-2 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">CIN</th>
-                  <th className="px-2 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Sector</th>
-                  <th className="px-2 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Reg. Date</th>
-                  <th className="px-2 py-2 text-center text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Actions</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Company</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Script</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">ISIN</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">PAN</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">CIN</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Sector</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Reg. Date</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {companies.map((company) => (
                   <tr key={company._id} className="hover:bg-gray-50">
-                    <td className="px-2 py-1.5">
+                    <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
                         {company.logo ? (
                           <img src={company.logo} alt={company.name} className="w-7 h-7 rounded object-cover flex-shrink-0" />
@@ -204,18 +204,18 @@ const CompaniesManagement = () => {
                             <Building2 size={14} className="text-gray-400" />
                           </div>
                         )}
-                        <span className="font-medium text-gray-900 text-xs truncate max-w-[150px]" title={company.name}>{company.name}</span>
+                        <span className="font-medium text-gray-900 text-xs truncate max-w-[180px]" title={company.name}>{company.name}</span>
                       </div>
                     </td>
-                    <td className="px-2 py-1.5 text-gray-600 text-xs whitespace-nowrap">{company.scriptName || '-'}</td>
-                    <td className="px-2 py-1.5 text-gray-600 font-mono text-[10px] whitespace-nowrap">{company.isin || '-'}</td>
-                    <td className="px-2 py-1.5 text-gray-600 font-mono text-[10px] whitespace-nowrap">{company.pan || '-'}</td>
-                    <td className="px-2 py-1.5 text-gray-600 font-mono text-[10px] whitespace-nowrap">{company.cin || '-'}</td>
-                    <td className="px-2 py-1.5 text-gray-600 text-xs whitespace-nowrap">{company.sector || '-'}</td>
-                    <td className="px-2 py-1.5 text-gray-600 text-[10px] whitespace-nowrap">
+                    <td className="px-3 py-2 text-gray-600 text-xs whitespace-nowrap">{company.scriptName || '-'}</td>
+                    <td className="px-3 py-2 text-gray-600 font-mono text-[10px] whitespace-nowrap">{company.isin || '-'}</td>
+                    <td className="px-3 py-2 text-gray-600 font-mono text-[10px] whitespace-nowrap">{company.pan || '-'}</td>
+                    <td className="px-3 py-2 text-gray-600 font-mono text-[10px] whitespace-nowrap">{company.cin || '-'}</td>
+                    <td className="px-3 py-2 text-gray-600 text-xs whitespace-nowrap">{company.sector || '-'}</td>
+                    <td className="px-3 py-2 text-gray-600 text-[10px] whitespace-nowrap">
                       {company.registrationDate ? new Date(company.registrationDate).toLocaleDateString('en-GB') : '-'}
                     </td>
-                    <td className="px-2 py-1.5">
+                    <td className="px-3 py-2">
                       <div className="flex items-center justify-center gap-1">
                         <button
                           onClick={() => handleEdit(company)}
