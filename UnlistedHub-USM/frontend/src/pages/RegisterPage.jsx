@@ -74,11 +74,12 @@ const RegisterPage = () => {
     const result = await register(formData);
 
     if (result.success) {
-      // Redirect to check email page with email and username
-      navigate('/check-email', { 
+      // Redirect to OTP verification page with email and phone
+      navigate('/verify-otp', { 
         state: { 
           email: result.email, 
-          username: result.username 
+          username: result.username,
+          phone: result.phone // Last 4 digits
         } 
       });
     }

@@ -52,6 +52,19 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  // OTP fields for email/SMS verification
+  otp: {
+    type: String,
+    default: null
+  },
+  otpExpiry: {
+    type: Date,
+    default: null
+  },
+  otpAttempts: {
+    type: Number,
+    default: 0
+  },
   isBanned: {
     type: Boolean,
     default: false

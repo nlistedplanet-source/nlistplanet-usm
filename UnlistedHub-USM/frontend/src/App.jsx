@@ -15,6 +15,7 @@ import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import CheckEmailPage from './pages/CheckEmailPage';
 import EmailVerificationPage from './pages/EmailVerificationPage';
+import OTPVerificationPage from './pages/OTPVerificationPage';
 
 // Legal Pages
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
@@ -74,6 +75,7 @@ function AppContent() {
           <Route path="/forgot-password" element={user ? <Navigate to="/dashboard" /> : <ForgotPasswordPage />} />
           <Route path="/check-email" element={<CheckEmailPage />} />
           <Route path="/verify-email/:token" element={<EmailVerificationPage />} />
+          <Route path="/verify-otp" element={<OTPVerificationPage />} />
           
           {/* Legal Pages */}
           <Route path="/privacy" element={<PrivacyPolicy />} />

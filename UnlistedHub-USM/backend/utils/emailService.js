@@ -291,6 +291,136 @@ export const sendVerificationEmail = async (user, verificationToken) => {
   });
 };
 
+// Send OTP verification email
+export const sendOTPEmail = async (user, otp) => {
+  const logoUrl = `${process.env.FRONTEND_URL}/images/logos/new_logo.png`;
+  
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <title>Your OTP - NList Planet</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); background-attachment: fixed;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
+        <tr>
+          <td align="center" style="padding: 40px 20px;">
+            
+            <!-- Main Container -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+              
+              <!-- Logo Header -->
+              <tr>
+                <td align="center" style="padding: 40px 30px 20px 30px; background-color: #ffffff;">
+                  <img src="${logoUrl}" alt="NList Planet" width="180" style="display: block; max-width: 180px; height: auto; border: 0; outline: none; text-decoration: none;" />
+                </td>
+              </tr>
+              
+              <!-- Hero Section -->
+              <tr>
+                <td style="padding: 0 30px 30px 30px; text-align: center; background-color: #ffffff;">
+                  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 30px; margin-bottom: 30px;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; line-height: 1.2;">
+                      🔐 Verification OTP
+                    </h1>
+                  </div>
+                  
+                  <h2 style="margin: 0 0 15px 0; color: #1a1a1a; font-size: 22px; font-weight: 600;">
+                    Hi ${user.fullName}! 👋
+                  </h2>
+                  
+                  <p style="margin: 0 0 25px 0; color: #4a5568; font-size: 16px; line-height: 1.6;">
+                    Use this OTP to verify your account on <strong style="color: #667eea;">NList Planet</strong>
+                  </p>
+                </td>
+              </tr>
+              
+              <!-- OTP Section -->
+              <tr>
+                <td style="padding: 0 30px 30px 30px; background-color: #ffffff;">
+                  
+                  <div style="background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); border-radius: 16px; padding: 30px; margin-bottom: 30px; text-align: center; border: 2px dashed #667eea;">
+                    <p style="margin: 0 0 15px 0; color: #718096; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 2px;">
+                      Your One-Time Password
+                    </p>
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 25px; display: inline-block;">
+                      <span style="color: #ffffff; font-size: 42px; font-weight: 800; letter-spacing: 12px; font-family: 'Courier New', monospace;">
+                        ${otp}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <!-- Warning Box -->
+                  <div style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-radius: 12px; padding: 20px; margin-bottom: 25px; border-left: 4px solid #ffc107;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                      <tr>
+                        <td width="30" valign="top" style="padding-right: 10px;">
+                          <span style="font-size: 24px;">⏰</span>
+                        </td>
+                        <td>
+                          <p style="margin: 0; color: #856404; font-size: 14px; line-height: 1.6;">
+                            <strong>Important:</strong> This OTP will expire in <strong>10 minutes</strong>. Please verify your account soon.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+                  
+                  <!-- Security Note -->
+                  <div style="background-color: #edf2f7; border-radius: 12px; padding: 20px; text-align: center;">
+                    <p style="margin: 0 0 10px 0; color: #2d3748; font-size: 14px; line-height: 1.6;">
+                      🔒 <strong>Security Notice</strong>
+                    </p>
+                    <p style="margin: 0; color: #4a5568; font-size: 13px; line-height: 1.5;">
+                      Never share this OTP with anyone. NList Planet will never ask for your OTP via phone or email.
+                    </p>
+                  </div>
+                  
+                </td>
+              </tr>
+              
+              <!-- Footer -->
+              <tr>
+                <td style="background: linear-gradient(to right, #f7fafc, #edf2f7); padding: 35px 30px; border-top: 3px solid #667eea;">
+                  
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                    <tr>
+                      <td align="center">
+                        <p style="margin: 0 0 15px 0; color: #718096; font-size: 14px;">
+                          Need help? <a href="mailto:hello@nlistplanet.com" style="color: #667eea; text-decoration: none; font-weight: 500;">hello@nlistplanet.com</a>
+                        </p>
+                        <p style="margin: 0 0 8px 0; color: #718096; font-size: 13px; line-height: 1.5;">
+                          © ${new Date().getFullYear()} <strong>NList Planet</strong>. All rights reserved.
+                        </p>
+                        <p style="margin: 0; color: #a0aec0; font-size: 12px;">
+                          India's Premier Unlisted Shares Marketplace
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                  
+                </td>
+              </tr>
+              
+            </table>
+            
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to: user.email,
+    subject: '🔐 Your Verification OTP - NList Planet',
+    html
+  });
+};
+
 // Send welcome email (after verification)
 export const sendWelcomeEmail = async (user) => {
   const html = `

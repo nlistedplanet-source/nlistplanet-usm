@@ -9,6 +9,7 @@ import { body, validationResult } from 'express-validator';
 import { logFailedLogin, logSuccessfulLogin, logAccountChange } from '../middleware/securityLogger.js';
 import { validateProfileUpdate } from '../middleware/validation.js';
 import { sendVerificationEmail, sendWelcomeEmail } from '../utils/emailService.js';
+import { generateOTP, sendOTPSMS, sendOTPEmail } from '../utils/smsService.js';
 
 const router = express.Router();
 
@@ -210,19 +211,36 @@ router.post(
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     logAuthEvent('register_success', email, 'success', ip, req.headers['user-agent']);
 
-    // Send verification email
+    // Generate OTP and send via Email + SMS
+    const otp = generateOTP();
+    user.otp = otp;
+    user.otpExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
+    user.otpAttempts = 0;
+    await user.save();
+
+    // Send OTP via Email
     try {
-      await sendVerificationEmail(user, verificationToken);
+      await sendOTPEmail(user, otp);
+      console.log('[AUTH] OTP sent to email:', user.email);
     } catch (emailError) {
-      console.error('Failed to send verification email:', emailError);
-      // Don't fail registration if email fails
+      console.error('Failed to send OTP email:', emailError);
+    }
+
+    // Send OTP via SMS
+    try {
+      await sendOTPSMS(user.phone, otp);
+      console.log('[AUTH] OTP sent to phone:', user.phone);
+    } catch (smsError) {
+      console.error('Failed to send OTP SMS:', smsError);
     }
 
     res.status(201).json({
       success: true,
-      message: 'Registration successful! Please check your email to verify your account.',
+      message: 'Registration successful! OTP sent to your email and mobile.',
       email: user.email,
-      username: user.username
+      phone: user.phone.slice(-4), // Last 4 digits only
+      username: user.username,
+      requiresOTP: true
     });
   } catch (error) {
     next(error);
@@ -313,7 +331,175 @@ router.post(
   }
 });
 
-// @route   POST /api/auth/resend-verification
+// @route   POST /api/auth/verify-otp
+// @desc    Verify OTP for email/phone verification
+// @access  Public
+router.post(
+  '/verify-otp',
+  authLimiter,
+  body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
+  body('otp').isLength({ min: 6, max: 6 }).isNumeric().withMessage('Valid 6-digit OTP required'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Valid email and OTP required' });
+    }
+    next();
+  },
+  async (req, res, next) => {
+    try {
+      const { email, otp } = req.body;
+      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+      // Find user
+      const user = await User.findOne({ email: email.toLowerCase() });
+
+      if (!user) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid email or OTP'
+        });
+      }
+
+      // Check if already verified
+      if (user.isVerified) {
+        return res.status(400).json({
+          success: false,
+          message: 'Account already verified. You can log in now.'
+        });
+      }
+
+      // Check OTP attempts (max 5)
+      if (user.otpAttempts >= 5) {
+        return res.status(429).json({
+          success: false,
+          message: 'Too many failed attempts. Please request a new OTP.'
+        });
+      }
+
+      // Check if OTP expired
+      if (!user.otp || !user.otpExpiry || user.otpExpiry < Date.now()) {
+        return res.status(400).json({
+          success: false,
+          message: 'OTP expired. Please request a new one.'
+        });
+      }
+
+      // Verify OTP
+      if (user.otp !== otp) {
+        user.otpAttempts += 1;
+        await user.save();
+        
+        logAuthEvent('otp_verification_failed', email, 'failed', ip, req.headers['user-agent']);
+        
+        return res.status(400).json({
+          success: false,
+          message: `Invalid OTP. ${5 - user.otpAttempts} attempts remaining.`
+        });
+      }
+
+      // OTP verified - mark user as verified
+      user.isVerified = true;
+      user.otp = null;
+      user.otpExpiry = null;
+      user.otpAttempts = 0;
+      user.verificationToken = null;
+      user.verificationTokenExpiry = null;
+      await user.save();
+
+      logAuthEvent('otp_verified', email, 'success', ip, req.headers['user-agent']);
+
+      // Send welcome email
+      try {
+        await sendWelcomeEmail(user);
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+      }
+
+      res.json({
+        success: true,
+        message: 'Account verified successfully! You can now log in.',
+        username: user.username
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// @route   POST /api/auth/resend-otp
+// @desc    Resend OTP to email and phone
+// @access  Public
+router.post(
+  '/resend-otp',
+  authLimiter,
+  body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Valid email required' });
+    }
+    next();
+  },
+  async (req, res, next) => {
+    try {
+      const { email } = req.body;
+
+      // Find user
+      const user = await User.findOne({ email: email.toLowerCase() });
+
+      if (!user) {
+        // Don't reveal if email exists for security
+        return res.json({
+          success: true,
+          message: 'If an account exists, OTP has been sent.'
+        });
+      }
+
+      // Check if already verified
+      if (user.isVerified) {
+        return res.status(400).json({
+          success: false,
+          message: 'Account already verified. You can log in now.'
+        });
+      }
+
+      // Generate new OTP
+      const otp = generateOTP();
+      user.otp = otp;
+      user.otpExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
+      user.otpAttempts = 0;
+      await user.save();
+
+      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+      logAuthEvent('resend_otp', email, 'success', ip, req.headers['user-agent']);
+
+      // Send OTP via Email
+      try {
+        await sendOTPEmail(user, otp);
+      } catch (emailError) {
+        console.error('Failed to send OTP email:', emailError);
+      }
+
+      // Send OTP via SMS
+      try {
+        await sendOTPSMS(user.phone, otp);
+      } catch (smsError) {
+        console.error('Failed to send OTP SMS:', smsError);
+      }
+
+      res.json({
+        success: true,
+        message: 'OTP sent to your email and mobile!',
+        phone: user.phone.slice(-4) // Last 4 digits
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// @route   POST /api/auth/resend-verification (LEGACY - kept for backward compatibility)
 // @desc    Resend verification email
 // @access  Public
 router.post(
@@ -338,7 +524,7 @@ router.post(
         // Don't reveal if email exists for security
         return res.json({
           success: true,
-          message: 'If an account exists with this email, a verification link has been sent.'
+          message: 'If an account exists with this email, OTP has been sent.'
         });
       }
 
@@ -350,29 +536,34 @@ router.post(
         });
       }
 
-      // Generate new verification token
-      const verificationToken = crypto.randomBytes(32).toString('hex');
-      user.verificationToken = verificationToken;
-      user.verificationTokenExpiry = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+      // Generate new OTP (use OTP instead of token)
+      const otp = generateOTP();
+      user.otp = otp;
+      user.otpExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
+      user.otpAttempts = 0;
       await user.save();
 
       const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
       logAuthEvent('resend_verification', email, 'success', ip, req.headers['user-agent']);
 
-      // Send verification email
+      // Send OTP via Email
       try {
-        await sendVerificationEmail(user, verificationToken);
+        await sendOTPEmail(user, otp);
       } catch (emailError) {
-        console.error('Failed to send verification email:', emailError);
-        return res.status(500).json({
-          success: false,
-          message: 'Failed to send verification email. Please try again later.'
-        });
+        console.error('Failed to send OTP email:', emailError);
+      }
+
+      // Send OTP via SMS
+      try {
+        await sendOTPSMS(user.phone, otp);
+      } catch (smsError) {
+        console.error('Failed to send OTP SMS:', smsError);
       }
 
       res.json({
         success: true,
-        message: 'Verification email sent successfully! Please check your inbox.'
+        message: 'OTP sent to your email and phone!',
+        phone: user.phone.slice(-4) // Last 4 digits for UI
       });
     } catch (error) {
       next(error);
