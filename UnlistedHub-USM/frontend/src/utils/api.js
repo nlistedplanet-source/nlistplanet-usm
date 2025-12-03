@@ -73,6 +73,7 @@ export const adminAPI = {
   getStats: () => axios.get('/admin/stats'),
   getUsers: (params) => axios.get('/admin/users', { params }),
   banUser: (id, isBanned) => axios.put(`/admin/users/${id}/ban`, { isBanned }),
+  deleteUser: (id) => axios.delete(`/admin/users/${id}`),
   getListings: (params) => axios.get('/admin/listings', { params }),
   deleteListing: (id) => axios.delete(`/admin/listings/${id}`),
   updateListingStatus: (id, status) => axios.put(`/admin/listings/${id}/status`, { status }),

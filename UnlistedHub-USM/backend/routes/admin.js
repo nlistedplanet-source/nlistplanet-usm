@@ -484,6 +484,43 @@ router.put('/users/:id/ban', async (req, res, next) => {
   }
 });
 
+// @route   DELETE /api/admin/users/:id
+// @desc    Delete user permanently
+// @access  Admin
+router.delete('/users/:id', async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Don't allow deleting admin users
+    if (user.role === 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Cannot delete admin users'
+      });
+    }
+
+    // Delete user's listings
+    await Listing.deleteMany({ userId: user._id });
+
+    // Delete user
+    await user.deleteOne();
+
+    res.json({
+      success: true,
+      message: 'User and their listings deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // @route   POST /api/admin/companies
 // @desc    Create new company
 // @access  Admin

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Users, Ban, CheckCircle, Mail, Calendar, TrendingUp, Package, Clock } from 'lucide-react';
+import { Search, Users, Ban, CheckCircle, Mail, Calendar, TrendingUp, Package, Clock, Trash2, Phone, Shield, User, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminAPI } from '../../utils/api';
 import { formatDate } from '../../utils/helpers';
@@ -59,6 +59,23 @@ const UserManagement = () => {
       fetchUsers(pagination.page, searchTerm);
     } catch (error) {
       toast.error(error.response?.data?.message || `Failed to ${action} user`);
+    }
+  };
+
+  // Delete user
+  const handleDeleteUser = async (userId, username) => {
+    const confirm = window.confirm(
+      `⚠️ WARNING: This will permanently delete user "${username}" and all their listings. This action cannot be undone!\n\nAre you sure?`
+    );
+    
+    if (!confirm) return;
+
+    try {
+      await adminAPI.deleteUser(userId);
+      toast.success('User deleted successfully!');
+      fetchUsers(pagination.page, searchTerm);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete user');
     }
   };
 
@@ -166,106 +183,124 @@ const UserManagement = () => {
         <>
           <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+              <table className="w-full text-xs">
+                <thead className="bg-gray-100 border-b border-gray-300">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      User
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Contact
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Activity
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Joined
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+                    <th className="px-2 py-2 text-left font-bold text-gray-700 uppercase">User</th>
+                    <th className="px-2 py-2 text-left font-bold text-gray-700 uppercase">Email</th>
+                    <th className="px-2 py-2 text-left font-bold text-gray-700 uppercase">Phone</th>
+                    <th className="px-2 py-2 text-center font-bold text-gray-700 uppercase">Role</th>
+                    <th className="px-2 py-2 text-center font-bold text-gray-700 uppercase">KYC</th>
+                    <th className="px-2 py-2 text-center font-bold text-gray-700 uppercase">Listings</th>
+                    <th className="px-2 py-2 text-center font-bold text-gray-700 uppercase">Trades</th>
+                    <th className="px-2 py-2 text-left font-bold text-gray-700 uppercase">Joined</th>
+                    <th className="px-2 py-2 text-left font-bold text-gray-700 uppercase">Last Login</th>
+                    <th className="px-2 py-2 text-center font-bold text-gray-700 uppercase">Status</th>
+                    <th className="px-2 py-2 text-center font-bold text-gray-700 uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {users.map((user) => (
-                    <tr key={user._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                    <tr key={user._id} className="hover:bg-blue-50 transition-colors">
+                      <td className="px-2 py-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                             {user.fullName?.[0] || user.username[0].toUpperCase()}
                           </div>
-                          <div>
-                            <p className="font-semibold text-gray-900">{user.fullName || 'N/A'}</p>
-                            <p className="text-sm text-gray-500">@{user.username}</p>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-gray-900 truncate">{user.fullName || 'N/A'}</p>
+                            <p className="text-gray-500 truncate">@{user.username}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Mail size={14} />
-                            {user.email}
-                          </div>
-                          {user.phone && (
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              📱 {user.phone}
-                            </div>
-                          )}
+                      <td className="px-2 py-2">
+                        <div className="flex items-center gap-1 text-gray-700">
+                          <Mail size={12} className="flex-shrink-0" />
+                          <span className="truncate max-w-[140px]">{user.email}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-sm">
-                            <TrendingUp size={14} className="text-green-600" />
-                            <span className="text-gray-600">
-                              {user.listingsCount || 0} Listings
-                            </span>
+                      <td className="px-2 py-2">
+                        {user.phone ? (
+                          <div className="flex items-center gap-1 text-gray-700">
+                            <Phone size={12} className="flex-shrink-0" />
+                            {user.phone}
                           </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Package size={14} className="text-blue-600" />
-                            <span className="text-gray-600">
-                              {user.tradesCount || 0} Trades
-                            </span>
-                          </div>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                          user.role === 'admin' 
+                            ? 'bg-purple-100 text-purple-700' 
+                            : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {user.role || 'user'}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                          user.kycStatus === 'verified' ? 'bg-green-100 text-green-700' :
+                          user.kycStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                          user.kycStatus === 'rejected' ? 'bg-red-100 text-red-700' :
+                          'bg-gray-100 text-gray-500'
+                        }`}>
+                          {user.kycStatus || 'none'}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <span className="font-semibold text-green-700">{user.listingsCount || 0}</span>
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <span className="font-semibold text-blue-700">{user.tradesCount || 0}</span>
+                      </td>
+                      <td className="px-2 py-2">
+                        <div className="text-gray-600">
+                          {new Date(user.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Calendar size={14} />
-                          {formatDate(user.createdAt)}
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                          <Clock size={12} />
-                          {new Date(user.createdAt).toLocaleDateString()}
+                      <td className="px-2 py-2">
+                        <div className="text-gray-500">
+                          {user.lastLogin 
+                            ? new Date(user.lastLogin).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+                            : <span className="text-gray-400">Never</span>
+                          }
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-2 py-2 text-center">
                         {user.isBanned ? (
-                          <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold flex items-center gap-1 w-fit">
-                            <Ban size={12} />
-                            Banned
+                          <span className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-bold flex items-center gap-0.5 justify-center">
+                            <Ban size={10} /> Banned
                           </span>
                         ) : (
-                          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold flex items-center gap-1 w-fit">
-                            <CheckCircle size={12} />
-                            Active
+                          <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-bold flex items-center gap-0.5 justify-center">
+                            <CheckCircle size={10} /> Active
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => handleBanToggle(user._id, user.isBanned, user.username)}
-                          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
-                            user.isBanned
-                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                              : 'bg-red-100 text-red-700 hover:bg-red-200'
-                          }`}
-                        >
-                          {user.isBanned ? 'Unban' : 'Ban User'}
-                        </button>
+                      <td className="px-2 py-2">
+                        <div className="flex items-center gap-1 justify-center">
+                          <button
+                            onClick={() => handleBanToggle(user._id, user.isBanned, user.username)}
+                            className={`px-2 py-1 rounded text-[10px] font-bold transition-colors ${
+                              user.isBanned
+                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                            }`}
+                            title={user.isBanned ? 'Unban User' : 'Ban User'}
+                          >
+                            {user.isBanned ? 'Unban' : 'Ban'}
+                          </button>
+                          {user.role !== 'admin' && (
+                            <button
+                              onClick={() => handleDeleteUser(user._id, user.username)}
+                              className="px-2 py-1 rounded text-[10px] font-bold bg-red-100 text-red-700 hover:bg-red-200 transition-colors flex items-center gap-0.5"
+                              title="Delete User"
+                            >
+                              <Trash2 size={10} /> Delete
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
