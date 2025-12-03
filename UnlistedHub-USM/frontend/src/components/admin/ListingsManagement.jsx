@@ -258,9 +258,9 @@ const ListingsManagement = () => {
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '70vh' }}>
-              <table className="min-w-[2200px] w-max text-[11px]">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200" style={{ width: '100%', overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '70vh', minWidth: '100%' }}>
+              <table style={{ minWidth: '2200px', width: 'max-content' }} className="text-[11px]">
                 <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
                   <tr>
                     <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Post ID</th>

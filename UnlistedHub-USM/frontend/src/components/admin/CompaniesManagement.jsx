@@ -177,9 +177,9 @@ const CompaniesManagement = () => {
           <Loader className="animate-spin text-emerald-500" size={40} />
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '70vh' }}>
-            <table className="min-w-[1600px] w-max text-xs border-collapse">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200" style={{ width: '100%', overflowX: 'auto' }}>
+          <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '70vh', minWidth: '100%' }}>
+            <table style={{ minWidth: '1600px', width: 'max-content' }} className="text-xs border-collapse">
               <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
                 <tr>
                   <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Company</th>
