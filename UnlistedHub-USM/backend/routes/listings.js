@@ -282,7 +282,8 @@ router.post('/:id/bid', protect, async (req, res, next) => {
     const bidData = {
       userId: req.user._id,
       username: req.user.username,
-      price, // Keep original
+      price, // Current price (may change with counters)
+      originalPrice: price, // Never changes - buyer's original bid
       quantity,
       message,
       counterHistory: []

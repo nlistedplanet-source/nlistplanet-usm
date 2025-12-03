@@ -430,8 +430,10 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                   </thead>
                   <tbody className="divide-y-2 divide-gray-300">
                     {sortedBids.map((bid, index) => {
-                      // Seller always sees what they'll receive after 2% platform fee
-                      const displayPrice = bid.price * 0.98;
+                      // Use originalPrice for buyer's original bid (fallback to price for old bids)
+                      const buyerOriginalPrice = bid.originalPrice || bid.price;
+                      // Seller sees what they'll receive after 2% platform fee on buyer's original bid
+                      const displayPrice = buyerOriginalPrice * 0.98;
                       const bidTotal = displayPrice * bid.quantity;
                       const hasCounterHistory = bid.counterHistory && bid.counterHistory.length > 0;
                       const isExpanded = expandedBidIds.has(bid._id);
@@ -521,8 +523,11 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                           
                           {/* Counter History Sub-rows */}
                           {isExpanded && hasCounterHistory && bid.counterHistory.map((counter, cIdx) => {
-                            // Seller always sees what they'll receive after 2% platform fee
-                            const counterPrice = counter.price * 0.98;
+                            // Seller's counter = seller enters what they want to receive (no fee deduction)
+                            // Buyer's counter = buyer enters what they'll pay (seller receives 98%)
+                            const counterPrice = counter.by === 'seller' 
+                              ? counter.price  // Seller's counter is already what seller receives
+                              : counter.price * 0.98;  // Buyer's counter - seller gets 98%
                             const counterTotal = counterPrice * counter.quantity;
                             const isLatest = cIdx === bid.counterHistory.length - 1;
                             

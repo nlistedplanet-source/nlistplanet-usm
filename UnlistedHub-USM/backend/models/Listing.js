@@ -11,6 +11,11 @@ const bidSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  // Original price placed by buyer - never changes
+  originalPrice: {
+    type: Number,
+    default: function() { return this.price; }
+  },
   // Platform fee fields
   buyerOfferedPrice: {
     type: Number,
