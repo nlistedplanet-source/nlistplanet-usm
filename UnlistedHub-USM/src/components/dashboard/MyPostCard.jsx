@@ -374,8 +374,8 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                   </thead>
                   <tbody className="divide-y-2 divide-gray-300">
                     {sortedBids.map((bid, index) => {
-                      // Seller sees what they'll receive after platform fee
-                      const displayPrice = bid.sellerReceivesPrice || (bid.price * 0.98);
+                      // Seller always sees what they'll receive after 2% platform fee
+                      const displayPrice = bid.price * 0.98;
                       const bidTotal = displayPrice * bid.quantity;
                       return (
                         <tr key={bid._id} className="hover:bg-blue-50 transition-colors">

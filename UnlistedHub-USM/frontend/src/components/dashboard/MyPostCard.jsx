@@ -430,8 +430,8 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                   </thead>
                   <tbody className="divide-y-2 divide-gray-300">
                     {sortedBids.map((bid, index) => {
-                      // Seller sees what they'll receive after platform fee
-                      const displayPrice = bid.sellerReceivesPrice || (bid.price * 0.98);
+                      // Seller always sees what they'll receive after 2% platform fee
+                      const displayPrice = bid.price * 0.98;
                       const bidTotal = displayPrice * bid.quantity;
                       const hasCounterHistory = bid.counterHistory && bid.counterHistory.length > 0;
                       const isExpanded = expandedBidIds.has(bid._id);
@@ -521,7 +521,8 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                           
                           {/* Counter History Sub-rows */}
                           {isExpanded && hasCounterHistory && bid.counterHistory.map((counter, cIdx) => {
-                            const counterPrice = counter.by === 'seller' ? (counter.price * 0.98) : counter.price;
+                            // Seller always sees what they'll receive after 2% platform fee
+                            const counterPrice = counter.price * 0.98;
                             const counterTotal = counterPrice * counter.quantity;
                             const isLatest = cIdx === bid.counterHistory.length - 1;
                             
