@@ -74,6 +74,7 @@ const DashboardPage = () => {
   const [selectedListing, setSelectedListing] = useState(null);
   const [showBidModal, setShowBidModal] = useState(false);
   const [likedListings, setLikedListings] = useState(new Set());
+  const [favoritedListings, setFavoritedListings] = useState(new Set());
 
   // Fetch portfolio data
   useEffect(() => {
@@ -186,10 +187,24 @@ const DashboardPage = () => {
       const newSet = new Set(prev);
       if (newSet.has(listing._id)) {
         newSet.delete(listing._id);
+        toast.success('Removed like');
+      } else {
+        newSet.add(listing._id);
+        toast.success('Liked!');
+      }
+      return newSet;
+    });
+  };
+
+  const handleFavorite = (listing) => {
+    setFavoritedListings(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(listing._id)) {
+        newSet.delete(listing._id);
         toast.success('Removed from favorites');
       } else {
         newSet.add(listing._id);
-        toast.success('Added to favorites');
+        toast.success('Added to favorites!');
       }
       return newSet;
     });
@@ -771,10 +786,11 @@ const DashboardPage = () => {
                         user={listing.username}
                         onPrimary={() => handlePlaceBid(listing)}
                         onAccept={() => handleAccept(listing)}
-                        onSecondary={() => handleShare(listing)}
                         onShare={() => handleShare(listing)}
                         onLike={() => handleLike(listing)}
+                        onFavorite={() => handleFavorite(listing)}
                         isLiked={likedListings.has(listing._id)}
+                        isFavorited={favoritedListings.has(listing._id)}
                       />
                     );
                   })}

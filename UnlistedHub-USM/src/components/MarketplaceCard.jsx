@@ -1,5 +1,5 @@
 import React from 'react';
-import { Info, Building2, User, Heart, Check } from 'lucide-react';
+import { Info, Building2, User, Heart, Check, Gavel, Send, Star } from 'lucide-react';
 import { formatCurrency, formatNumber } from '../utils/helpers';
 
 // Utility to format price without .00 if not needed
@@ -29,12 +29,13 @@ const MarketplaceCard = ({
   price,
   shares,
   user,
-  onPrimary,
-  onAccept,
-  onSecondary,
-  onShare,
-  onLike,
+  onPrimary,      // Place Bid / Make Offer
+  onAccept,       // Accept price
+  onShare,        // Share listing
+  onLike,         // Like/Unlike
+  onFavorite,     // Add to favorites
   isLiked = false,
+  isFavorited = false,
 }) => {
   const isSell = type === 'sell';
   // Accent color and background based on type
@@ -115,77 +116,52 @@ const MarketplaceCard = ({
           <span className="font-semibold text-base text-gray-900">{formatQuantityShort(shares)}</span>
         </div>
       </div>
-      {/* Actions */}
+      {/* Actions - 5 buttons matching mobile */}
       <div className="flex gap-1.5 mt-1.5">
-        {isSell ? (
-          <>
-            <button
-              className="flex-1 py-1.5 rounded-lg font-semibold text-xs bg-emerald-500 text-white hover:bg-emerald-600 shadow transition-colors flex items-center justify-center gap-1"
-              onClick={onAccept}
-              title="Accept this price"
-            >
-              <Check size={12} />
-              Accept
-            </button>
-            <button
-              className="flex-1 py-1.5 rounded-lg font-semibold text-xs bg-gray-800 text-emerald-400 hover:bg-gray-900 shadow transition-colors"
-              onClick={onPrimary}
-            >
-              Place Bid
-            </button>
-            <button
-              className="px-2 py-1.5 rounded-lg font-semibold text-xs border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
-              onClick={onShare}
-            >
-              Share
-            </button>
-            <button
-              className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${
-                isLiked 
-                  ? 'bg-red-50 border-red-300 text-red-600' 
-                  : 'bg-white border-gray-300 text-red-500 hover:bg-red-50'
-              }`}
-              onClick={onLike}
-              title={isLiked ? 'Unlike' : 'Like'}
-            >
-              <Heart size={14} className={isLiked ? 'fill-current' : ''} />
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              className="flex-1 py-1.5 rounded-lg font-semibold text-xs bg-emerald-500 text-white hover:bg-emerald-600 shadow transition-colors flex items-center justify-center gap-1"
-              onClick={onAccept}
-              title="Accept this price"
-            >
-              <Check size={12} />
-              Accept
-            </button>
-            <button
-              className="flex-1 py-1.5 rounded-lg font-semibold text-xs bg-gray-800 text-yellow-400 hover:bg-gray-900 shadow transition-colors"
-              onClick={onPrimary}
-            >
-              Make Offer
-            </button>
-            <button
-              className="px-2 py-1.5 rounded-lg font-semibold text-xs border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
-              onClick={onShare}
-            >
-              Share
-            </button>
-            <button
-              className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${
-                isLiked 
-                  ? 'bg-red-50 border-red-300 text-red-600' 
-                  : 'bg-white border-gray-300 text-red-500 hover:bg-red-50'
-              }`}
-              onClick={onLike}
-              title={isLiked ? 'Unlike' : 'Like'}
-            >
-              <Heart size={14} className={isLiked ? 'fill-current' : ''} />
-            </button>
-          </>
-        )}
+        <button
+          className="flex-1 py-1.5 rounded-lg font-semibold text-xs bg-emerald-500 text-white hover:bg-emerald-600 shadow transition-colors flex items-center justify-center gap-1"
+          onClick={onAccept}
+          title="Accept this price"
+        >
+          <Check size={12} />
+          Accept
+        </button>
+        <button
+          className={`flex-1 py-1.5 rounded-lg font-semibold text-xs bg-gray-800 shadow transition-colors ${isSell ? 'text-emerald-400' : 'text-yellow-400'} hover:bg-gray-900`}
+          onClick={onPrimary}
+        >
+          <Gavel size={12} className="inline mr-1" />
+          {isSell ? 'Place Bid' : 'Make Offer'}
+        </button>
+        <button
+          className="px-2 py-1.5 rounded-lg font-semibold text-xs border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-1"
+          onClick={onShare}
+          title="Share"
+        >
+          <Send size={12} />
+        </button>
+        <button
+          className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${
+            isLiked 
+              ? 'bg-red-50 border-red-300 text-red-600' 
+              : 'bg-white border-gray-300 text-red-500 hover:bg-red-50'
+          }`}
+          onClick={onLike}
+          title={isLiked ? 'Unlike' : 'Like'}
+        >
+          <Heart size={14} className={isLiked ? 'fill-current' : ''} />
+        </button>
+        <button
+          className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${
+            isFavorited 
+              ? 'bg-amber-50 border-amber-300 text-amber-600' 
+              : 'bg-white border-gray-300 text-amber-500 hover:bg-amber-50'
+          }`}
+          onClick={onFavorite}
+          title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <Star size={14} className={isFavorited ? 'fill-current' : ''} />
+        </button>
       </div>
     </div>
   );
