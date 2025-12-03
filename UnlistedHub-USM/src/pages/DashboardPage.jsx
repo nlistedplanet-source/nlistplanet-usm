@@ -244,37 +244,32 @@ const DashboardPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex text-[11px]">
-      {/* Left Sidebar Navigation - Compact */}
-      <aside className="w-56 bg-white border-r border-gray-200 fixed left-0 top-0 h-full overflow-y-auto hidden md:block z-30">
-        {/* User Profile - Compact */}
-        <div className="p-3 border-b border-gray-100">
+      {/* Left Sidebar Navigation - Ultra Compact */}
+      <aside className="w-52 bg-white border-r border-gray-200 fixed left-0 top-0 h-full flex flex-col hidden md:flex z-30">
+        {/* User Profile - Mini */}
+        <div className="p-2 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
               {user.avatar ? (
                 <img src={user.avatar} alt={user.username} className="w-full h-full rounded-full object-cover" />
               ) : (
-                <span className="text-lg">
-                  {user.username?.charAt(0).toUpperCase()}
-                </span>
+                user.username?.charAt(0).toUpperCase()
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">{user.fullName || user.username}</p>
+              <p className="text-xs font-semibold text-gray-900 truncate">{user.fullName || user.username}</p>
               <div className="flex items-center gap-1">
-                <p className="text-xs text-gray-500">@{user.username}</p>
+                <p className="text-[10px] text-gray-500">@{user.username}</p>
                 {user.role === 'admin' && (
-                  <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-bold bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
-                    <Shield size={8} />
-                    ADMIN
-                  </span>
+                  <span className="px-1 rounded text-[8px] font-bold bg-blue-600 text-white">ADM</span>
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Navigation Menu - Compact */}
-        <nav className="p-2 flex-1">
+        {/* Navigation Menu - Scrollable */}
+        <nav className="flex-1 overflow-y-auto p-1.5 pb-12">
           <div className="space-y-0.5">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -284,13 +279,13 @@ const DashboardPage = () => {
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+                  className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md font-medium text-[12px] transition-all ${
                     isActive
-                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
+                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <Icon size={16} />
+                  <Icon size={14} />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -299,9 +294,9 @@ const DashboardPage = () => {
             {/* Admin Section */}
             {user?.role === 'admin' && (
               <>
-                <div className="pt-3 pb-1 mt-3 border-t border-gray-200">
-                  <p className="px-3 text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
-                    <Shield size={12} />
+                <div className="pt-2 pb-0.5 mt-1 border-t border-gray-200">
+                  <p className="px-2.5 text-[9px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
+                    <Shield size={10} />
                     Admin Panel
                   </p>
                 </div>
@@ -313,36 +308,36 @@ const DashboardPage = () => {
                     <button
                       key={tab.id}
                       onClick={() => handleTabChange(tab.id)}
-                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+                      className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md font-medium text-[12px] transition-all ${
                         isActive
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
                           : 'text-gray-700 hover:bg-blue-50'
                       }`}
                     >
-                      <Icon size={16} />
+                      <Icon size={14} />
                       <span>{tab.label}</span>
                     </button>
                   );
                 })}
               </>
             )}
+
+            {/* Logout inside scroll */}
+            <div className="pt-2 mt-1 border-t border-gray-100">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md font-medium text-[12px] transition-all text-red-600 hover:bg-red-50"
+              >
+                <LogOut size={14} />
+                <span>Logout</span>
+              </button>
+            </div>
           </div>
         </nav>
-
-        {/* Logout Section - Fixed at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-2 border-t border-gray-100 bg-white">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-all text-red-600 hover:bg-red-50"
-          >
-            <LogOut size={16} />
-            <span>Logout</span>
-          </button>
-        </div>
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 md:ml-56 pb-20 md:pb-0">
+      <main className="flex-1 md:ml-52 pb-20 md:pb-0">
         <div className="p-4 md:p-6">
         
         {/* Tab Content */}
