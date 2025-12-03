@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { Upload, X, Loader, Edit2, Trash2, Building2, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useCallback, useMemo } from 'react';
+import { Upload, X, Loader, Edit2, Trash2, Building2, Image as ImageIcon, Search, Filter } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { BASE_API_URL } from '../../utils/api';
@@ -11,6 +11,8 @@ const CompaniesManagement = () => {
   const [editingCompany, setEditingCompany] = useState(null);
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterSector, setFilterSector] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     scriptName: '',
@@ -38,6 +40,28 @@ const CompaniesManagement = () => {
   React.useEffect(() => {
     fetchCompanies();
   }, []);
+
+  // Get unique sectors for filter dropdown
+  const uniqueSectors = useMemo(() => {
+    const sectors = companies.map(c => c.sector).filter(Boolean);
+    return [...new Set(sectors)].sort();
+  }, [companies]);
+
+  // Filter companies based on search and sector
+  const filteredCompanies = useMemo(() => {
+    return companies.filter(company => {
+      const matchesSearch = searchTerm === '' || 
+        company.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.scriptName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.isin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.pan?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.cin?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesSector = filterSector === '' || company.sector === filterSector;
+      
+      return matchesSearch && matchesSector;
+    });
+  }, [companies, searchTerm, filterSector]);
 
   // Handle logo file selection
   const handleLogoChange = (e) => {
@@ -171,6 +195,47 @@ const CompaniesManagement = () => {
         </button>
       </div>
 
+      {/* Search & Filter Bar */}
+      <div className="flex flex-wrap gap-2 mb-3">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by name, script, ISIN, PAN, CIN..."
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Filter size={16} className="text-gray-500" />
+          <select
+            value={filterSector}
+            onChange={(e) => setFilterSector(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
+          >
+            <option value="">All Sectors</option>
+            {uniqueSectors.map(sector => (
+              <option key={sector} value={sector}>{sector}</option>
+            ))}
+          </select>
+          {(searchTerm || filterSector) && (
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setFilterSector('');
+              }}
+              className="px-3 py-2 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        <div className="text-xs text-gray-500 flex items-center ml-auto">
+          Showing {filteredCompanies.length} of {companies.length} companies
+        </div>
+      </div>
+
       {/* Companies List */}
       {loading ? (
         <div className="flex justify-center py-12">
@@ -193,7 +258,16 @@ const CompaniesManagement = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {companies.map((company) => (
+                {filteredCompanies.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="px-3 py-8 text-center text-gray-500">
+                      <Building2 size={32} className="mx-auto mb-2 text-gray-300" />
+                      <p className="text-sm">No companies found</p>
+                      <p className="text-xs">{searchTerm || filterSector ? 'Try different search or filter' : 'Add your first company'}</p>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredCompanies.map((company) => (
                   <tr key={company._id} className="hover:bg-gray-50">
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
@@ -234,7 +308,8 @@ const CompaniesManagement = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  ))
+                )}
               </tbody>
             </table>
           </div>
