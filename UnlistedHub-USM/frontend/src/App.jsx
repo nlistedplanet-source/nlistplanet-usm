@@ -109,9 +109,9 @@ function AppContent() {
       )}
 
       {/* Simple Copyright Footer for Dashboard */}
-      {location.pathname === '/dashboard' && (
-        <footer className="bg-dark-900 text-white py-4 text-center">
-          <p className="text-sm">© {new Date().getFullYear()} NList Planet. All rights reserved.</p>
+      {location.pathname.startsWith('/dashboard') && (
+        <footer className="ml-52 bg-slate-700 text-white py-3 text-center">
+          <p className="text-xs">© {new Date().getFullYear()} NList Planet. All rights reserved.</p>
         </footer>
       )}
 
