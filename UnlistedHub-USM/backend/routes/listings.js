@@ -382,8 +382,8 @@ router.put('/:id/boost', protect, async (req, res, next) => {
 });
 
 // @route   PUT /api/listings/:listingId/bids/:bidId/accept
-// @desc    Accept a bid/offer
-// @access  Private (listing owner only)
+// @desc    Accept a bid/offer or accept a counter offer
+// @access  Private (listing owner OR bidder if status is 'countered')
 router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => {
   try {
     const listing = await Listing.findById(req.params.listingId);
@@ -395,14 +395,6 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
       });
     }
 
-    // Verify ownership
-    if (listing.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to accept this bid'
-      });
-    }
-
     // Find bid in appropriate array
     const bidArray = listing.type === 'sell' ? listing.bids : listing.offers;
     const bid = bidArray.id(req.params.bidId);
@@ -411,6 +403,19 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
       return res.status(404).json({
         success: false,
         message: 'Bid not found'
+      });
+    }
+
+    const isOwner = listing.userId.toString() === req.user._id.toString();
+    const isBidder = bid.userId.toString() === req.user._id.toString();
+    
+    // Authorization check:
+    // - Owner can always accept bids
+    // - Bidder can accept ONLY when status is 'countered' (seller has countered)
+    if (!isOwner && !(isBidder && bid.status === 'countered')) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to accept this bid'
       });
     }
 
@@ -526,8 +531,8 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
 });
 
 // @route   PUT /api/listings/:listingId/bids/:bidId/reject
-// @desc    Reject a bid/offer
-// @access  Private (listing owner only)
+// @desc    Reject a bid/offer or reject a counter offer
+// @access  Private (listing owner OR bidder if status is 'countered')
 router.put('/:listingId/bids/:bidId/reject', protect, async (req, res, next) => {
   try {
     const listing = await Listing.findById(req.params.listingId);
@@ -539,14 +544,6 @@ router.put('/:listingId/bids/:bidId/reject', protect, async (req, res, next) => 
       });
     }
 
-    // Verify ownership
-    if (listing.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to reject this bid'
-      });
-    }
-
     // Find bid in appropriate array
     const bidArray = listing.type === 'sell' ? listing.bids : listing.offers;
     const bid = bidArray.id(req.params.bidId);
@@ -555,6 +552,19 @@ router.put('/:listingId/bids/:bidId/reject', protect, async (req, res, next) => 
       return res.status(404).json({
         success: false,
         message: 'Bid not found'
+      });
+    }
+
+    const isOwner = listing.userId.toString() === req.user._id.toString();
+    const isBidder = bid.userId.toString() === req.user._id.toString();
+    
+    // Authorization check:
+    // - Owner can always reject bids
+    // - Bidder can reject ONLY when status is 'countered' (seller has countered)
+    if (!isOwner && !(isBidder && bid.status === 'countered')) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to reject this bid'
       });
     }
 
@@ -588,7 +598,7 @@ router.put('/:listingId/bids/:bidId/reject', protect, async (req, res, next) => 
 
 // @route   PUT /api/listings/:listingId/bids/:bidId/counter
 // @desc    Counter a bid/offer
-// @access  Private (listing owner only)
+// @access  Private (listing owner OR bidder if status is 'countered')
 router.put('/:listingId/bids/:bidId/counter', protect, async (req, res, next) => {
   try {
     const { price, quantity, message } = req.body;
@@ -598,14 +608,6 @@ router.put('/:listingId/bids/:bidId/counter', protect, async (req, res, next) =>
       return res.status(404).json({
         success: false,
         message: 'Listing not found'
-      });
-    }
-
-    // Verify ownership
-    if (listing.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to counter this bid'
       });
     }
 
@@ -620,11 +622,27 @@ router.put('/:listingId/bids/:bidId/counter', protect, async (req, res, next) =>
       });
     }
 
+    const isOwner = listing.userId.toString() === req.user._id.toString();
+    const isBidder = bid.userId.toString() === req.user._id.toString();
+    
+    // Authorization check:
+    // - Owner can always counter bids
+    // - Bidder can counter ONLY when status is 'countered' (seller has countered)
+    if (!isOwner && !(isBidder && bid.status === 'countered')) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to counter this bid'
+      });
+    }
+
+    // Determine who is sending the counter
+    const counterBy = isOwner ? 'seller' : 'buyer';
+
     // Add to counter history
     const round = (bid.counterHistory?.length || 0) + 1;
     const counterData = {
       round,
-      by: 'seller',
+      by: counterBy,
       price,
       quantity: quantity || bid.quantity,
       message: message || '',
