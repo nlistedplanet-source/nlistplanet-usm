@@ -256,40 +256,40 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex text-[11px]">
-      {/* Left Sidebar Navigation */}
-      <aside className="w-64 bg-white border-r border-gray-200 fixed left-0 top-0 h-full overflow-y-auto z-30">
+    <div className="min-h-screen bg-gray-50 flex text-[12px]">
+      {/* Left Sidebar Navigation - Compact */}
+      <aside className="w-56 bg-white border-r border-gray-200 fixed left-0 top-0 h-full overflow-y-auto z-30">
         {/* User Profile - Compact */}
-        <div className="p-4 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-md">
+        <div className="p-3 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
               {user.avatar ? (
                 <img src={user.avatar} alt={user.username} className="w-full h-full rounded-full object-cover" />
               ) : (
-                <span className="text-2xl">
+                <span className="text-lg">
                   {user.username?.charAt(0).toUpperCase()}
                 </span>
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-gray-900 truncate">{user.fullName || user.username}</p>
-              <div className="flex items-center gap-1 mt-0.5">
+              <p className="text-sm font-semibold text-gray-900 truncate">{user.fullName || user.username}</p>
+              <div className="flex items-center gap-1">
                 <p className="text-xs text-gray-500">@{user.username}</p>
                 {user.role === 'admin' && (
-                  <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-bold bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+                  <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[8px] font-bold bg-blue-600 text-white">
                     <Shield size={8} />
                     ADMIN
                   </span>
                 )}
               </div>
-              <p className="text-xs text-gray-400 mt-0.5">User ID: {user._id?.slice(-8) || user.email?.split('@')[0]}</p>
+              <p className="text-[10px] text-gray-400">User ID: {user._id?.slice(-8) || user.email?.split('@')[0]}</p>
             </div>
           </div>
         </div>
 
-        {/* Navigation Menu */}
-        <nav className="p-4">
-          <div className="space-y-1">
+        {/* Navigation Menu - Compact */}
+        <nav className="p-2">
+          <div className="space-y-0.5">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -298,13 +298,13 @@ const DashboardPage = () => {
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all ${
+                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-[13px] transition-all ${
                     isActive
-                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
+                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-sm'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <Icon size={20} />
+                  <Icon size={16} />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -313,9 +313,9 @@ const DashboardPage = () => {
             {/* Admin Section */}
             {user?.role === 'admin' && (
               <>
-                <div className="pt-4 pb-2 mt-4 border-t border-gray-200">
-                  <p className="px-4 text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center gap-2">
-                    <Shield size={14} />
+                <div className="pt-3 pb-1 mt-2 border-t border-gray-200">
+                  <p className="px-3 text-[10px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
+                    <Shield size={12} />
                     Admin Panel
                   </p>
                 </div>
@@ -327,13 +327,13 @@ const DashboardPage = () => {
                     <button
                       key={tab.id}
                       onClick={() => handleTabChange(tab.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all ${
+                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-[13px] transition-all ${
                         isActive
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm'
                           : 'text-gray-700 hover:bg-blue-50'
                       }`}
                     >
-                      <Icon size={20} />
+                      <Icon size={16} />
                       <span>{tab.label}</span>
                     </button>
                   );
@@ -344,20 +344,20 @@ const DashboardPage = () => {
         </nav>
 
         {/* Logout Section */}
-        <div className="p-4 border-t border-gray-100 mt-auto">
+        <div className="absolute bottom-0 left-0 right-0 p-2 border-t border-gray-100 bg-white">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all text-red-600 hover:bg-red-50"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-[13px] transition-all text-red-600 hover:bg-red-50"
           >
-            <LogOut size={20} />
+            <LogOut size={16} />
             <span>Logout</span>
           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 ml-64">
-        <div className="p-8">
+      <main className="flex-1 ml-56">
+        <div className="p-6">
         
         {/* Tab Content */}
         {activeTab === 'overview' && (
