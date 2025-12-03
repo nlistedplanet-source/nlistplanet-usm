@@ -350,8 +350,8 @@ const DashboardPage = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 ml-52">
-        <div className="p-4">
+      <main className="flex-1 ml-52 overflow-x-auto">
+        <div className="p-4 min-w-0">
         
         {/* Tab Content */}
         {activeTab === 'overview' && (
@@ -875,9 +875,7 @@ const DashboardPage = () => {
 
         {/* Admin Tabs */}
         {user?.role === 'admin' && activeTab === 'admin-companies' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <CompaniesManagement />
-          </div>
+          <CompaniesManagement />
         )}
 
         {user?.role === 'admin' && activeTab === 'admin-users' && (

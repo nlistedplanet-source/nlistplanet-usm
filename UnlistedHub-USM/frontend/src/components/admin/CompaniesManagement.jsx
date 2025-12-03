@@ -177,19 +177,19 @@ const CompaniesManagement = () => {
           <Loader className="animate-spin text-emerald-500" size={40} />
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200" style={{ width: '100%', overflowX: 'auto' }}>
-          <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '70vh', minWidth: '100%' }}>
-            <table style={{ minWidth: '1600px', width: 'max-content' }} className="text-xs border-collapse">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="w-full" style={{ overflowX: 'scroll', overflowY: 'auto', maxHeight: '70vh' }}>
+            <table className="text-xs border-collapse" style={{ minWidth: '1400px', tableLayout: 'fixed' }}>
               <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
                 <tr>
-                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Company</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Script</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">ISIN</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">PAN</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">CIN</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Sector</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Reg. Date</th>
-                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Actions</th>
+                  <th style={{ width: '220px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Company</th>
+                  <th style={{ width: '120px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Script</th>
+                  <th style={{ width: '140px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">ISIN</th>
+                  <th style={{ width: '120px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">PAN</th>
+                  <th style={{ width: '220px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">CIN</th>
+                  <th style={{ width: '140px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Sector</th>
+                  <th style={{ width: '100px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Reg. Date</th>
+                  <th style={{ width: '80px' }} className="px-3 py-2 text-center text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
