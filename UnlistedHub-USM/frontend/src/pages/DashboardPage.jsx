@@ -149,6 +149,11 @@ const DashboardPage = () => {
     setShowBidModal(true);
   };
 
+  const handleAccept = (listing) => {
+    // Navigate to listing detail with accept action
+    navigate(`/listing/${listing._id}?action=accept`);
+  };
+
   const handleShare = async (listing) => {
     const shareUrl = `${window.location.origin}/marketplace?listing=${listing._id}`;
     const shareText = `Check out this ${listing.type === 'sell' ? 'selling' : 'buying'} opportunity: ${listing.companyName} at ${formatCurrency(listing.price)} per share`;
@@ -765,6 +770,7 @@ const DashboardPage = () => {
                         shares={listing.quantity}
                         user={listing.username}
                         onPrimary={() => handlePlaceBid(listing)}
+                        onAccept={() => handleAccept(listing)}
                         onSecondary={() => handleShare(listing)}
                         onShare={() => handleShare(listing)}
                         onLike={() => handleLike(listing)}

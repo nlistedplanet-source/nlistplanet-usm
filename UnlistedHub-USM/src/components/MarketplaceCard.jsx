@@ -1,5 +1,5 @@
 import React from 'react';
-import { Info, Building2, User, Heart } from 'lucide-react';
+import { Info, Building2, User, Heart, Check } from 'lucide-react';
 import { formatCurrency, formatNumber } from '../utils/helpers';
 
 // Utility to format price without .00 if not needed
@@ -30,6 +30,7 @@ const MarketplaceCard = ({
   shares,
   user,
   onPrimary,
+  onAccept,
   onSecondary,
   onShare,
   onLike,
@@ -119,13 +120,21 @@ const MarketplaceCard = ({
         {isSell ? (
           <>
             <button
+              className="flex-1 py-1.5 rounded-lg font-semibold text-xs bg-emerald-500 text-white hover:bg-emerald-600 shadow transition-colors flex items-center justify-center gap-1"
+              onClick={onAccept}
+              title="Accept this price"
+            >
+              <Check size={12} />
+              Accept
+            </button>
+            <button
               className="flex-1 py-1.5 rounded-lg font-semibold text-xs bg-gray-800 text-emerald-400 hover:bg-gray-900 shadow transition-colors"
               onClick={onPrimary}
             >
-              Place Your Bid
+              Place Bid
             </button>
             <button
-              className="flex-1 py-1.5 rounded-lg font-semibold text-xs border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+              className="px-2 py-1.5 rounded-lg font-semibold text-xs border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
               onClick={onShare}
             >
               Share
@@ -145,13 +154,21 @@ const MarketplaceCard = ({
         ) : (
           <>
             <button
+              className="flex-1 py-1.5 rounded-lg font-semibold text-xs bg-emerald-500 text-white hover:bg-emerald-600 shadow transition-colors flex items-center justify-center gap-1"
+              onClick={onAccept}
+              title="Accept this price"
+            >
+              <Check size={12} />
+              Accept
+            </button>
+            <button
               className="flex-1 py-1.5 rounded-lg font-semibold text-xs bg-gray-800 text-yellow-400 hover:bg-gray-900 shadow transition-colors"
               onClick={onPrimary}
             >
               Make Offer
             </button>
             <button
-              className="flex-1 py-1.5 rounded-lg font-semibold text-xs border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+              className="px-2 py-1.5 rounded-lg font-semibold text-xs border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
               onClick={onShare}
             >
               Share
