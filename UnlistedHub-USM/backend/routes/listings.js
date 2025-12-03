@@ -81,12 +81,12 @@ router.get('/', optionalAuth, async (req, res, next) => {
 // @access  Private
 router.get('/my', protect, async (req, res, next) => {
   try {
-    const { type, status = 'active' } = req.query;
+    const { type, status } = req.query;
 
     const query = { userId: req.user._id };
     
     if (type) query.type = type;
-    if (status) query.status = status;
+    if (status) query.status = status;  // Only filter by status if explicitly provided
 
     const listings = await Listing.find(query)
       .sort('-createdAt')
@@ -193,14 +193,26 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
 // @access  Private
 router.post('/', protect, async (req, res, next) => {
   try {
-    const { type, companyId, price, quantity, minLot, companySegmentation, description } = req.body;
+    const { type, companyId, companyName: manualCompanyName, price, quantity, minLot, companySegmentation, companyPan, companyISIN, companyCIN, description } = req.body;
 
-    // Validate company exists
-    const company = await Company.findById(companyId);
-    if (!company) {
-      return res.status(404).json({
+    let company = null;
+    let finalCompanyName = manualCompanyName;
+
+    // If companyId provided, validate company exists
+    if (companyId) {
+      company = await Company.findById(companyId);
+      if (!company) {
+        return res.status(404).json({
+          success: false,
+          message: 'Company not found'
+        });
+      }
+      finalCompanyName = company.CompanyName || company.name;
+    } else if (!manualCompanyName) {
+      // Neither companyId nor companyName provided
+      return res.status(400).json({
         success: false,
-        message: 'Company not found'
+        message: 'Company name or company ID is required'
       });
     }
 
@@ -209,9 +221,12 @@ router.post('/', protect, async (req, res, next) => {
       userId: req.user._id,
       username: req.user.username,
       type,
-      companyId,
-      companyName: company.CompanyName || company.name,
+      companyId: company ? company._id : null,
+      companyName: finalCompanyName,
       companySegmentation: companySegmentation || null,
+      companyPan: companyPan || null,
+      companyISIN: companyISIN || null,
+      companyCIN: companyCIN || null,
       price, // Keep original for backward compatibility
       quantity,
       minLot: minLot || 1,
@@ -233,9 +248,11 @@ router.post('/', protect, async (req, res, next) => {
 
     const listing = await Listing.create(listingData);
 
-    // Update company listings count
-    company.totalListings += 1;
-    await company.save();
+    // Update company listings count (only if company from database)
+    if (company) {
+      company.totalListings += 1;
+      await company.save();
+    }
 
     res.status(201).json({
       success: true,

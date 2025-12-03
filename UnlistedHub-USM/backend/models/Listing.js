@@ -75,9 +75,24 @@ const listingSchema = new mongoose.Schema({
   companyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company',
+    default: null
+  },
+  companyName: {
+    type: String,
     required: true
   },
-  companyName: String,
+  companyPan: {
+    type: String,
+    default: null
+  },
+  companyISIN: {
+    type: String,
+    default: null
+  },
+  companyCIN: {
+    type: String,
+    default: null
+  },
   companySegmentation: {
     type: String,
     enum: ['SME', 'Mainboard', 'Unlisted', 'Pre-IPO', 'Startup'],
