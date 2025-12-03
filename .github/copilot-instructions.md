@@ -47,6 +47,33 @@ This workspace contains multiple generations of the NListPlanet/UnlistedHub mark
 - **Manual validation**: No automated tests; always validate endpoints/UI after edits
 - **Sensitive info**: Never commit credentials or `.env` files
 
+## Platform Fee & Price Display Logic
+Platform charges **2% fee** from buyer. Price display varies based on viewer:
+
+### Helper Functions (in `utils/helpers.js`)
+- `calculateBuyerPays(price)` → `price * 1.02` (buyer pays +2%)
+- `calculateSellerGets(price)` → `price * 0.98` (seller gets -2%)
+- `getPriceDisplay(price, listingType, isOwner)` → Returns `{ displayPrice, label, buyerPays, sellerGets }`
+
+### Marketplace Cards (Public View)
+| Listing Type | Label | Price Formula |
+|-------------|-------|---------------|
+| SELL | "Buyer Pays" | `price + 2%` |
+| BUY | "Seller Gets" | `price - 2%` |
+
+### Owner vs Others
+| Scenario | Owner Sees | Others See |
+|----------|------------|------------|
+| SELL Listing | Original price (₹100) | Buyer Pays (₹102) |
+| BUY Listing | Original price (₹100) | Seller Gets (₹98) |
+| Buyer's Bid (₹95) | ₹95 (Your Bid) | ₹93.10 (Seller receives) |
+| Seller's Counter (₹98) | ₹98 (Your Counter) | ₹99.96 (Buyer pays) |
+
+### Deal Summary
+- **Buyer Pays**: Agreed Price + 2%
+- **Seller Gets**: Agreed Price (full base)
+- **Platform Revenue**: 2% of agreed price
+
 ## Integration & Deployment
 - Backend auto-deploy: Render.com (main branch, see `RENDER_AUTODEPLOY.md`)
 - Frontend auto-deploy: Vercel (main branch, preview deploys)

@@ -12,15 +12,69 @@ export const formatNumber = (num) => {
   return new Intl.NumberFormat('en-IN').format(num);
 };
 
+// Platform fee percentage
+export const PLATFORM_FEE_PERCENTAGE = parseFloat(process.env.REACT_APP_PLATFORM_FEE_PERCENTAGE || 2);
+
 // Calculate platform fee
 export const calculatePlatformFee = (amount) => {
-  const feePercentage = parseFloat(process.env.REACT_APP_PLATFORM_FEE_PERCENTAGE || 2);
-  return (amount * feePercentage) / 100;
+  return (amount * PLATFORM_FEE_PERCENTAGE) / 100;
 };
 
-// Calculate total with platform fee
+// Calculate total with platform fee (legacy - for backward compatibility)
 export const calculateTotalWithFee = (amount) => {
   return amount + calculatePlatformFee(amount);
+};
+
+// Calculate what BUYER pays (original price + 2%)
+export const calculateBuyerPays = (price) => {
+  return price * (1 + PLATFORM_FEE_PERCENTAGE / 100);
+};
+
+// Calculate what SELLER gets (original price - 2%)
+export const calculateSellerGets = (price) => {
+  return price * (1 - PLATFORM_FEE_PERCENTAGE / 100);
+};
+
+/**
+ * Get display price based on listing type and viewer
+ * @param {number} price - Original listing price
+ * @param {string} listingType - 'sell' or 'buy'
+ * @param {boolean} isOwner - Is the current user the listing owner
+ * @returns {object} { buyerPays, sellerGets, displayPrice, label }
+ */
+export const getPriceDisplay = (price, listingType, isOwner = false) => {
+  const isSell = listingType === 'sell';
+  const buyerPays = calculateBuyerPays(price);
+  const sellerGets = isSell ? price : calculateSellerGets(price);
+  
+  if (isOwner) {
+    // Owner sees original price
+    return {
+      buyerPays,
+      sellerGets,
+      displayPrice: price,
+      label: 'Your Price'
+    };
+  }
+  
+  // Other users see price with fee
+  if (isSell) {
+    // SELL listing: Other users are buyers, show what they pay
+    return {
+      buyerPays,
+      sellerGets,
+      displayPrice: buyerPays,
+      label: 'Buyer Pays'
+    };
+  } else {
+    // BUY listing: Other users are sellers, show what they get
+    return {
+      buyerPays,
+      sellerGets,
+      displayPrice: sellerGets,
+      label: 'Seller Gets'
+    };
+  }
 };
 
 // Format date

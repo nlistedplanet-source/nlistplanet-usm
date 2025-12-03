@@ -1,12 +1,16 @@
 import React from 'react';
 import { Calendar, Package, TrendingUp, Share2, Zap, MessageCircle } from 'lucide-react';
-import { formatCurrency, formatDate, formatNumber, calculateTotalWithFee } from '../utils/helpers';
+import { formatCurrency, formatDate, formatNumber, getPriceDisplay } from '../utils/helpers';
 
 const ListingCard = ({ listing, onBidOffer, onShare, onBoost, isOwner }) => {
   const isSell = listing.type === 'sell';
-  // For SELL listings: listing.price is what seller wants, buyer pays listing.price + 2% fee
-  // For BUY listings: listing.price is what buyer offers, seller gets listing.price - 2% fee
-  const displayPrice = isSell ? calculateTotalWithFee(listing.price) : listing.price;
+  
+  // Price display logic:
+  // - Owner sees original price with label "Your Price"
+  // - Others see: SELL → Buyer Pays (+2%), BUY → Seller Gets (-2%)
+  const priceInfo = getPriceDisplay(listing.price, listing.type, isOwner);
+  const displayPrice = priceInfo.displayPrice;
+  const priceLabel = priceInfo.label;
   const totalAmount = displayPrice * listing.quantity;
   const bidsCount = isSell ? listing.bids?.length || 0 : listing.offers?.length || 0;
 
@@ -102,7 +106,7 @@ const ListingCard = ({ listing, onBidOffer, onShare, onBoost, isOwner }) => {
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div className="bg-dark-50 rounded-lg p-3">
           <p className="text-xs text-dark-500 mb-1">
-            {isSell ? 'Buyer Pays' : 'Seller Gets'}
+            {priceLabel}
           </p>
           <p className="text-lg font-bold text-dark-900">{formatCurrency(displayPrice)}</p>
         </div>
