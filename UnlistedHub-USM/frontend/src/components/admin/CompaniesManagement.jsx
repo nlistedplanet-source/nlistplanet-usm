@@ -178,58 +178,58 @@ const CompaniesManagement = () => {
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+          <div className="overflow-x-auto max-w-full" style={{ maxHeight: '70vh' }}>
+            <table className="w-full min-w-[1200px] text-xs">
+              <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Company</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Script Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ISIN</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">PAN</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">CIN</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sector</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reg. Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-2 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Company</th>
+                  <th className="px-2 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Script</th>
+                  <th className="px-2 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">ISIN</th>
+                  <th className="px-2 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">PAN</th>
+                  <th className="px-2 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">CIN</th>
+                  <th className="px-2 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Sector</th>
+                  <th className="px-2 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Reg. Date</th>
+                  <th className="px-2 py-2 text-center text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-100">
                 {companies.map((company) => (
                   <tr key={company._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
+                    <td className="px-2 py-1.5">
+                      <div className="flex items-center gap-2">
                         {company.logo ? (
-                          <img src={company.logo} alt={company.name} className="w-10 h-10 rounded-lg object-cover" />
+                          <img src={company.logo} alt={company.name} className="w-7 h-7 rounded object-cover flex-shrink-0" />
                         ) : (
-                          <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <Building2 size={20} className="text-gray-400" />
+                          <div className="w-7 h-7 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
+                            <Building2 size={14} className="text-gray-400" />
                           </div>
                         )}
-                        <span className="font-medium text-gray-900">{company.name}</span>
+                        <span className="font-medium text-gray-900 text-xs truncate max-w-[150px]" title={company.name}>{company.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{company.scriptName || 'N/A'}</td>
-                    <td className="px-6 py-4 text-gray-600 font-mono text-sm">{company.isin || 'N/A'}</td>
-                    <td className="px-6 py-4 text-gray-600 font-mono text-sm">{company.pan || 'N/A'}</td>
-                    <td className="px-6 py-4 text-gray-600 font-mono text-sm">{company.cin || 'N/A'}</td>
-                    <td className="px-6 py-4 text-gray-600">{company.sector || 'N/A'}</td>
-                    <td className="px-6 py-4 text-gray-600 text-sm">
-                      {company.registrationDate ? new Date(company.registrationDate).toLocaleDateString('en-GB') : 'N/A'}
+                    <td className="px-2 py-1.5 text-gray-600 text-xs whitespace-nowrap">{company.scriptName || '-'}</td>
+                    <td className="px-2 py-1.5 text-gray-600 font-mono text-[10px] whitespace-nowrap">{company.isin || '-'}</td>
+                    <td className="px-2 py-1.5 text-gray-600 font-mono text-[10px] whitespace-nowrap">{company.pan || '-'}</td>
+                    <td className="px-2 py-1.5 text-gray-600 font-mono text-[10px] whitespace-nowrap">{company.cin || '-'}</td>
+                    <td className="px-2 py-1.5 text-gray-600 text-xs whitespace-nowrap">{company.sector || '-'}</td>
+                    <td className="px-2 py-1.5 text-gray-600 text-[10px] whitespace-nowrap">
+                      {company.registrationDate ? new Date(company.registrationDate).toLocaleDateString('en-GB') : '-'}
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
+                    <td className="px-2 py-1.5">
+                      <div className="flex items-center justify-center gap-1">
                         <button
                           onClick={() => handleEdit(company)}
-                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-1 text-blue-500 hover:bg-blue-50 rounded transition-colors"
                           title="Edit"
                         >
-                          <Edit2 size={18} />
+                          <Edit2 size={14} />
                         </button>
                         <button
                           onClick={() => handleDelete(company._id)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
                           title="Delete"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </td>

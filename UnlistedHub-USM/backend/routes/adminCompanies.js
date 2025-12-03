@@ -173,18 +173,18 @@ function parseCompanyData(text) {
 }
 
 // @route   POST /api/admin/companies
-// @desc    Create new company (with OCR data)
+// @desc    Create new company (with logo upload)
 // @access  Admin
-router.post('/companies', protect, authorize('admin'), async (req, res, next) => {
+router.post('/companies', protect, authorize('admin'), upload.single('logo'), async (req, res, next) => {
   try {
-    const { name, sector, logo, isin, cin, pan, description, ...otherData } = req.body;
+    const { name, sector, scriptName, isin, cin, pan, registrationDate, description, ...otherData } = req.body;
 
     // Check if company already exists
     const existingCompany = await Company.findOne({ 
       $or: [
         { name: name },
-        { isin: isin },
-        { cin: cin }
+        ...(isin ? [{ isin: isin }] : []),
+        ...(cin ? [{ cin: cin }] : [])
       ]
     });
 
@@ -195,14 +195,22 @@ router.post('/companies', protect, authorize('admin'), async (req, res, next) =>
       });
     }
 
+    // Handle logo file upload - convert to base64 data URL
+    let logoUrl = '';
+    if (req.file) {
+      logoUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    }
+
     // Create company
     const company = await Company.create({
       name,
+      scriptName: scriptName || '',
       sector,
-      logo: logo || '',
+      logo: logoUrl,
       isin: isin || '',
       cin: cin || '',
       pan: pan || '',
+      registrationDate: registrationDate || null,
       description: description || '',
       ...otherData
     });
@@ -218,9 +226,9 @@ router.post('/companies', protect, authorize('admin'), async (req, res, next) =>
 });
 
 // @route   PUT /api/admin/companies/:id
-// @desc    Update company details
+// @desc    Update company details (with logo upload)
 // @access  Admin
-router.put('/companies/:id', protect, authorize('admin'), async (req, res, next) => {
+router.put('/companies/:id', protect, authorize('admin'), upload.single('logo'), async (req, res, next) => {
   try {
     const company = await Company.findById(req.params.id);
 
@@ -231,9 +239,17 @@ router.put('/companies/:id', protect, authorize('admin'), async (req, res, next)
       });
     }
 
-    // Update fields
-    Object.keys(req.body).forEach(key => {
-      company[key] = req.body[key];
+    // Handle logo file upload - convert to base64 data URL
+    if (req.file) {
+      company.logo = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    }
+
+    // Update other fields from body (excluding logo since we handle it separately)
+    const { logo, ...otherFields } = req.body;
+    Object.keys(otherFields).forEach(key => {
+      if (otherFields[key] !== undefined && otherFields[key] !== '') {
+        company[key] = otherFields[key];
+      }
     });
 
     await company.save();
