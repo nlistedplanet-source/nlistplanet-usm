@@ -72,13 +72,13 @@ const PlatformSettings = () => {
   }
 
   return (
-    <div className="p-4 max-w-5xl mx-auto">
+    <div className="p-3 max-w-full">
       {/* Header */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Settings className="text-gray-600" size={24} />
-            <h1 className="text-2xl font-bold text-gray-900">Platform Settings</h1>
+            <Settings className="text-gray-600" size={22} />
+            <h1 className="text-xl font-bold text-gray-900">Platform Settings</h1>
           </div>
           <p className="text-sm text-gray-600">Configure platform fees, limits, and general settings</p>
         </div>

@@ -57,28 +57,28 @@ const ReportsManagement = () => {
   const buyListings = reports.listingStats.byType.find(l => l._id === 'buy')?.count || 0;
 
   return (
-    <div className="p-4 max-w-7xl mx-auto">
+    <div className="p-3 max-w-full">
       {/* Header */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <BarChart3 className="text-purple-600" size={24} />
-            <h1 className="text-2xl font-bold text-gray-900">Platform Reports</h1>
+            <BarChart3 className="text-purple-600" size={22} />
+            <h1 className="text-xl font-bold text-gray-900">Platform Reports</h1>
           </div>
-          <p className="text-sm text-gray-600">Analytics and insights for the last {period} days</p>
+          <p className="text-xs text-gray-600">Analytics and insights for the last {period} days</p>
         </div>
         <button
           onClick={() => fetchReports(period)}
           disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
         >
-          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+          <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
           Refresh
         </button>
       </div>
 
       {/* Period Filter */}
-      <div className="mb-4 flex gap-2">
+      <div className="mb-3 flex gap-1.5">
         {['7', '30', '90', '365'].map((days) => (
           <button
             key={days}

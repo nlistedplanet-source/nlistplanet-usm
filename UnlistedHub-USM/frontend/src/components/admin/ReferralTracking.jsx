@@ -115,48 +115,48 @@ const ReferralTracking = () => {
   }
 
   return (
-    <div className="p-4 text-[11px]">
+    <div className="p-3 text-[11px]">
       {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-lg font-bold mb-4">Referral Tracking & Revenue</h2>
+      <div className="mb-3">
+        <h2 className="text-xl font-bold mb-3">Referral Tracking & Revenue</h2>
 
         {/* Overview Stats */}
-        <div className="grid grid-cols-4 gap-3 mb-4">
-          <div className="bg-white p-3 rounded-lg shadow">
+        <div className="grid grid-cols-4 gap-2 mb-3">
+          <div className="bg-white p-2 rounded-lg shadow-sm border">
             <div className="text-gray-500 text-[10px]">Total Referrals</div>
-            <div className="text-xl font-bold">{overviewStats.totalReferrals || 0}</div>
+            <div className="text-lg font-bold">{overviewStats.totalReferrals || 0}</div>
           </div>
-          <div className="bg-white p-3 rounded-lg shadow">
+          <div className="bg-white p-2 rounded-lg shadow-sm border">
             <div className="text-gray-500 text-[10px]">Pending</div>
-            <div className="text-xl font-bold text-yellow-600">{overviewStats.pendingReferrals || 0}</div>
+            <div className="text-lg font-bold text-yellow-600">{overviewStats.pendingReferrals || 0}</div>
           </div>
-          <div className="bg-white p-3 rounded-lg shadow">
+          <div className="bg-white p-2 rounded-lg shadow-sm border">
             <div className="text-gray-500 text-[10px]">Approved</div>
-            <div className="text-xl font-bold text-blue-600">{overviewStats.approvedReferrals || 0}</div>
+            <div className="text-lg font-bold text-blue-600">{overviewStats.approvedReferrals || 0}</div>
           </div>
-          <div className="bg-white p-3 rounded-lg shadow">
+          <div className="bg-white p-2 rounded-lg shadow-sm border">
             <div className="text-gray-500 text-[10px]">Paid</div>
-            <div className="text-xl font-bold text-green-600">{overviewStats.paidReferrals || 0}</div>
+            <div className="text-lg font-bold text-green-600">{overviewStats.paidReferrals || 0}</div>
           </div>
         </div>
 
         {/* Financial Stats */}
-        <div className="grid grid-cols-5 gap-3 mb-4">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-3 rounded-lg shadow">
+        <div className="grid grid-cols-5 gap-2 mb-3">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-2 rounded-lg shadow-sm">
             <div className="text-[10px] opacity-90">Total Deal Amount</div>
-            <div className="text-lg font-bold">{formatCurrency(stats.totalDealAmount)}</div>
+            <div className="text-base font-bold">{formatCurrency(stats.totalDealAmount)}</div>
           </div>
-          <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-3 rounded-lg shadow">
+          <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-2 rounded-lg shadow-sm">
             <div className="text-[10px] opacity-90">Platform Revenue</div>
-            <div className="text-lg font-bold">{formatCurrency(stats.totalPlatformRevenue)}</div>
+            <div className="text-base font-bold">{formatCurrency(stats.totalPlatformRevenue)}</div>
           </div>
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-3 rounded-lg shadow">
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-2 rounded-lg shadow-sm">
             <div className="text-[10px] opacity-90">Total Referral Amount</div>
-            <div className="text-lg font-bold">{formatCurrency(stats.totalReferralAmount)}</div>
+            <div className="text-base font-bold">{formatCurrency(stats.totalReferralAmount)}</div>
           </div>
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-3 rounded-lg shadow">
+          <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-2 rounded-lg shadow-sm">
             <div className="text-[10px] opacity-90">Pending Payout</div>
-            <div className="text-lg font-bold">{formatCurrency(stats.pendingReferralAmount)}</div>
+            <div className="text-base font-bold">{formatCurrency(stats.pendingReferralAmount)}</div>
           </div>
           <div className="bg-gradient-to-br from-teal-500 to-teal-600 text-white p-3 rounded-lg shadow">
             <div className="text-[10px] opacity-90">Paid Out</div>

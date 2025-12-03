@@ -93,18 +93,18 @@ const TransactionsManagement = () => {
   };
 
   return (
-    <div className="p-4 max-w-7xl mx-auto">
+    <div className="p-3 max-w-full">
       {/* Header */}
-      <div className="mb-4">
+      <div className="mb-3">
         <div className="flex items-center gap-2 mb-1">
-          <DollarSign className="text-green-600" size={24} />
-          <h1 className="text-2xl font-bold text-gray-900">Transactions Management</h1>
+          <DollarSign className="text-green-600" size={22} />
+          <h1 className="text-xl font-bold text-gray-900">Transactions Management</h1>
         </div>
-        <p className="text-sm text-gray-600">View and manage all platform transactions</p>
+        <p className="text-xs text-gray-600">View and manage all platform transactions</p>
       </div>
 
       {/* Search & Filters */}
-      <div className="mb-4 space-y-2">
+      <div className="mb-3 space-y-2">
         <form onSubmit={handleSearch} className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -113,12 +113,12 @@ const TransactionsManagement = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by company or description..."
-              className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <button
             type="submit"
-            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
           >
             Search
           </button>
@@ -133,7 +133,7 @@ const TransactionsManagement = () => {
               setFilterType(e.target.value);
               fetchTransactions(1, searchTerm, e.target.value, filterStatus);
             }}
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">All Types</option>
             <option value="platform_fee">Platform Fee</option>
@@ -147,7 +147,7 @@ const TransactionsManagement = () => {
               setFilterStatus(e.target.value);
               fetchTransactions(1, searchTerm, filterType, e.target.value);
             }}
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">All Status</option>
             <option value="completed">Completed</option>
@@ -163,20 +163,20 @@ const TransactionsManagement = () => {
                 setFilterStatus('');
                 fetchTransactions(1, '', '', '');
               }}
-              className="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+              className="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors font-medium"
             >
-              Clear Filters
+              Clear
             </button>
           )}
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-3 border border-blue-200">
+      <div className="grid grid-cols-4 gap-3 mb-4">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-blue-600 font-medium mb-0.5">Total Revenue</p>
+              <p className="text-xs text-blue-600 font-medium">Total Revenue</p>
               <p className="text-xl font-bold text-gray-900">{formatCurrency(stats.totalAmount)}</p>
             </div>
             <DollarSign className="text-blue-600" size={32} />
