@@ -54,11 +54,11 @@ const MarketplaceCard = ({
       {/* Full-width Colored Line at Top */}
       <div className={`h-1 rounded-t-lg absolute left-0 top-0 right-0 ${accentColor}`}></div>
       
-      {/* Top Row with Badges */}
+      {/* Top Row with Badges (Flipped for marketplace: SELL post = BUY opportunity for others) */}
       <div className="flex items-center justify-between mb-1.5 mt-1">
         <div className="flex gap-1">
-          <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${isSell ? 'bg-emerald-100 text-emerald-700' : 'bg-yellow-100 text-yellow-700'}`}>
-            {isSell ? 'Sell' : 'Buy'}
+          <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${isSell ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'}`}>
+            {isSell ? 'Buy' : 'Sell'}
           </span>
           <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-700">
             Unlisted

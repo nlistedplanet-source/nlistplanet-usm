@@ -88,10 +88,11 @@ const ListingCard = ({ listing, onBidOffer, onShare, onBoost, isOwner }) => {
           </div>
         </div>
 
+        {/* Tag flipped for marketplace: SELL post = BUY opportunity */}
         <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-          isSell ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+          isSell ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
         }`}>
-          {isSell ? 'SELL' : 'BUY'}
+          {isSell ? 'BUY' : 'SELL'}
         </div>
       </div>
 
