@@ -222,43 +222,51 @@ const ListingsManagement = () => {
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
-            <div className="overflow-x-auto">
-              <table className="w-full text-[11px]">
-                <thead className="bg-gray-50 border-b border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '70vh' }}>
+              <table className="min-w-[1800px] w-max text-[11px]">
+                <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
                   <tr>
-                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px]">Company</th>
-                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px]">Type</th>
-                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px]">User</th>
-                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px]">Price Breakdown</th>
-                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px]">Created</th>
-                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px]">Status</th>
-                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px]">Actions</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Company</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Type</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">User</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Qty</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Price/Share</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Base Amt</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Fee (2%)</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Total</th>
+                    <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Bids</th>
+                    <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Views</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Created</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Expires</th>
+                    <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Boosted</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Status</th>
+                    <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {listings.map((listing) => (
                     <tr key={listing._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-2 py-1.5">
+                      <td className="px-2 py-1.5 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           {listing.companyId?.logo ? (
-                            <img src={listing.companyId.logo} alt="" className="w-7 h-7 rounded object-cover" />
+                            <img src={listing.companyId.logo} alt="" className="w-6 h-6 rounded object-cover" />
                           ) : (
-                            <div className="w-7 h-7 rounded bg-primary-100 flex items-center justify-center">
-                              <span className="text-primary-700 font-bold text-[10px]">
+                            <div className="w-6 h-6 rounded bg-primary-100 flex items-center justify-center">
+                              <span className="text-primary-700 font-bold text-[9px]">
                                 {listing.companyName?.[0] || 'C'}
                               </span>
                             </div>
                           )}
                           <div>
-                            <p className="font-medium text-gray-900 text-[11px]">{listing.companyName}</p>
+                            <p className="font-medium text-gray-900 text-[11px] truncate max-w-[150px]" title={listing.companyName}>{listing.companyName}</p>
                             {listing.companyId?.scriptName && (
-                              <p className="text-[10px] text-gray-500">{listing.companyId.scriptName}</p>
+                              <p className="text-[9px] text-gray-500">{listing.companyId.scriptName}</p>
                             )}
                           </div>
                         </div>
                       </td>
-                      <td className="px-2 py-1.5">
+                      <td className="px-2 py-1.5 whitespace-nowrap">
                         <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
                           listing.type === 'sell' 
                             ? 'bg-green-100 text-green-700' 
@@ -267,47 +275,60 @@ const ListingsManagement = () => {
                           {listing.type === 'sell' ? 'SELL' : 'BUY'}
                         </span>
                       </td>
-                      <td className="px-2 py-1.5">
+                      <td className="px-2 py-1.5 whitespace-nowrap">
                         <div>
                           <p className="text-[11px] font-medium text-gray-900">
                             {listing.userId?.fullName || 'N/A'}
                           </p>
-                          <p className="text-[10px] text-gray-500">@{listing.username}</p>
+                          <p className="text-[9px] text-gray-500">@{listing.username}</p>
                         </div>
                       </td>
-                      <td className="px-2 py-1.5">
-                        <div className="space-y-0.5 text-[10px]">
-                          <div className="flex items-center gap-1">
-                            <span className="text-gray-500">Base:</span>
-                            <span className="font-medium text-gray-900">
-                              {formatCurrency(listing.baseAmount || (listing.price * listing.quantity))}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span className="text-orange-600">Fee (2%):</span>
-                            <span className="font-medium text-orange-600">
-                              {formatCurrency(listing.platformFee || ((listing.price * listing.quantity * 2) / 100))}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1 pt-0.5 border-t border-gray-200">
-                            <span className="text-gray-700 font-medium">Total:</span>
-                            <span className="font-bold text-green-600">
-                              {formatCurrency(listing.totalAmount || (listing.price * listing.quantity * 1.02))}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1 text-gray-500 mt-0.5">
-                            <Package size={10} />
-                            {formatNumber(listing.quantity)} shares × {formatCurrency(listing.price)}
-                          </div>
-                        </div>
+                      <td className="px-2 py-1.5 whitespace-nowrap font-medium text-gray-900">
+                        {formatNumber(listing.quantity)}
                       </td>
-                      <td className="px-2 py-1.5">
+                      <td className="px-2 py-1.5 whitespace-nowrap font-medium text-gray-900">
+                        {formatCurrency(listing.price)}
+                      </td>
+                      <td className="px-2 py-1.5 whitespace-nowrap text-gray-700">
+                        {formatCurrency(listing.baseAmount || (listing.price * listing.quantity))}
+                      </td>
+                      <td className="px-2 py-1.5 whitespace-nowrap text-orange-600 font-medium">
+                        {formatCurrency(listing.platformFee || ((listing.price * listing.quantity * 2) / 100))}
+                      </td>
+                      <td className="px-2 py-1.5 whitespace-nowrap font-bold text-green-600">
+                        {formatCurrency(listing.totalAmount || (listing.price * listing.quantity * 1.02))}
+                      </td>
+                      <td className="px-2 py-1.5 text-center whitespace-nowrap">
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                          (listing.bids?.length || 0) > 0 ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'
+                        }`}>
+                          {listing.bids?.length || 0}
+                        </span>
+                      </td>
+                      <td className="px-2 py-1.5 text-center whitespace-nowrap text-gray-600">
+                        {listing.views || 0}
+                      </td>
+                      <td className="px-2 py-1.5 whitespace-nowrap">
                         <div className="flex items-center gap-1 text-[10px] text-gray-600">
                           <Calendar size={10} />
                           {formatDate(listing.createdAt)}
                         </div>
                       </td>
-                      <td className="px-2 py-1.5">
+                      <td className="px-2 py-1.5 whitespace-nowrap">
+                        <div className="text-[10px] text-gray-500">
+                          {listing.expiresAt ? formatDate(listing.expiresAt) : '-'}
+                        </div>
+                      </td>
+                      <td className="px-2 py-1.5 text-center whitespace-nowrap">
+                        {listing.isBoosted ? (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-100 text-yellow-700">
+                            ⚡ Yes
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 text-[10px]">No</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-1.5 whitespace-nowrap">
                         <select
                           value={listing.status}
                           onChange={(e) => handleStatusChange(listing._id, e.target.value)}
