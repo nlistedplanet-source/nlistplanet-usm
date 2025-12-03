@@ -1,59 +1,63 @@
-# Copilot Instructions for UnlistedHub Codebase
 
-## Overview & Architecture
-This workspace contains multiple generations of the UnlistedHub project—a P2P marketplace for unlisted shares—with both legacy and current backend/frontend implementations. Key subprojects:
-- **UnlistedHub-Backend-OLD**: Node.js/Express REST API, MongoDB, OTP flows, admin/user roles, manual API testing.
-- **UnlistedHub-React-Project-OLD**: React SPA, Context API for state, in-memory auth, localStorage for listings, no backend integration.
-- **UnlistedHub-USM**: Newer backend/frontend (see `UnlistedHub-USM/README.md` for details).
+# Copilot Instructions for NListPlanet/UnlistedHub Codebase
 
-## Backend (UnlistedHub-Backend-OLD)
-- **Domains**: Auth (JWT, OTP), Listings, Bids, Trades, Admin, Portfolio.
-- **Key files**: `server.js`, `models/`, `routes/`, `middleware/`, `utils/otpService.js`, `scripts/resetDatabase.js`.
-- **Workflows**:
-  - Install: `npm install`
-  - Dev: `npm run dev` (nodemon)
-  - Prod: `npm start`
-  - Reset DB: `node scripts/resetDatabase.js`
-  - No formal tests—use Postman/Thunder Client for API validation.
-- **Patterns**:
-  - Role-based access in `middleware/`
-  - OTP/email flows in `routes/auth.js`, `utils/otpService.js`
-  - Admin user created/reset via DB script
-  - Manual API testing only; validate endpoints after changes
+## Big Picture & Architecture
+This workspace contains multiple generations of the NListPlanet/UnlistedHub marketplace for unlisted shares. Key subprojects:
+- **UnlistedHub-Backend-OLD**: Legacy Node.js/Express REST API (see `UnlistedHub-Backend-OLD/README.md`).
+- **UnlistedHub-React-Project-OLD**: Legacy React SPA, in-memory state, no backend integration.
+- **UnlistedHub-USM**: Current backend/frontend split (see `UnlistedHub-USM/PROJECT_DOCUMENTATION.md`).
+- **nlistplanet-mobile**: Mobile-first PWA and dedicated backend, forked from USM, tailored for mobile deployment.
 
-## Frontend (UnlistedHub-React-Project-OLD)
-- **SPA, no backend**: All data in memory or localStorage.
-- **Key files**: `src/App.jsx`, `src/context/`, `src/components/`, `src/data/companies.json`
-- **Patterns**:
-  - Navigation via `setPage()` (no router)
-  - Contexts: `AuthContext`, `ListingContext`, `BidContext`, `CompanyContext`
-  - Listings/bids: `ListingContext` is source of truth; `Marketplace.jsx` may use static data—prefer context for new features
-  - Styling: Tailwind-like classes, but Tailwind not installed—use plain CSS or add Tailwind if needed
-- **Workflows**:
-  - Install: `npm install`
-  - Dev: `npm start`
-  - Build: `npm run build`
-  - No tests; validate in browser
+## Project Structure
+- Backend: `backend/` (models, routes, middleware, utils, server.js)
+- Frontend: `frontend/src/` (pages, components, context, utils)
+- Mobile: `nlistplanet-mobile/` (standalone backend/frontend)
+- Docs: `NlistPlanet_System_Architecture_FULL.md`, `PROJECT_DOCUMENTATION.md`, `README.md`
 
-## Newer Project (UnlistedHub-USM)
-- See `UnlistedHub-USM/README.md` and `FILE_STRUCTURE.md` for updated architecture, deployment, and file layout.
-- Backend/frontend split under `UnlistedHub-USM/backend` and `UnlistedHub-USM/frontend`.
-- Use provided scripts and docs for setup and deployment.
+## Developer Workflows
+### Backend
+- Install: `npm install` (in backend dir)
+- Dev: `npm run dev` (nodemon)
+- Prod: `npm start`
+- Health check: `GET /api/health`
+- Environment: Copy `.env.example` to `.env`, fill values (never commit secrets)
+- Manual API validation: Use Postman/Thunder Client
+- Auto-deploy: Render.com (see `RENDER_AUTODEPLOY.md`, `.github-webhook-setup.md`)
 
-## Cross-cutting Conventions
-- **Environment**: Use `.env` for secrets (never commit). Restart server after changes.
-- **Manual validation**: No automated tests—always validate endpoints/UI after edits.
-- **Sensitive info**: Never commit credentials or `.env` files.
-- **PR checklist**:
-  - Data flows consistent (models/routes/contexts)
-  - Env vars documented/updated
-  - Manual tests run for new/changed flows
-  - No sensitive info committed
+### Frontend
+- Install: `npm install` (in frontend dir)
+- Dev: `npm start`
+- Build: `npm run build`
+- Environment: Set `REACT_APP_API_URL`, `CI`, `GENERATE_SOURCEMAP` in Vercel/Netlify (see `VERCEL_QUICK_FIX.md`)
+- Validate in browser; no formal tests
+
+### Mobile
+- Backend: Same as above, but CORS must whitelist mobile prod + Vercel previews
+- Frontend: PWA, React, deploy via Vercel
+- Domains: Desktop (`nlistplanet.com`), Mobile (`mobile.nlistplanet.com`), Backend (`nlistplanet-usm-v8dc.onrender.com`)
+
+## Key Conventions & Patterns
+- **Auth**: JWT (`Authorization: Bearer <token>`), context-based state in frontend
+- **KYC**: See `routes/kyc.js` for user onboarding, document upload, status logic
+- **Portfolio/Orders**: See architecture docs for buy/sell/portfolio flows
+- **Anonymous Trading**: System-generated usernames, never reveal real identity (see `PROJECT_DOCUMENTATION.md`)
+- **CORS**: Only allow whitelisted origins; add preview domains to `CORS_ORIGINS`
+- **Security**: Helmet, rate limiting, sanitization, HSTS, password policy (`PASSWORD_POLICY_GUIDE.md`)
+- **Environment**: Always use `.env` for secrets; restart server after changes
+- **Manual validation**: No automated tests; always validate endpoints/UI after edits
+- **Sensitive info**: Never commit credentials or `.env` files
+
+## Integration & Deployment
+- Backend auto-deploy: Render.com (main branch, see `RENDER_AUTODEPLOY.md`)
+- Frontend auto-deploy: Vercel (main branch, preview deploys)
+- Webhook setup: See `.github-webhook-setup.md` in backend/mobile
+- Environment variables: Documented in deployment guides and `.env.example`
 
 ## Where to Start
-- For backend: See `UnlistedHub-Backend-OLD/README.md` and `scripts/README.md`.
-- For frontend: See `UnlistedHub-React-Project-OLD/README.md` and context files.
-- For new work: Prefer `UnlistedHub-USM` structure and docs.
+- For backend: See `backend/README.md` and architecture docs
+- For frontend: See `frontend/README.md` and context files
+- For mobile: See `nlistplanet-mobile/README.md` and deployment docs
+- For architecture: See `NlistPlanet_System_Architecture_FULL.md` and `PROJECT_DOCUMENTATION.md`
 
 ---
 If any section is unclear or missing, specify which area (e.g., API flows, data models, integration) and request an update for more detail.
