@@ -6,7 +6,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i).*(android|iphone|ipad|ipod|mobile|blackberry|iemobile|opera mini|webos).*"
+          "value": "(?i).*(android.*mobile|iphone|ipod|blackberry|iemobile|opera mini|webos).*"
         }
       ],
       "destination": "https://mobile.nlistplanet.com/:path*",
