@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, TrendingUp, TrendingDown, Trash2, Eye, Calendar, Package, DollarSign, Filter } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, Trash2, Eye, Calendar, Package, DollarSign, Filter, MessageSquare, ChevronDown, ChevronUp, Hash, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminAPI } from '../../utils/api';
 import { formatDate, formatCurrency, formatNumber } from '../../utils/helpers';
@@ -10,6 +10,7 @@ const ListingsManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [expandedBids, setExpandedBids] = useState({});
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -87,6 +88,41 @@ const ListingsManagement = () => {
   const totalSellListings = listings.filter(l => l.type === 'sell').length;
   const totalBuyListings = listings.filter(l => l.type === 'buy').length;
   const activeListings = listings.filter(l => l.status === 'active').length;
+
+  // Sort listings: active first, then by date
+  const sortedListings = [...listings].sort((a, b) => {
+    // Active listings first
+    if (a.status === 'active' && b.status !== 'active') return -1;
+    if (a.status !== 'active' && b.status === 'active') return 1;
+    // Then by created date (newest first)
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
+  // Generate unique Post ID from MongoDB _id
+  const getPostId = (id) => {
+    if (!id) return 'N/A';
+    return `NLP-${id.slice(-6).toUpperCase()}`;
+  };
+
+  // Toggle bids expansion
+  const toggleBids = (listingId) => {
+    setExpandedBids(prev => ({
+      ...prev,
+      [listingId]: !prev[listingId]
+    }));
+  };
+
+  // Get bid status badge
+  const getBidStatusBadge = (bid) => {
+    const statusColors = {
+      pending: 'bg-yellow-100 text-yellow-700',
+      accepted: 'bg-green-100 text-green-700',
+      rejected: 'bg-red-100 text-red-700',
+      countered: 'bg-blue-100 text-blue-700',
+      expired: 'bg-gray-100 text-gray-500'
+    };
+    return statusColors[bid.status] || 'bg-gray-100 text-gray-500';
+  };
 
   return (
     <div className="p-3 max-w-full">
@@ -224,18 +260,18 @@ const ListingsManagement = () => {
         <>
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '70vh' }}>
-              <table className="min-w-[1800px] w-max text-[11px]">
+              <table className="min-w-[2200px] w-max text-[11px]">
                 <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
                   <tr>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Post ID</th>
                     <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Company</th>
                     <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Type</th>
                     <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">User</th>
                     <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Qty</th>
                     <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Price/Share</th>
-                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Base Amt</th>
-                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Fee (2%)</th>
-                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Total</th>
-                    <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Bids</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Total Value</th>
+                    <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Bids/Offers</th>
+                    <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Counters</th>
                     <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Views</th>
                     <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Created</th>
                     <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Expires</th>
@@ -245,117 +281,225 @@ const ListingsManagement = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {listings.map((listing) => (
-                    <tr key={listing._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-2 py-1.5 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {listing.companyId?.logo ? (
-                            <img src={listing.companyId.logo} alt="" className="w-6 h-6 rounded object-cover" />
-                          ) : (
-                            <div className="w-6 h-6 rounded bg-primary-100 flex items-center justify-center">
-                              <span className="text-primary-700 font-bold text-[9px]">
-                                {listing.companyName?.[0] || 'C'}
+                  {sortedListings.map((listing) => {
+                    const hasBids = listing.bids && listing.bids.length > 0;
+                    const pendingBids = listing.bids?.filter(b => b.status === 'pending').length || 0;
+                    const counteredBids = listing.bids?.filter(b => b.status === 'countered').length || 0;
+                    const totalCounterOffers = listing.bids?.reduce((sum, b) => sum + (b.counterHistory?.length || 0), 0) || 0;
+                    const isExpanded = expandedBids[listing._id];
+                    const isInactive = listing.status !== 'active';
+                    
+                    return (
+                      <React.Fragment key={listing._id}>
+                        <tr className={`hover:bg-gray-50 transition-colors ${isInactive ? 'bg-gray-50 opacity-70' : ''}`}>
+                          {/* Post ID */}
+                          <td className="px-2 py-1.5 whitespace-nowrap">
+                            <div className="flex items-center gap-1">
+                              <Hash size={10} className="text-gray-400" />
+                              <span className="font-mono text-[10px] font-bold text-indigo-600" title={listing._id}>
+                                {getPostId(listing._id)}
                               </span>
                             </div>
-                          )}
-                          <div>
-                            <p className="font-medium text-gray-900 text-[11px] truncate max-w-[150px]" title={listing.companyName}>{listing.companyName}</p>
-                            {listing.companyId?.scriptName && (
-                              <p className="text-[9px] text-gray-500">{listing.companyId.scriptName}</p>
+                          </td>
+                          {/* Company */}
+                          <td className="px-2 py-1.5 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              {listing.companyId?.logo ? (
+                                <img src={listing.companyId.logo} alt="" className="w-6 h-6 rounded object-cover" />
+                              ) : (
+                                <div className="w-6 h-6 rounded bg-primary-100 flex items-center justify-center">
+                                  <span className="text-primary-700 font-bold text-[9px]">
+                                    {listing.companyName?.[0] || 'C'}
+                                  </span>
+                                </div>
+                              )}
+                              <div>
+                                <p className="font-medium text-gray-900 text-[11px] truncate max-w-[120px]" title={listing.companyName}>{listing.companyName}</p>
+                                {listing.companyId?.scriptName && (
+                                  <p className="text-[9px] text-gray-500">{listing.companyId.scriptName}</p>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          {/* Type */}
+                          <td className="px-2 py-1.5 whitespace-nowrap">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                              listing.type === 'sell' 
+                                ? 'bg-green-100 text-green-700' 
+                                : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {listing.type === 'sell' ? 'SELL' : 'BUY'}
+                            </span>
+                          </td>
+                          {/* User */}
+                          <td className="px-2 py-1.5 whitespace-nowrap">
+                            <div>
+                              <p className="text-[11px] font-medium text-gray-900">
+                                {listing.userId?.fullName || 'N/A'}
+                              </p>
+                              <p className="text-[9px] text-gray-500">@{listing.username}</p>
+                            </div>
+                          </td>
+                          {/* Qty */}
+                          <td className="px-2 py-1.5 whitespace-nowrap font-medium text-gray-900">
+                            {formatNumber(listing.quantity)}
+                          </td>
+                          {/* Price/Share */}
+                          <td className="px-2 py-1.5 whitespace-nowrap font-medium text-gray-900">
+                            {formatCurrency(listing.price)}
+                          </td>
+                          {/* Total Value */}
+                          <td className="px-2 py-1.5 whitespace-nowrap font-bold text-green-600">
+                            {formatCurrency(listing.price * listing.quantity)}
+                          </td>
+                          {/* Bids/Offers with expand button */}
+                          <td className="px-2 py-1.5 text-center whitespace-nowrap">
+                            <div className="flex items-center justify-center gap-1">
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                hasBids ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'
+                              }`}>
+                                {listing.bids?.length || 0}
+                              </span>
+                              {pendingBids > 0 && (
+                                <span className="px-1 py-0.5 rounded text-[9px] font-medium bg-yellow-100 text-yellow-700">
+                                  {pendingBids} new
+                                </span>
+                              )}
+                              {hasBids && (
+                                <button
+                                  onClick={() => toggleBids(listing._id)}
+                                  className="p-0.5 hover:bg-gray-200 rounded"
+                                >
+                                  {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                          {/* Counter Offers */}
+                          <td className="px-2 py-1.5 text-center whitespace-nowrap">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                              totalCounterOffers > 0 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-500'
+                            }`}>
+                              {totalCounterOffers}
+                            </span>
+                            {counteredBids > 0 && (
+                              <span className="ml-1 px-1 py-0.5 rounded text-[9px] font-medium bg-blue-100 text-blue-700">
+                                {counteredBids} pending
+                              </span>
                             )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-2 py-1.5 whitespace-nowrap">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                          listing.type === 'sell' 
-                            ? 'bg-green-100 text-green-700' 
-                            : 'bg-blue-100 text-blue-700'
-                        }`}>
-                          {listing.type === 'sell' ? 'SELL' : 'BUY'}
-                        </span>
-                      </td>
-                      <td className="px-2 py-1.5 whitespace-nowrap">
-                        <div>
-                          <p className="text-[11px] font-medium text-gray-900">
-                            {listing.userId?.fullName || 'N/A'}
-                          </p>
-                          <p className="text-[9px] text-gray-500">@{listing.username}</p>
-                        </div>
-                      </td>
-                      <td className="px-2 py-1.5 whitespace-nowrap font-medium text-gray-900">
-                        {formatNumber(listing.quantity)}
-                      </td>
-                      <td className="px-2 py-1.5 whitespace-nowrap font-medium text-gray-900">
-                        {formatCurrency(listing.price)}
-                      </td>
-                      <td className="px-2 py-1.5 whitespace-nowrap text-gray-700">
-                        {formatCurrency(listing.baseAmount || (listing.price * listing.quantity))}
-                      </td>
-                      <td className="px-2 py-1.5 whitespace-nowrap text-orange-600 font-medium">
-                        {formatCurrency(listing.platformFee || ((listing.price * listing.quantity * 2) / 100))}
-                      </td>
-                      <td className="px-2 py-1.5 whitespace-nowrap font-bold text-green-600">
-                        {formatCurrency(listing.totalAmount || (listing.price * listing.quantity * 1.02))}
-                      </td>
-                      <td className="px-2 py-1.5 text-center whitespace-nowrap">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                          (listing.bids?.length || 0) > 0 ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'
-                        }`}>
-                          {listing.bids?.length || 0}
-                        </span>
-                      </td>
-                      <td className="px-2 py-1.5 text-center whitespace-nowrap text-gray-600">
-                        {listing.views || 0}
-                      </td>
-                      <td className="px-2 py-1.5 whitespace-nowrap">
-                        <div className="flex items-center gap-1 text-[10px] text-gray-600">
-                          <Calendar size={10} />
-                          {formatDate(listing.createdAt)}
-                        </div>
-                      </td>
-                      <td className="px-2 py-1.5 whitespace-nowrap">
-                        <div className="text-[10px] text-gray-500">
-                          {listing.expiresAt ? formatDate(listing.expiresAt) : '-'}
-                        </div>
-                      </td>
-                      <td className="px-2 py-1.5 text-center whitespace-nowrap">
-                        {listing.isBoosted ? (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-100 text-yellow-700">
-                            ⚡ Yes
-                          </span>
-                        ) : (
-                          <span className="text-gray-400 text-[10px]">No</span>
+                          </td>
+                          {/* Views */}
+                          <td className="px-2 py-1.5 text-center whitespace-nowrap text-gray-600">
+                            {listing.views || 0}
+                          </td>
+                          {/* Created */}
+                          <td className="px-2 py-1.5 whitespace-nowrap">
+                            <div className="flex items-center gap-1 text-[10px] text-gray-600">
+                              <Calendar size={10} />
+                              {formatDate(listing.createdAt)}
+                            </div>
+                          </td>
+                          {/* Expires */}
+                          <td className="px-2 py-1.5 whitespace-nowrap">
+                            <div className="text-[10px] text-gray-500">
+                              {listing.expiresAt ? formatDate(listing.expiresAt) : '-'}
+                            </div>
+                          </td>
+                          {/* Boosted */}
+                          <td className="px-2 py-1.5 text-center whitespace-nowrap">
+                            {listing.isBoosted ? (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-100 text-yellow-700">
+                                ⚡ Yes
+                              </span>
+                            ) : (
+                              <span className="text-gray-400 text-[10px]">No</span>
+                            )}
+                          </td>
+                          {/* Status */}
+                          <td className="px-2 py-1.5 whitespace-nowrap">
+                            <select
+                              value={listing.status}
+                              onChange={(e) => handleStatusChange(listing._id, e.target.value)}
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-medium border-0 cursor-pointer ${
+                                listing.status === 'active' ? 'bg-green-100 text-green-700' :
+                                listing.status === 'sold' ? 'bg-purple-100 text-purple-700' :
+                                listing.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}
+                            >
+                              <option value="active">Active</option>
+                              <option value="sold">Sold</option>
+                              <option value="cancelled">Cancelled</option>
+                              <option value="expired">Expired</option>
+                            </select>
+                          </td>
+                          {/* Actions */}
+                          <td className="px-2 py-1.5 text-center">
+                            <button
+                              onClick={() => handleDelete(listing._id, listing.companyName)}
+                              className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                        
+                        {/* Expanded Bids Section */}
+                        {isExpanded && hasBids && (
+                          <tr className="bg-indigo-50">
+                            <td colSpan="15" className="px-4 py-2">
+                              <div className="text-[10px]">
+                                <div className="font-bold text-indigo-700 mb-2 flex items-center gap-1">
+                                  <MessageSquare size={12} />
+                                  Bids & Counter Offers for {getPostId(listing._id)}
+                                </div>
+                                <div className="space-y-2">
+                                  {listing.bids.map((bid, idx) => (
+                                    <div key={bid._id || idx} className="bg-white rounded-lg p-2 border border-indigo-200">
+                                      <div className="flex items-center justify-between flex-wrap gap-2">
+                                        <div className="flex items-center gap-3">
+                                          <span className="font-mono text-indigo-600 font-bold">BID-{(idx + 1).toString().padStart(2, '0')}</span>
+                                          <span className="text-gray-700">@{bid.username || 'Unknown'}</span>
+                                          <span className="font-medium">Qty: {formatNumber(bid.quantity)}</span>
+                                          <span className="font-bold text-green-600">{formatCurrency(bid.price)}/share</span>
+                                          <span className="text-gray-500">Total: {formatCurrency(bid.price * bid.quantity)}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${getBidStatusBadge(bid)}`}>
+                                            {bid.status?.toUpperCase() || 'PENDING'}
+                                          </span>
+                                          <span className="text-gray-400 text-[9px]">
+                                            {formatDate(bid.createdAt)}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Counter History */}
+                                      {bid.counterHistory && bid.counterHistory.length > 0 && (
+                                        <div className="mt-2 pl-4 border-l-2 border-orange-300 space-y-1">
+                                          <div className="text-orange-600 font-medium text-[9px]">Counter Offer History:</div>
+                                          {bid.counterHistory.map((counter, cIdx) => (
+                                            <div key={cIdx} className="flex items-center gap-3 text-[9px] bg-orange-50 rounded px-2 py-1">
+                                              <span className="font-mono text-orange-600">#{cIdx + 1}</span>
+                                              <span className="text-gray-600">By: {counter.by || 'Unknown'}</span>
+                                              <span className="font-medium">{formatCurrency(counter.price)}/share</span>
+                                              <span className="text-gray-500">{counter.quantity && `Qty: ${formatNumber(counter.quantity)}`}</span>
+                                              <span className="text-gray-400">{counter.createdAt && formatDate(counter.createdAt)}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
                         )}
-                      </td>
-                      <td className="px-2 py-1.5 whitespace-nowrap">
-                        <select
-                          value={listing.status}
-                          onChange={(e) => handleStatusChange(listing._id, e.target.value)}
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-medium border-0 cursor-pointer ${
-                            listing.status === 'active' ? 'bg-green-100 text-green-700' :
-                            listing.status === 'sold' ? 'bg-purple-100 text-purple-700' :
-                            listing.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                            'bg-gray-100 text-gray-700'
-                          }`}
-                        >
-                          <option value="active">Active</option>
-                          <option value="sold">Sold</option>
-                          <option value="cancelled">Cancelled</option>
-                          <option value="expired">Expired</option>
-                        </select>
-                      </td>
-                      <td className="px-2 py-1.5">
-                        <button
-                          onClick={() => handleDelete(listing._id, listing.companyName)}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                      </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
