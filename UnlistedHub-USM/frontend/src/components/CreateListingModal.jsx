@@ -506,8 +506,10 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                   )}
 
                   <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-                    <p className="text-xs text-blue-600 font-semibold mb-1">Platform Fee</p>
-                    <p className="text-sm text-gray-700">2% fee (₹{(parseFloat(formData.price) * 0.02).toFixed(2)}) will be added</p>
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-gray-900">Total Value</span>
+                      <span className="font-bold text-primary-600 text-lg">₹{(parseFloat(formData.price) * parseFloat(formData.quantity)).toLocaleString('en-IN')}</span>
+                    </div>
                   </div>
                 </div>
 
