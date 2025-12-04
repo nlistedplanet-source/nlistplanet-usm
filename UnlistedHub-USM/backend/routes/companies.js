@@ -73,4 +73,90 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
+// @route   GET /api/companies/:id/highlights
+// @desc    Get company highlights for share card
+// @access  Public
+router.get('/:id/highlights', async (req, res, next) => {
+  try {
+    const company = await Company.findById(req.params.id).select('name scriptName sector highlights description foundedYear');
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found'
+      });
+    }
+
+    // Generate default highlights if none exist
+    let highlights = company.highlights || [];
+    
+    if (highlights.length === 0) {
+      // Auto-generate basic highlights
+      const autoHighlights = [];
+      if (company.sector) autoHighlights.push(`Sector: ${company.sector}`);
+      if (company.foundedYear) autoHighlights.push(`Established: ${company.foundedYear}`);
+      if (company.description) {
+        // Extract first meaningful sentence
+        const firstSentence = company.description.split('.')[0];
+        if (firstSentence && firstSentence.length < 100) {
+          autoHighlights.push(firstSentence);
+        }
+      }
+      autoHighlights.push('Pre-IPO Unlisted Share');
+      autoHighlights.push('Trade on NlistPlanet');
+      highlights = autoHighlights.slice(0, 4);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        companyId: company._id,
+        name: company.name,
+        scriptName: company.scriptName,
+        sector: company.sector,
+        highlights: highlights.slice(0, 4) // Max 4 highlights
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   PUT /api/companies/:id/highlights
+// @desc    Update company highlights (Admin only)
+// @access  Private/Admin
+router.put('/:id/highlights', async (req, res, next) => {
+  try {
+    const { highlights } = req.body;
+
+    if (!Array.isArray(highlights) || highlights.length > 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'Highlights must be an array with max 5 items'
+      });
+    }
+
+    const company = await Company.findByIdAndUpdate(
+      req.params.id,
+      { highlights: highlights.map(h => h.trim()).filter(h => h.length > 0) },
+      { new: true }
+    );
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Highlights updated',
+      data: company
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

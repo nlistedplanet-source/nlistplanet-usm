@@ -44,6 +44,12 @@ const companySchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  // Company highlights for share cards
+  highlights: {
+    type: [String],
+    default: [],
+    maxlength: 5
+  },
   totalListings: {
     type: Number,
     default: 0
