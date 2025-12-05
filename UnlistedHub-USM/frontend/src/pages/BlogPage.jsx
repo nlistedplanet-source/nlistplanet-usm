@@ -18,7 +18,7 @@ import {
 import axios from 'axios';
 import TopBar from '../components/TopBar';
 
-const API_BASE = process.env.REACT_APP_API_URL || '';
+const API_BASE = process.env.REACT_APP_API_URL || 'https://nlistplanet-usm-v8dc.onrender.com';
 
 const BlogPage = () => {
   const navigate = useNavigate();

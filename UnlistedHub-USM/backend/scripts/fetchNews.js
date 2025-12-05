@@ -12,9 +12,14 @@ import mongoose from 'mongoose';
 import Parser from 'rss-parser';
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import News from '../models/News.js';
 
-dotenv.config();
+// Fix path for dotenv when running from scripts folder
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: join(__dirname, '..', '.env') });
 
 // Connect to MongoDB
 const connectDB = async () => {
