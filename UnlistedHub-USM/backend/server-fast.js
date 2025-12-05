@@ -10,6 +10,12 @@ import mongoose from 'mongoose';
 // Load env vars
 dotenv.config();
 
+// Validate required env vars
+if (!process.env.MONGODB_URI) {
+  console.error('❌ MONGODB_URI environment variable is required');
+  process.exit(1);
+}
+
 // Connect to MongoDB
 mongoose.set('strictQuery', false);
 mongoose.connect(process.env.MONGODB_URI)
