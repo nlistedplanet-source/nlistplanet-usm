@@ -18,7 +18,8 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import TopBar from '../components/TopBar';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'https://nlistplanet-usm-v8dc.onrender.com';
+// API_BASE should be base URL without /api suffix
+const API_BASE = process.env.REACT_APP_API_URL?.replace(/\/api\/?$/, '') || 'https://nlistplanet-usm-v8dc.onrender.com';
 
 const BlogDetailPage = () => {
   const { id } = useParams();
