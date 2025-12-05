@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Loader, TrendingDown, CheckCircle, XCircle, MessageCircle, X, DollarSign, Package } from 'lucide-react';
+import { Loader, TrendingDown, CheckCircle, XCircle, Send, X, DollarSign, Package } from 'lucide-react';
 import { listingsAPI } from '../../utils/api';
 import { formatCurrency, formatDate, getStatusColor } from '../../utils/helpers';
 import toast from 'react-hot-toast';
@@ -10,7 +10,7 @@ const OffersTab = () => {
   const [actionLoading, setActionLoading] = useState(null);
   const [showCounterModal, setShowCounterModal] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState(null);
-  const [counterData, setCounterData] = useState({ price: '', quantity: '', message: '' });
+  const [counterData, setCounterData] = useState({ price: '', quantity: '' });
 
   useEffect(() => {
     fetchOffers();
@@ -73,8 +73,7 @@ const OffersTab = () => {
     setSelectedOffer(offer);
     setCounterData({
       price: offer.price.toString(),
-      quantity: offer.quantity.toString(),
-      message: ''
+      quantity: offer.quantity.toString()
     });
     setShowCounterModal(true);
   };
@@ -88,14 +87,13 @@ const OffersTab = () => {
         selectedOffer._id,
         {
           price: parseFloat(counterData.price),
-          quantity: parseInt(counterData.quantity),
-          message: counterData.message
+          quantity: parseInt(counterData.quantity)
         }
       );
       toast.success('Counter offer sent successfully! 💬');
       setShowCounterModal(false);
       setSelectedOffer(null);
-      setCounterData({ price: '', quantity: '', message: '' });
+      setCounterData({ price: '', quantity: '' });
       fetchOffers();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to send counter offer');
@@ -291,20 +289,6 @@ const OffersTab = () => {
                 </div>
               </div>
 
-              {/* Message Input */}
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Message (optional)
-                </label>
-                <textarea
-                  value={counterData.message}
-                  onChange={(e) => setCounterData({ ...counterData, message: e.target.value })}
-                  rows="3"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all resize-none"
-                  placeholder="Add a message for the offerer..."
-                />
-              </div>
-
               {/* Total Amount Display */}
               {counterData.price && counterData.quantity && (
                 <div className="bg-emerald-50 rounded-xl p-4 mb-6">
@@ -330,7 +314,7 @@ const OffersTab = () => {
                   </>
                 ) : (
                   <>
-                    <MessageCircle size={20} />
+                    <Send size={20} />
                     Send Counter Offer
                   </>
                 )}

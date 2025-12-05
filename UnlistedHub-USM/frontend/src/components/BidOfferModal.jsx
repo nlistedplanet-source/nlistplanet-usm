@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { X, IndianRupee, Package, MessageCircle, Send } from 'lucide-react';
+import { X, IndianRupee, Package, Send } from 'lucide-react';
 import { listingsAPI } from '../utils/api';
-import { formatCurrency, calculateTotalWithFee, calculatePlatformFee, numberToWords } from '../utils/helpers';
+import { formatCurrency, numberToWords } from '../utils/helpers';
 import toast from 'react-hot-toast';
 
 // Format quantity in shorthand

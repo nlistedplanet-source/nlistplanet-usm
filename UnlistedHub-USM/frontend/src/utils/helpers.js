@@ -38,42 +38,38 @@ export const calculateSellerGets = (price) => {
 
 /**
  * Get display price based on listing type and viewer
+ * Platform fee model: Company always earns 2%
+ * - SELL listing: Buyer pays price + 2%
+ * - BUY listing: Seller gets price - 2%
+ * 
  * @param {number} price - Original listing price
  * @param {string} listingType - 'sell' or 'buy'
  * @param {boolean} isOwner - Is the current user the listing owner
- * @returns {object} { buyerPays, sellerGets, displayPrice, label }
+ * @returns {object} { displayPrice, label }
  */
 export const getPriceDisplay = (price, listingType, isOwner = false) => {
   const isSell = listingType === 'sell';
-  const buyerPays = calculateBuyerPays(price);
-  const sellerGets = isSell ? price : calculateSellerGets(price);
   
   if (isOwner) {
     // Owner sees original price
     return {
-      buyerPays,
-      sellerGets,
       displayPrice: price,
       label: 'Your Price'
     };
   }
   
-  // Other users see price with fee
+  // Other users see price with fee applied (no breakdown shown)
   if (isSell) {
-    // SELL listing: Other users are buyers, show what they pay
+    // SELL listing: Other users are buyers, show what they pay (price + 2%)
     return {
-      buyerPays,
-      sellerGets,
-      displayPrice: buyerPays,
-      label: 'Buyer Pays'
+      displayPrice: calculateBuyerPays(price),
+      label: 'Price'
     };
   } else {
-    // BUY listing: Other users are sellers, show what they get
+    // BUY listing: Other users are sellers, show what they get (price - 2%)
     return {
-      buyerPays,
-      sellerGets,
-      displayPrice: sellerGets,
-      label: 'Seller Gets'
+      displayPrice: calculateSellerGets(price),
+      label: 'Price'
     };
   }
 };
