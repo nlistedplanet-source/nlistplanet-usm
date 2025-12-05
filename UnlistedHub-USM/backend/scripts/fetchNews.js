@@ -41,19 +41,10 @@ const parser = new Parser({
 
 // RSS Feed Sources for Unlisted/Pre-IPO/Stock Market News
 const RSS_FEEDS = [
+  // ===== A. INDIA BUSINESS & MARKET NEWS =====
   {
     url: 'https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms',
     name: 'Economic Times Markets',
-    category: 'Market'
-  },
-  {
-    url: 'https://www.moneycontrol.com/rss/MCtopnews.xml',
-    name: 'Moneycontrol',
-    category: 'Market'
-  },
-  {
-    url: 'https://www.livemint.com/rss/markets',
-    name: 'Livemint Markets',
     category: 'Market'
   },
   {
@@ -62,9 +53,92 @@ const RSS_FEEDS = [
     category: 'IPO'
   },
   {
-    url: 'https://www.business-standard.com/rss/markets-106.rss',
-    name: 'Business Standard',
+    url: 'https://www.livemint.com/rss/markets',
+    name: 'Livemint Markets',
     category: 'Market'
+  },
+  {
+    url: 'https://www.livemint.com/rss/business',
+    name: 'Livemint Business',
+    category: 'Market'
+  },
+  {
+    url: 'https://www.business-standard.com/rss/markets-106.rss',
+    name: 'Business Standard Markets',
+    category: 'Market'
+  },
+  {
+    url: 'https://www.moneycontrol.com/rss/MCtopnews.xml',
+    name: 'Moneycontrol Top News',
+    category: 'Market'
+  },
+  {
+    url: 'https://www.thehindubusinessline.com/feeder/default.rss',
+    name: 'The Hindu Business Line',
+    category: 'Market'
+  },
+  {
+    url: 'https://www.financialexpress.com/feed/',
+    name: 'Financial Express',
+    category: 'Market'
+  },
+  
+  // ===== B. STARTUP, FUNDING & PRIVATE MARKET =====
+  {
+    url: 'https://techcrunch.com/feed/',
+    name: 'TechCrunch',
+    category: 'Startup'
+  },
+  
+  // ===== C. INTERNATIONAL MARKET & FINANCIAL NEWS =====
+  {
+    url: 'https://finance.yahoo.com/news/rssindex',
+    name: 'Yahoo Finance',
+    category: 'Market'
+  },
+  {
+    url: 'https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best',
+    name: 'Reuters Markets',
+    category: 'Market'
+  },
+  {
+    url: 'https://www.cnbc.com/id/100003114/device/rss/rss.html',
+    name: 'CNBC World',
+    category: 'Market'
+  },
+  {
+    url: 'https://www.marketwatch.com/rss/topstories',
+    name: 'MarketWatch',
+    category: 'Market'
+  },
+  
+  // ===== D. GOOGLE NEWS - KEYWORD BASED =====
+  {
+    url: 'https://news.google.com/rss/search?q=unlisted+shares+india&hl=en-IN&gl=IN&ceid=IN:en',
+    name: 'Google News - Unlisted Shares',
+    category: 'Unlisted'
+  },
+  {
+    url: 'https://news.google.com/rss/search?q=pre+ipo+india&hl=en-IN&gl=IN&ceid=IN:en',
+    name: 'Google News - Pre-IPO',
+    category: 'IPO'
+  },
+  {
+    url: 'https://news.google.com/rss/search?q=startup+funding+india&hl=en-IN&gl=IN&ceid=IN:en',
+    name: 'Google News - Startup Funding',
+    category: 'Startup'
+  },
+  {
+    url: 'https://news.google.com/rss/search?q=IPO+india&hl=en-IN&gl=IN&ceid=IN:en',
+    name: 'Google News - IPO India',
+    category: 'IPO'
+  },
+  
+  // ===== E. GOVERNMENT & REGULATORY =====
+  {
+    url: 'https://www.sebi.gov.in/rss',
+    name: 'SEBI Press Releases',
+    category: 'Regulatory'
   }
 ];
 
@@ -86,6 +160,12 @@ const detectCategory = (title, summary) => {
   }
   if (text.includes('unlisted') || text.includes('pre ipo')) {
     return 'Unlisted';
+  }
+  if (text.includes('startup') || text.includes('funding') || text.includes('venture') || text.includes('series a') || text.includes('series b')) {
+    return 'Startup';
+  }
+  if (text.includes('sebi') || text.includes('rbi') || text.includes('regulation') || text.includes('compliance') || text.includes('ministry')) {
+    return 'Regulatory';
   }
   if (text.includes('analysis') || text.includes('outlook') || text.includes('forecast')) {
     return 'Analysis';

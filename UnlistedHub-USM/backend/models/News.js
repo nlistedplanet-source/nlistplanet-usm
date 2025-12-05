@@ -17,7 +17,7 @@ const newsSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['IPO', 'Market', 'Company', 'Unlisted', 'Pre-IPO', 'General', 'Analysis'],
+    enum: ['IPO', 'Market', 'Company', 'Unlisted', 'Pre-IPO', 'General', 'Analysis', 'Startup', 'Regulatory'],
     default: 'General'
   },
   thumbnail: {
