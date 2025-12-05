@@ -4,14 +4,17 @@
  * This script automatically fetches news from RSS feeds and APIs,
  * summarizes them (Inshorts-style 60-80 words), and stores in database.
  * 
- * Run via cron job: 0 */6 * * * (every 6 hours)
+ * Run via cron job: 0 *\/6 * * * (every 6 hours)
  * Or manually: node scripts/fetchNews.js
  */
 
-const mongoose = require('mongoose');
-const Parser = require('rss-parser');
-const axios = require('axios');
-require('dotenv').config();
+import mongoose from 'mongoose';
+import Parser from 'rss-parser';
+import axios from 'axios';
+import dotenv from 'dotenv';
+import News from '../models/News.js';
+
+dotenv.config();
 
 // Connect to MongoDB
 const connectDB = async () => {
@@ -23,9 +26,6 @@ const connectDB = async () => {
     process.exit(1);
   }
 };
-
-// News model
-const News = require('../models/News');
 
 // RSS Parser
 const parser = new Parser({
