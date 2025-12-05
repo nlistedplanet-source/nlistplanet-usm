@@ -1,6 +1,6 @@
 import express from 'express';
 import News from '../models/News.js';
-import auth from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -13,7 +13,7 @@ const isAdmin = (req, res, next) => {
 };
 
 // GET /api/admin/news - Get all news (including unpublished)
-router.get('/', auth, isAdmin, async (req, res) => {
+router.get('/', protect, isAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 20, status } = req.query;
     
@@ -43,7 +43,7 @@ router.get('/', auth, isAdmin, async (req, res) => {
 });
 
 // POST /api/admin/news - Create news article
-router.post('/', auth, isAdmin, async (req, res) => {
+router.post('/', protect, isAdmin, async (req, res) => {
   try {
     const {
       title,
@@ -89,7 +89,7 @@ router.post('/', auth, isAdmin, async (req, res) => {
 });
 
 // PUT /api/admin/news/:id - Update news article
-router.put('/:id', auth, isAdmin, async (req, res) => {
+router.put('/:id', protect, isAdmin, async (req, res) => {
   try {
     const updates = req.body;
     
@@ -110,7 +110,7 @@ router.put('/:id', auth, isAdmin, async (req, res) => {
 });
 
 // DELETE /api/admin/news/:id - Delete news article
-router.delete('/:id', auth, isAdmin, async (req, res) => {
+router.delete('/:id', protect, isAdmin, async (req, res) => {
   try {
     const news = await News.findByIdAndDelete(req.params.id);
 
@@ -125,7 +125,7 @@ router.delete('/:id', auth, isAdmin, async (req, res) => {
 });
 
 // POST /api/admin/news/:id/toggle-publish - Toggle publish status
-router.post('/:id/toggle-publish', auth, isAdmin, async (req, res) => {
+router.post('/:id/toggle-publish', protect, isAdmin, async (req, res) => {
   try {
     const news = await News.findById(req.params.id);
     
@@ -146,7 +146,7 @@ router.post('/:id/toggle-publish', auth, isAdmin, async (req, res) => {
 });
 
 // POST /api/admin/news/:id/toggle-featured - Toggle featured status
-router.post('/:id/toggle-featured', auth, isAdmin, async (req, res) => {
+router.post('/:id/toggle-featured', protect, isAdmin, async (req, res) => {
   try {
     const news = await News.findById(req.params.id);
     
