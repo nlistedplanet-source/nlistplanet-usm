@@ -89,6 +89,7 @@ const allowedOriginsArray = [
   process.env.FRONTEND_URL,
   'https://nlistplanet.com',
   'https://www.nlistplanet.com',
+  'https://mobile.nlistplanet.com',
   'https://nlistplanet-iaefn2dmm-nlist-planets-projects.vercel.app',
   'https://nlistplanet-app.vercel.app',
   ...extraOrigins
