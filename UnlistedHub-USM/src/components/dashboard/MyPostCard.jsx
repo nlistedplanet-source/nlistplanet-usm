@@ -145,9 +145,54 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
   };
 
   const handleShare = async () => {
-    const deeplink = `${window.location.origin}/listing/${listing._id}?ref=${listing.user?._id || 'guest'}&source=share`;
-    const hashtags = [`#UnlistedShare`, `#NlistPlanet`, `#${(script || '').replace(/[^a-zA-Z0-9]/g, '')}`].join(' ');
-    const caption = `Check out this unlisted share of ${script} listed on Nlist Planet.\nAsk Price: ${price} • Quantity: ${qty}\n${deeplink}\n\n${hashtags}`;
+    // Main site referral link for tracking
+    const referralLink = `https://nlistplanet.com/listing/${listing._id}?ref=${listing.user?._id || 'guest'}&source=share`;
+    
+    // Get company sector
+    const sector = listing.companyId?.Sector || listing.companyId?.sector || 'Unlisted Share';
+    const highlights = [
+      `Sector: ${sector}`,
+      'Pre-IPO Investment Opportunity',
+      'Verified on NlistPlanet'
+    ];
+    
+    // Professional Share Caption
+    const caption = `━━━━━━━━━━━━━━━━━━━━━
+   📈 N L I S T P L A N E T
+      Trade Unlisted Shares
+━━━━━━━━━━━━━━━━━━━━━
+
+🏷️ *UNLISTED SHARE*
+
+═══════════════════════════
+
+        ${isSell ? '🟢 *SELLING*' : '🔵 *BUYING*'}
+
+━━━━━━━━━━━━━━━━━━━━━
+
+🏢 *${script}*
+    ${sector}
+
+${highlights.map(h => `✦ ${h}`).join('\n')}
+
+━━━━━━━━━━━━━━━━━━━━━
+  💰 PRICE       ${price}/share
+  📦 QUANTITY    ${qty} shares
+━━━━━━━━━━━━━━━━━━━━━
+
+👉 *View & Trade:* ${referralLink}
+
+═══════════════════════════
+
+⚠️ *IMPORTANT DISCLAIMER*
+
+• Unlisted shares are NOT traded on NSE/BSE
+• HIGH RISK investment - Do your research
+• NlistPlanet is a marketplace, not an advisor
+
+━━━━━━━━━━━━━━━━━━━━━
+🔒 Verified • Secure • Trusted
+━━━━━━━━━━━━━━━━━━━━━`;
 
     try {
       // First: Try html-to-image DOM capture (pixel-perfect)
@@ -159,7 +204,7 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
             // Try native share with file + caption
             if (navigator.canShare?.({ files: [file] })) {
               try {
-                await navigator.share({ files: [file], title: `${script} on Nlist Planet`, text: caption });
+                await navigator.share({ files: [file], title: `${script} on NlistPlanet`, text: caption });
                 toast.success('Shared successfully! 🎉');
                 return;
               } catch (e) {
@@ -178,24 +223,26 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
             return;
           }
         } catch (e) {
-          console.warn('html-to-image failed, trying canvas:', e);
+          console.warn('html-to-image failed, trying native share:', e);
         }
       }
 
-      // Fallback: navigator.share with text + deeplink
+      // Native share with text + referral link
       if (navigator.share) {
         try {
-          await navigator.share({ title: `${script} on Nlist Planet`, text: caption, url: deeplink });
+          await navigator.share({ title: `${script} on NlistPlanet`, text: caption, url: referralLink });
           toast.success('Shared successfully! 🎉');
           return;
         } catch (e) {
+          if (e.name === 'AbortError') return;
           console.warn('navigator.share(text) failed:', e);
         }
       }
 
-      // Last resort: copy caption to clipboard
-      await navigator.clipboard.writeText(caption);
-      toast.success('Caption copied to clipboard! Share manually on WhatsApp.');
+      // Fallback: Open WhatsApp directly
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(caption)}`;
+      window.open(whatsappUrl, '_blank');
+      toast.success('Opening WhatsApp... 📱');
     } catch (err) {
       console.error('Share error:', err);
       toast.error('Unable to share. Please try again.');

@@ -156,25 +156,83 @@ const DashboardPage = () => {
   };
 
   const handleShare = async (listing) => {
-    const shareUrl = `${window.location.origin}/marketplace?listing=${listing._id}`;
-    const shareText = `Check out this ${listing.type === 'sell' ? 'selling' : 'buying'} opportunity: ${listing.companyName} at ${formatCurrency(listing.price)} per share`;
+    const isSell = listing.type === 'sell';
+    const price = formatCurrency(listing.price);
+    const qty = listing.quantity >= 100000 
+      ? (listing.quantity / 100000).toFixed(1) + ' Lakh' 
+      : listing.quantity >= 1000 
+      ? (listing.quantity / 1000).toFixed(1) + 'K' 
+      : listing.quantity?.toLocaleString('en-IN');
     
+    // Main site referral link for tracking
+    const referralLink = `https://nlistplanet.com/listing/${listing._id}?ref=${user?._id || 'guest'}&source=share`;
+    
+    // Get company sector
+    const sector = listing.companyId?.Sector || listing.companyId?.sector || 'Unlisted Share';
+    const highlights = [
+      `Sector: ${sector}`,
+      'Pre-IPO Investment Opportunity',
+      'Verified on NlistPlanet'
+    ];
+    
+    // Professional Share Caption
+    const caption = `━━━━━━━━━━━━━━━━━━━━━
+   📈 N L I S T P L A N E T
+      Trade Unlisted Shares
+━━━━━━━━━━━━━━━━━━━━━
+
+🏷️ *UNLISTED SHARE*
+
+═══════════════════════════
+
+        ${isSell ? '🟢 *SELLING*' : '🔵 *BUYING*'}
+
+━━━━━━━━━━━━━━━━━━━━━
+
+🏢 *${listing.companyName}*
+    ${sector}
+
+${highlights.map(h => `✦ ${h}`).join('\n')}
+
+━━━━━━━━━━━━━━━━━━━━━
+  💰 PRICE       ${price}/share
+  📦 QUANTITY    ${qty} shares
+━━━━━━━━━━━━━━━━━━━━━
+
+👉 *View & Trade:* ${referralLink}
+
+═══════════════════════════
+
+⚠️ *IMPORTANT DISCLAIMER*
+
+• Unlisted shares are NOT traded on NSE/BSE
+• HIGH RISK investment - Do your research
+• NlistPlanet is a marketplace, not an advisor
+
+━━━━━━━━━━━━━━━━━━━━━
+🔒 Verified • Secure • Trusted
+━━━━━━━━━━━━━━━━━━━━━`;
+
+    // Try native share first, then WhatsApp
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${listing.companyName} - NlistPlanet`,
-          text: shareText,
-          url: shareUrl
+          title: `${listing.companyName} - ${isSell ? 'SELL' : 'BUY'} on NlistPlanet`,
+          text: caption,
+          url: referralLink
         });
-        toast.success('Shared successfully!');
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          fallbackShare(shareUrl, shareText);
-        }
+        toast.success('Shared successfully! 🎉');
+        return;
+      } catch (e) {
+        if (e.name === 'AbortError') return;
+        // Fallback to WhatsApp
       }
-    } else {
-      fallbackShare(shareUrl, shareText);
     }
+    
+    // Fallback: Open WhatsApp directly or copy to clipboard
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(caption)}`;
+    window.open(whatsappUrl, '_blank');
+    toast.success('Opening WhatsApp... 📱');
   };
 
   const fallbackShare = (url, text) => {
