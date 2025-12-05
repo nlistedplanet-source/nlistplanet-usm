@@ -62,9 +62,8 @@ import transactionRoutes from './routes/transactions.js';
 import referralRoutes from './routes/referrals.js';
 import portfolioRoutes from './routes/portfolio.js';
 import adminRoutes from './routes/admin.js';
-// News routes - will be enabled after model verification
-// import newsRoutes from './routes/news.js';
-// import adminNewsRoutes from './routes/adminNews.js';
+import newsRoutes from './routes/news.js';
+import adminNewsRoutes from './routes/adminNews.js';
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -105,10 +104,8 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/referrals', referralRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/admin', adminRoutes);
-// News routes temporarily disabled
-// app.use('/api/news', newsRoutes);
-// app.use('/api/admin/news', adminNewsRoutes);
-// Note: OCR routes temporarily disabled for faster deployment
+app.use('/api/news', newsRoutes);
+app.use('/api/admin/news', adminNewsRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {
