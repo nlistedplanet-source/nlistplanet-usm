@@ -33,8 +33,30 @@ app.use(helmet({
   contentSecurityPolicy: false
 }));
 app.use(compression());
+
+// CORS - Allow desktop + mobile origins
+const allowedOrigins = [
+  'https://nlistplanet.com',
+  'https://www.nlistplanet.com',
+  'https://mobile.nlistplanet.com',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    // Allow Vercel preview deployments
+    if (origin.includes('vercel.app')) {
+      return callback(null, true);
+    }
+    return callback(null, true); // Allow all for now
+  },
   credentials: true
 }));
 

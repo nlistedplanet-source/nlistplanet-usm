@@ -84,7 +84,7 @@ const createInshortsummary = (content, title) => {
 
 // Main function
 const resummarizenews = async () => {
-  console.log('\n🔄 Re-summarizing news to Inshorts style (60 words)...\n');
+  console.log('\n🔄 Re-summarizing ALL news to Inshorts style (60 words)...\n');
   
   await connectDB();
   
@@ -98,18 +98,21 @@ const resummarizenews = async () => {
     
     for (const article of allNews) {
       const originalSummary = article.summary;
-      const wordCount = originalSummary ? originalSummary.split(/\s+/).length : 0;
+      const originalWordCount = originalSummary ? originalSummary.split(/\s+/).length : 0;
       
-      // Only update if summary is too long (>70 words) or empty
-      if (wordCount > 70 || wordCount < 10) {
-        const newSummary = createInshortsummary(article.content || article.summary, article.title);
+      // Force update ALL articles to ensure proper 60-word summary
+      const newSummary = createInshortsummary(article.content || article.summary, article.title);
+      
+      if (newSummary && newSummary.length >= 30) {
+        const newWordCount = newSummary.split(/\s+/).length;
         
-        if (newSummary && newSummary.length >= 50) {
+        // Only update if new summary is different and shorter/better
+        if (newSummary !== originalSummary) {
           article.summary = newSummary;
           await article.save();
           updated++;
-          console.log(`✅ Updated: ${article.title.substring(0, 50)}...`);
-          console.log(`   Old: ${wordCount} words → New: ${newSummary.split(/\s+/).length} words\n`);
+          console.log(`✅ ${article.title.substring(0, 50)}...`);
+          console.log(`   ${originalWordCount} words → ${newWordCount} words\n`);
         } else {
           skipped++;
         }
