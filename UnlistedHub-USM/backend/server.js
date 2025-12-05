@@ -22,6 +22,8 @@ import portfolioRoutes from './routes/portfolio.js';
 import adminRoutes from './routes/admin.js';
 import adminCompaniesRoutes from './routes/adminCompanies.js';
 import adsRoutes from './routes/ads.js';
+import newsRoutes from './routes/news.js';
+import adminNewsRoutes from './routes/adminNews.js';
 
 // Load environment variables
 dotenv.config();
@@ -210,8 +212,10 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/referrals', referralRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/ads', adsRoutes);
+app.use('/api/news', newsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin', adminCompaniesRoutes);
+app.use('/api/admin/news', adminNewsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
