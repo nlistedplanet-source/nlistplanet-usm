@@ -222,15 +222,6 @@ const summarizeContent = (content, maxWords = 60) => {
   }
   
   return summary || text.split(/\s+/).slice(0, maxWords).join(' ') + '...';
-      const remaining = maxWords - wordCount;
-      if (remaining > 5) {
-        summary += words.slice(0, remaining).join(' ') + '...';
-      }
-      break;
-    }
-  }
-  
-  return summary.trim() || text.split(/\s+/).slice(0, maxWords).join(' ') + '...';
 };
 
 // Extract thumbnail from RSS item
