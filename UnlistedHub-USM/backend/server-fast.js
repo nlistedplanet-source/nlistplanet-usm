@@ -56,6 +56,8 @@ import transactionRoutes from './routes/transactions.js';
 import referralRoutes from './routes/referrals.js';
 import portfolioRoutes from './routes/portfolio.js';
 import adminRoutes from './routes/admin.js';
+import newsRoutes from './routes/news.js';
+import adminNewsRoutes from './routes/adminNews.js';
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -81,6 +83,7 @@ app.get('/api', (req, res) => {
       transactions: '/api/transactions',
       referrals: '/api/referrals',
       portfolio: '/api/portfolio',
+      news: '/api/news',
       admin: '/api/admin'
     }
   });
@@ -95,6 +98,8 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/referrals', referralRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/news', newsRoutes);
+app.use('/api/admin/news', adminNewsRoutes);
 // Note: OCR routes temporarily disabled for faster deployment
 
 // Error handling
