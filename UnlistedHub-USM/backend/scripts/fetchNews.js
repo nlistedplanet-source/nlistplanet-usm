@@ -180,29 +180,48 @@ const detectCategory = (title, summary) => {
   return 'General';
 };
 
-// Summarize content to 60-80 words (Inshorts style)
-const summarizeContent = (content, maxWords = 75) => {
+// Summarize content to 60 words max (Inshorts style - crisp & concise)
+const summarizeContent = (content, maxWords = 60) => {
   if (!content) return '';
   
   // Remove HTML tags
   let text = content.replace(/<[^>]*>/g, '');
   
-  // Remove extra whitespace
+  // Remove extra whitespace, URLs, and special chars
+  text = text.replace(/https?:\/\/[^\s]+/g, ''); // Remove URLs
   text = text.replace(/\s+/g, ' ').trim();
+  text = text.replace(/\[\+\d+ chars\]/g, ''); // Remove [+123 chars] markers
   
   // Split into sentences
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim());
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
   
   let summary = '';
   let wordCount = 0;
   
   for (const sentence of sentences) {
-    const words = sentence.trim().split(/\s+/);
+    const cleanSentence = sentence.trim();
+    const words = cleanSentence.split(/\s+/);
+    
     if (wordCount + words.length <= maxWords) {
-      summary += sentence.trim() + '. ';
+      summary += cleanSentence + '. ';
       wordCount += words.length;
+    } else if (wordCount < 30) {
+      // If we have less than 30 words, add partial sentence
+      const remaining = maxWords - wordCount;
+      summary += words.slice(0, remaining).join(' ') + '...';
+      break;
     } else {
-      // Add partial sentence if needed
+      break;
+    }
+  }
+  
+  // Clean up and ensure proper ending
+  summary = summary.trim();
+  if (summary && !summary.endsWith('.') && !summary.endsWith('...')) {
+    summary += '.';
+  }
+  
+  return summary || text.split(/\s+/).slice(0, maxWords).join(' ') + '...';
       const remaining = maxWords - wordCount;
       if (remaining > 5) {
         summary += words.slice(0, remaining).join(' ') + '...';
