@@ -25,7 +25,8 @@ import {
   Settings,
   BarChart3,
   Building2,
-  Shield
+  Shield,
+  Newspaper
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { portfolioAPI, listingsAPI } from '../utils/api';
@@ -46,6 +47,7 @@ import ReportsManagement from '../components/admin/ReportsManagement';
 import PlatformSettings from '../components/admin/PlatformSettings';
 import AdManagement from '../components/admin/AdManagement';
 import ReferralTracking from '../components/admin/ReferralTracking';
+import NewsManagement from '../components/admin/NewsManagement';
 import MarketplaceCard from '../components/MarketplaceCard';
 import BidOfferModal from '../components/BidOfferModal';
 
@@ -309,6 +311,7 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
     { id: 'admin-listings', label: 'Listings Management', icon: FileText },
     { id: 'admin-transactions', label: 'Transactions', icon: IndianRupee },
     { id: 'admin-companies', label: 'Companies Management', icon: Building2 },
+    { id: 'admin-news', label: 'News/Blog', icon: Newspaper },
     { id: 'admin-ads', label: 'Ads Management', icon: Shield },
     { id: 'admin-referrals', label: 'Referral Tracking', icon: Gift },
     { id: 'admin-reports', label: 'Reports', icon: BarChart3 },
@@ -980,6 +983,10 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
 
         {user?.role === 'admin' && activeTab === 'admin-referrals' && (
           <ReferralTracking />
+        )}
+
+        {user?.role === 'admin' && activeTab === 'admin-news' && (
+          <NewsManagement />
         )}
 
         {user?.role === 'admin' && activeTab === 'admin-settings' && (

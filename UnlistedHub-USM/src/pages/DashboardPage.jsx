@@ -25,7 +25,8 @@ import {
   Settings,
   BarChart3,
   Building2,
-  Shield
+  Shield,
+  Newspaper
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { portfolioAPI, listingsAPI } from '../utils/api';
@@ -33,9 +34,11 @@ import { calculateTotalWithFee } from '../utils/helpers';
 import toast from 'react-hot-toast';
 import MyPostsTab from '../components/dashboard/MyPostsTab';
 import MyBidsOffersTab from '../components/dashboard/MyBidsOffersTab';
+import ReceivedBidsOffersTab from '../components/dashboard/ReceivedBidsOffersTab';
 import NotificationsTab from '../components/dashboard/NotificationsTab';
 import ReferralsTab from '../components/dashboard/ReferralsTab';
 import ProfileTab from '../components/dashboard/ProfileTab';
+import HistoryTab from '../components/dashboard/HistoryTab';
 import CompaniesManagement from '../components/admin/CompaniesManagement';
 import UserManagement from '../components/admin/UserManagement';
 import ListingsManagement from '../components/admin/ListingsManagement';
@@ -44,6 +47,7 @@ import ReportsManagement from '../components/admin/ReportsManagement';
 import PlatformSettings from '../components/admin/PlatformSettings';
 import AdManagement from '../components/admin/AdManagement';
 import ReferralTracking from '../components/admin/ReferralTracking';
+import NewsManagement from '../components/admin/NewsManagement';
 import MarketplaceCard from '../components/MarketplaceCard';
 import BidOfferModal from '../components/BidOfferModal';
 
@@ -72,6 +76,7 @@ const DashboardPage = () => {
   const [selectedListing, setSelectedListing] = useState(null);
   const [showBidModal, setShowBidModal] = useState(false);
   const [likedListings, setLikedListings] = useState(new Set());
+  const [favoritedListings, setFavoritedListings] = useState(new Set());
 
   // Fetch portfolio data
   useEffect(() => {
@@ -83,8 +88,15 @@ const DashboardPage = () => {
           portfolioAPI.getHoldings(),
           portfolioAPI.getActivities({ limit: 10 })
         ]);
-
-        setPortfolioStats(statsRes.data.data);
+        const s = statsRes.data.data || {};
+        setPortfolioStats({
+          totalValue: Number(s.totalValue) || 0,
+          totalInvested: Number(s.totalInvested) || 0,
+          totalGain: Number(s.totalGain) || 0,
+          gainPercentage: Number(s.gainPercentage) || 0,
+          activeListings: Number(s.activeListings) || 0,
+          completedTrades: Number(s.completedTrades) || 0,
+        });
         setHoldings(holdingsRes.data.data);
         setRecentActivities(activitiesRes.data.data);
       } catch (error) {
@@ -125,17 +137,24 @@ const DashboardPage = () => {
   }, [activeTab, user]);
 
   const formatCurrency = (amount) => {
+    const safe = Number(amount);
+    const value = isNaN(safe) ? 0 : safe;
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
       maximumFractionDigits: 0
-    }).format(amount);
+    }).format(value);
   };
 
   // Handlers for marketplace card actions
   const handlePlaceBid = (listing) => {
     setSelectedListing(listing);
     setShowBidModal(true);
+  };
+
+  const handleAccept = (listing) => {
+    // Navigate to listing detail with accept action
+    navigate(`/listing/${listing._id}?action=accept`);
   };
 
   const handleShare = async (listing) => {
@@ -228,10 +247,24 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
       const newSet = new Set(prev);
       if (newSet.has(listing._id)) {
         newSet.delete(listing._id);
+        toast.success('Removed like');
+      } else {
+        newSet.add(listing._id);
+        toast.success('Liked!');
+      }
+      return newSet;
+    });
+  };
+
+  const handleFavorite = (listing) => {
+    setFavoritedListings(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(listing._id)) {
+        newSet.delete(listing._id);
         toast.success('Removed from favorites');
       } else {
         newSet.add(listing._id);
-        toast.success('Added to favorites');
+        toast.success('Added to favorites!');
       }
       return newSet;
     });
@@ -265,6 +298,8 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
     { id: 'portfolio', label: 'Portfolio', icon: Briefcase },
     { id: 'posts', label: 'My Posts', icon: FileText },
     { id: 'my-bids-offers', label: 'My Bids & Offers', icon: TrendingUp },
+    { id: 'received-bids-offers', label: 'Received Bids & Offers', icon: TrendingDown },
+    { id: 'history', label: 'History', icon: Package },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'referrals', label: 'Referrals', icon: Gift },
     { id: 'profile', label: 'Profile', icon: UserIcon },
@@ -276,6 +311,7 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
     { id: 'admin-listings', label: 'Listings Management', icon: FileText },
     { id: 'admin-transactions', label: 'Transactions', icon: IndianRupee },
     { id: 'admin-companies', label: 'Companies Management', icon: Building2 },
+    { id: 'admin-news', label: 'News/Blog', icon: Newspaper },
     { id: 'admin-ads', label: 'Ads Management', icon: Shield },
     { id: 'admin-referrals', label: 'Referral Tracking', icon: Gift },
     { id: 'admin-reports', label: 'Reports', icon: BarChart3 },
@@ -301,9 +337,9 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex text-[11px]">
+    <div className="min-h-screen bg-gray-50 flex text-[12px]">
       {/* Left Sidebar Navigation - Ultra Compact */}
-      <aside className="w-52 bg-white border-r border-gray-200 fixed left-0 top-0 h-full flex flex-col hidden md:flex z-30">
+      <aside className="w-52 bg-white border-r border-gray-200 fixed left-0 top-0 h-full flex flex-col z-30">
         {/* User Profile - Mini */}
         <div className="p-2 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center gap-2">
@@ -395,8 +431,8 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 md:ml-52 pb-20 md:pb-0">
-        <div className="p-4 md:p-6">
+      <main className="flex-1 ml-52 overflow-x-auto">
+        <div className="p-4 min-w-0">
         
         {/* Tab Content */}
         {activeTab === 'overview' && (
@@ -788,27 +824,37 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
                     }
                     return 0;
                   })
-                  .map((listing) => (
-                    <MarketplaceCard
-                      key={listing._id}
-                      type={listing.type}
-                      companyLogo={listing.companyId?.Logo || listing.companyId?.logo}
-                      companyName={listing.companyName}
-                      companySymbol={listing.companyId?.ScripName || listing.companyId?.symbol}
-                      companySector={listing.companyId?.Sector || listing.companyId?.sector || 'Financial Services'}
-                      companyPan={listing.companyId?.PAN || listing.companyId?.pan}
-                      companyIsin={listing.companyId?.ISIN || listing.companyId?.isin}
-                      companyCin={listing.companyId?.CIN || listing.companyId?.cin}
-                      price={listing.displayPrice || listing.price}
-                      shares={listing.quantity}
-                      user={listing.username}
-                      onPrimary={() => handlePlaceBid(listing)}
-                      onSecondary={() => handleShare(listing)}
-                      onShare={() => handleShare(listing)}
-                      onLike={() => handleLike(listing)}
-                      isLiked={likedListings.has(listing._id)}
-                    />
-                  ))}
+                  .map((listing) => {
+                    // For SELL listings: show buyer price (seller price + platform fee)
+                    // For BUY requests: show original offer price
+                    const displayPrice = listing.type === 'sell' 
+                      ? calculateTotalWithFee(listing.price) 
+                      : listing.price;
+                    
+                    return (
+                      <MarketplaceCard
+                        key={listing._id}
+                        type={listing.type}
+                        companyLogo={listing.companyId?.Logo || listing.companyId?.logo}
+                        companyName={listing.companyName}
+                        companySymbol={listing.companyId?.ScripName || listing.companyId?.symbol}
+                        companySector={listing.companyId?.Sector || listing.companyId?.sector || 'Financial Services'}
+                        companyPan={listing.companyId?.PAN || listing.companyId?.pan}
+                        companyIsin={listing.companyId?.ISIN || listing.companyId?.isin}
+                        companyCin={listing.companyId?.CIN || listing.companyId?.cin}
+                        price={displayPrice}
+                        shares={listing.quantity}
+                        user={listing.username}
+                        onPrimary={() => handlePlaceBid(listing)}
+                        onAccept={() => handleAccept(listing)}
+                        onShare={() => handleShare(listing)}
+                        onLike={() => handleLike(listing)}
+                        onFavorite={() => handleFavorite(listing)}
+                        isLiked={likedListings.has(listing._id)}
+                        isFavorited={favoritedListings.has(listing._id)}
+                      />
+                    );
+                  })}
               </div>
             )}
           </div>
@@ -884,6 +930,16 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
             <MyBidsOffersTab />
           </div>
         )}
+        {activeTab === 'received-bids-offers' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <ReceivedBidsOffersTab />
+          </div>
+        )}
+        {activeTab === 'history' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <HistoryTab />
+          </div>
+        )}
         {activeTab === 'notifications' && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <NotificationsTab />
@@ -902,9 +958,7 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
 
         {/* Admin Tabs */}
         {user?.role === 'admin' && activeTab === 'admin-companies' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <CompaniesManagement />
-          </div>
+          <CompaniesManagement />
         )}
 
         {user?.role === 'admin' && activeTab === 'admin-users' && (
@@ -929,6 +983,10 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
 
         {user?.role === 'admin' && activeTab === 'admin-referrals' && (
           <ReferralTracking />
+        )}
+
+        {user?.role === 'admin' && activeTab === 'admin-news' && (
+          <NewsManagement />
         )}
 
         {user?.role === 'admin' && activeTab === 'admin-settings' && (
