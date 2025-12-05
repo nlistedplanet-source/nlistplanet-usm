@@ -74,14 +74,16 @@ const TopBar = ({ title, showBack = false }) => {
               >
                 Home
               </button>
-              <a
-                href="https://nlistplanet.com/blog"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 text-gray-700 hover:bg-white/80 hover:text-gray-900"
+              <button
+                onClick={() => navigate('/blog')}
+                className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 ${
+                  location.pathname.startsWith('/blog')
+                    ? 'text-white bg-gradient-to-r from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30'
+                    : 'text-gray-700 hover:bg-white/80 hover:text-gray-900'
+                }`}
               >
                 Blog
-              </a>
+              </button>
               <button
                 onClick={() => navigate('/how-it-works')}
                 className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 ${
@@ -200,15 +202,14 @@ const TopBar = ({ title, showBack = false }) => {
               >
                 Home
               </button>
-              <a
-                href="https://nlistplanet.com/blog"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setShowMobileNav(false)}
-                className="w-full text-left px-3 py-2 rounded-lg font-medium text-sm text-gray-700 hover:bg-gray-100"
+              <button
+                onClick={() => { navigate('/blog'); setShowMobileNav(false); }}
+                className={`w-full text-left px-3 py-2 rounded-lg font-medium text-sm ${
+                  location.pathname.startsWith('/blog') ? 'text-emerald-700 bg-emerald-50 border border-emerald-100' : 'text-gray-700 hover:bg-gray-100'
+                }`}
               >
                 Blog
-              </a>
+              </button>
               <button
                 onClick={() => { navigate('/how-it-works'); setShowMobileNav(false); }}
                 className={`w-full text-left px-3 py-2 rounded-lg font-medium text-sm ${

@@ -248,7 +248,7 @@ const HowItWorksPage = () => {
                   <a href="https://nlistplanet.com/faqs" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 text-sm">FAQs</a>
                 </li>
                 <li>
-                  <a href="https://nlistplanet.com/blog" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 text-sm">Blog</a>
+                  <a href="/blog" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 text-sm">Blog</a>
                 </li>
                 <li>
                   <a href="https://nlistplanet.com/terms" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 text-sm">Terms & Conditions</a>
