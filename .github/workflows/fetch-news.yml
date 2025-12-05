@@ -19,14 +19,14 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: UnlistedHub-USM/backend/package-lock.json
       
       - name: Install dependencies
-        working-directory: backend
+        working-directory: UnlistedHub-USM/backend
         run: npm ci
       
       - name: Fetch news from RSS feeds
-        working-directory: backend
+        working-directory: UnlistedHub-USM/backend
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
         run: node scripts/fetchNews.js
