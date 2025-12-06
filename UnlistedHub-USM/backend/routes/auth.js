@@ -311,7 +311,11 @@ router.post(
       logFailedLogin(req, username, 'email_not_verified');
       return res.status(403).json({
         success: false,
-        message: 'Please verify your email before logging in. Check your inbox for the verification link.'
+        message: 'Please verify your account. Use the OTP sent to your email/mobile.',
+        isUnverified: true,
+        email: user.email,
+        phone: user.phone,
+        userId: user._id
       });
     }
 
@@ -642,6 +646,75 @@ router.put(
         success: true,
         message: 'Email updated successfully! Please check your new email for verification link.',
         email: user.email
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// @route   POST /api/auth/update-phone
+// @desc    Update phone for unverified user and resend OTP
+// @access  Public
+router.post(
+  '/update-phone',
+  authLimiter,
+  body('email').isEmail().normalizeEmail(),
+  body('phone').isMobilePhone('en-IN'),
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, message: 'Invalid input' });
+      }
+
+      const { email, phone } = req.body;
+
+      // Find unverified user
+      const user = await User.findOne({ email: email.toLowerCase(), isVerified: false });
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found or already verified'
+        });
+      }
+
+      // Check if phone already in use by another user
+      const phoneExists = await User.findOne({ phone, _id: { $ne: user._id } });
+      if (phoneExists) {
+        return res.status(400).json({
+          success: false,
+          message: 'This phone number is already registered'
+        });
+      }
+
+      // Update phone
+      user.phone = phone;
+      
+      // Generate and send new OTP
+      const otp = generateOTP();
+      user.otp = otp;
+      user.otpExpiry = Date.now() + 10 * 60 * 1000;
+      user.otpAttempts = 0;
+      await user.save();
+
+      // Send OTP via Email + SMS
+      try {
+        await sendOTPEmail(user, otp);
+      } catch (e) {
+        console.error('Failed to send OTP email:', e);
+      }
+      
+      try {
+        await sendOTPSMS(phone, otp);
+      } catch (e) {
+        console.error('Failed to send OTP SMS:', e);
+      }
+
+      res.json({
+        success: true,
+        message: 'Phone updated! OTP sent to your email and new mobile.',
+        phone: phone.slice(-4)
       });
     } catch (error) {
       next(error);

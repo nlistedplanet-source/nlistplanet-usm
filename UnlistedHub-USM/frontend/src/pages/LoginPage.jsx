@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, LogIn, RefreshCw, Edit3, X } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn, RefreshCw, Edit3, X, Phone, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 import signinHero from '../assets/signin_hero.png';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, resendVerification, updateEmail } = useAuth();
+  const { login, resendVerification, updateEmail, updatePhone } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -16,9 +17,14 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
-  const [showUpdateEmail, setShowUpdateEmail] = useState(false);
+  const [unverifiedPhone, setUnverifiedPhone] = useState('');
+  const [unverifiedUserId, setUnverifiedUserId] = useState('');
+  const [modalView, setModalView] = useState('main'); // 'main', 'updateEmail', 'updatePhone', 'otp'
   const [newEmail, setNewEmail] = useState('');
+  const [newPhone, setNewPhone] = useState('');
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [resendLoading, setResendLoading] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -36,44 +42,135 @@ const LoginPage = () => {
     if (result.success) {
       navigate('/dashboard');
     } else if (result.isUnverified) {
-      // Extract email from username or show modal
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const email = emailPattern.test(formData.username) ? formData.username : '';
-      setUnverifiedEmail(email);
+      // Store user details for verification
+      setUnverifiedEmail(result.email || '');
+      setUnverifiedPhone(result.phone || '');
+      setUnverifiedUserId(result.userId || '');
+      setModalView('main');
       setShowVerifyModal(true);
     }
     
     setLoading(false);
   };
 
-  const handleResendVerification = async () => {
-    if (!unverifiedEmail) {
-      return;
-    }
-    
+  const handleResendOTP = async () => {
     setResendLoading(true);
-    await resendVerification(unverifiedEmail);
+    try {
+      const result = await resendVerification(unverifiedEmail);
+      if (result.success) {
+        toast.success('OTP sent to your email and mobile!');
+        setModalView('otp');
+      }
+    } catch (error) {
+      toast.error('Failed to send OTP');
+    }
     setResendLoading(false);
   };
 
+  const handleVerifyOTP = async () => {
+    const otpCode = otp.join('');
+    if (otpCode.length !== 6) {
+      toast.error('Please enter 6-digit OTP');
+      return;
+    }
+    
+    setVerifyLoading(true);
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://nlistplanet-usm-v8dc.onrender.com/api'}/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: unverifiedEmail, otp: otpCode })
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        toast.success('Account verified! Please login.');
+        setShowVerifyModal(false);
+        setOtp(['', '', '', '', '', '']);
+      } else {
+        toast.error(data.message || 'Invalid OTP');
+      }
+    } catch (error) {
+      toast.error('Verification failed');
+    }
+    setVerifyLoading(false);
+  };
+
+  const handleOtpChange = (index, value) => {
+    if (value.length > 1) value = value.slice(-1);
+    if (!/^\d*$/.test(value)) return;
+    
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    
+    // Auto-focus next input
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      if (nextInput) nextInput.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      if (prevInput) prevInput.focus();
+    }
+  };
+
   const handleUpdateEmail = async () => {
-    if (!newEmail || !unverifiedEmail) {
+    if (!newEmail) {
+      toast.error('Please enter new email');
       return;
     }
     
     setResendLoading(true);
-    const result = await updateEmail(unverifiedEmail, newEmail);
-    if (result.success) {
-      setUnverifiedEmail(result.email);
-      setNewEmail('');
-      setShowUpdateEmail(false);
+    try {
+      const result = await updateEmail(unverifiedEmail, newEmail);
+      if (result.success) {
+        setUnverifiedEmail(result.email || newEmail);
+        setNewEmail('');
+        setModalView('otp');
+        toast.success('Email updated! OTP sent to new email.');
+      }
+    } catch (error) {
+      toast.error('Failed to update email');
+    }
+    setResendLoading(false);
+  };
+
+  const handleUpdatePhone = async () => {
+    if (!newPhone || newPhone.length < 10) {
+      toast.error('Please enter valid phone number');
+      return;
+    }
+    
+    setResendLoading(true);
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://nlistplanet-usm-v8dc.onrender.com/api'}/auth/update-phone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: unverifiedEmail, phone: newPhone })
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setUnverifiedPhone(newPhone);
+        setNewPhone('');
+        setModalView('otp');
+        toast.success('Phone updated! OTP sent to new number.');
+      } else {
+        toast.error(data.message || 'Failed to update phone');
+      }
+    } catch (error) {
+      toast.error('Failed to update phone');
     }
     setResendLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-white flex">
-      {/* Verification Modal */}
+      {/* Verification Modal - OTP Based */}
       {showVerifyModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <motion.div 
@@ -83,42 +180,68 @@ const LoginPage = () => {
           >
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-xl font-bold text-gray-900">Email Not Verified</h3>
-                <p className="text-sm text-gray-500 mt-1">Please verify your email to continue</p>
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-3">
+                  <Shield className="text-purple-600" size={24} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  {modalView === 'main' && 'Verify Your Account'}
+                  {modalView === 'otp' && 'Enter OTP'}
+                  {modalView === 'updateEmail' && 'Update Email'}
+                  {modalView === 'updatePhone' && 'Update Mobile'}
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  {modalView === 'main' && 'Complete verification to continue'}
+                  {modalView === 'otp' && 'Enter the 6-digit code sent to you'}
+                  {modalView === 'updateEmail' && 'Enter your new email address'}
+                  {modalView === 'updatePhone' && 'Enter your new mobile number'}
+                </p>
               </div>
               <button 
-                onClick={() => setShowVerifyModal(false)}
+                onClick={() => {
+                  setShowVerifyModal(false);
+                  setModalView('main');
+                  setOtp(['', '', '', '', '', '']);
+                }}
                 className="text-gray-400 hover:text-gray-600"
               >
                 <X size={20} />
               </button>
             </div>
 
-            {!showUpdateEmail ? (
+            {/* Main View */}
+            {modalView === 'main' && (
               <>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                  <p className="text-sm text-yellow-800">
-                    A verification link was sent to: <br />
-                    <span className="font-semibold">{unverifiedEmail || 'your registered email'}</span>
+                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-purple-800">
+                    <strong>Email:</strong> {unverifiedEmail || 'Not set'}<br />
+                    <strong>Mobile:</strong> {unverifiedPhone ? `******${unverifiedPhone.slice(-4)}` : 'Not set'}
                   </p>
                 </div>
 
                 <div className="space-y-3">
                   <button
-                    onClick={handleResendVerification}
-                    disabled={resendLoading || !unverifiedEmail}
-                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                    onClick={handleResendOTP}
+                    disabled={resendLoading}
+                    className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     <RefreshCw size={18} className={resendLoading ? 'animate-spin' : ''} />
-                    {resendLoading ? 'Sending...' : 'Resend Verification Email'}
+                    {resendLoading ? 'Sending OTP...' : 'Send OTP (Email + SMS)'}
                   </button>
 
                   <button
-                    onClick={() => setShowUpdateEmail(true)}
+                    onClick={() => setModalView('updateEmail')}
                     className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium flex items-center justify-center gap-2"
                   >
-                    <Edit3 size={18} />
-                    Update Email Address
+                    <Mail size={18} />
+                    Change Email Address
+                  </button>
+
+                  <button
+                    onClick={() => setModalView('updatePhone')}
+                    className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium flex items-center justify-center gap-2"
+                  >
+                    <Phone size={18} />
+                    Change Mobile Number
                   </button>
 
                   <button
@@ -129,7 +252,65 @@ const LoginPage = () => {
                   </button>
                 </div>
               </>
-            ) : (
+            )}
+
+            {/* OTP View */}
+            {modalView === 'otp' && (
+              <>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-green-800 text-center">
+                    OTP sent to <strong>{unverifiedEmail}</strong>
+                    {unverifiedPhone && <> & <strong>******{unverifiedPhone.slice(-4)}</strong></>}
+                  </p>
+                </div>
+
+                <div className="flex justify-center gap-2 mb-6">
+                  {otp.map((digit, index) => (
+                    <input
+                      key={index}
+                      id={`otp-${index}`}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                      autoFocus={index === 0}
+                    />
+                  ))}
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={handleVerifyOTP}
+                    disabled={verifyLoading || otp.join('').length !== 6}
+                    className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-lg font-medium disabled:opacity-50"
+                  >
+                    {verifyLoading ? 'Verifying...' : 'Verify OTP'}
+                  </button>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleResendOTP}
+                      disabled={resendLoading}
+                      className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+                    >
+                      {resendLoading ? 'Sending...' : 'Resend OTP'}
+                    </button>
+                    <button
+                      onClick={() => setModalView('main')}
+                      className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+                    >
+                      Back
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Update Email View */}
+            {modalView === 'updateEmail' && (
               <>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -151,8 +332,8 @@ const LoginPage = () => {
                     type="email"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    placeholder="Enter your new email"
-                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500"
+                    placeholder="Enter new email"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                     autoFocus
                   />
                 </div>
@@ -161,15 +342,71 @@ const LoginPage = () => {
                   <button
                     onClick={handleUpdateEmail}
                     disabled={resendLoading || !newEmail}
-                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium disabled:opacity-50"
+                    className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg font-medium disabled:opacity-50"
                   >
-                    {resendLoading ? 'Updating...' : 'Update & Send Verification'}
+                    {resendLoading ? 'Updating...' : 'Update & Send OTP'}
                   </button>
 
                   <button
                     onClick={() => {
-                      setShowUpdateEmail(false);
+                      setModalView('main');
                       setNewEmail('');
+                    }}
+                    className="w-full py-2 text-gray-500 hover:text-gray-700 text-sm"
+                  >
+                    Back
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Update Phone View */}
+            {modalView === 'updatePhone' && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Current Mobile
+                  </label>
+                  <input
+                    type="text"
+                    value={unverifiedPhone ? `******${unverifiedPhone.slice(-4)}` : 'Not set'}
+                    disabled
+                    className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600"
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    New Mobile Number
+                  </label>
+                  <div className="flex">
+                    <span className="inline-flex items-center px-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg text-gray-600">
+                      +91
+                    </span>
+                    <input
+                      type="tel"
+                      value={newPhone}
+                      onChange={(e) => setNewPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      placeholder="10-digit mobile"
+                      className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-r-lg focus:outline-none focus:border-purple-500"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={handleUpdatePhone}
+                    disabled={resendLoading || newPhone.length !== 10}
+                    className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg font-medium disabled:opacity-50"
+                  >
+                    {resendLoading ? 'Updating...' : 'Update & Send OTP'}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setModalView('main');
+                      setNewPhone('');
                     }}
                     className="w-full py-2 text-gray-500 hover:text-gray-700 text-sm"
                   >

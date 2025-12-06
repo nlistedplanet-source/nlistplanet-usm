@@ -129,7 +129,10 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed';
-      const isUnverified = message.includes('verify your email');
+      const isUnverified = error.response?.data?.isUnverified || false;
+      const email = error.response?.data?.email || '';
+      const phone = error.response?.data?.phone || '';
+      const userId = error.response?.data?.userId || '';
       
       if (!isUnverified) {
         toast.error(message);
@@ -139,6 +142,9 @@ export const AuthProvider = ({ children }) => {
         success: false, 
         message,
         isUnverified,
+        email,
+        phone,
+        userId,
         username
       };
     }
