@@ -143,6 +143,36 @@ const listingSchema = new mongoose.Schema({
     enum: ['active', 'sold', 'expired', 'cancelled'],
     default: 'active'
   },
+  // Sold externally fields
+  soldPrice: {
+    type: Number,
+    default: null
+  },
+  soldQuantity: {
+    type: Number,
+    default: null
+  },
+  soldExternally: {
+    type: Boolean,
+    default: false
+  },
+  soldNotes: {
+    type: String,
+    default: ''
+  },
+  soldAt: {
+    type: Date,
+    default: null
+  },
+  // Cancelled fields
+  cancelledAt: {
+    type: Date,
+    default: null
+  },
+  cancelReason: {
+    type: String,
+    default: ''
+  },
   bids: [bidSchema], // For sell posts
   offers: [bidSchema], // For buy requests (using same schema)
   isBoosted: {

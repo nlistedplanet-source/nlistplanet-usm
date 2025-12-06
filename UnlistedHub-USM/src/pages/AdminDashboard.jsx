@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, TrendingUp, DollarSign, Building2, Ban, CheckCircle, Plus, Loader, Database,
-  Menu, X, ChevronLeft, ChevronRight, LayoutDashboard, Newspaper, LogOut
+  Menu, X, ChevronLeft, ChevronRight, LayoutDashboard, Newspaper, LogOut, Handshake
 } from 'lucide-react';
 import { adminAPI } from '../utils/api';
 import { formatCurrency, formatDate } from '../utils/helpers';
@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import CompanyData from '../components/admin/CompanyData';
 import UserManagement from '../components/admin/UserManagement';
 import NewsManagement from '../components/admin/NewsManagement';
+import CompletedDealsManagement from '../components/admin/CompletedDealsManagement';
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
@@ -35,6 +36,7 @@ const AdminDashboard = () => {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'users', label: 'Users', icon: Users },
     { id: 'companies', label: 'Companies', icon: Database },
+    { id: 'deals', label: 'Completed Deals', icon: Handshake },
     { id: 'news', label: 'News/Blog', icon: Newspaper },
   ];
 
@@ -327,6 +329,9 @@ const AdminDashboard = () => {
 
           {/* Company Data Tab */}
           {activeTab === 'companies' && <CompanyData />}
+
+          {/* Completed Deals Tab */}
+          {activeTab === 'deals' && <CompletedDealsManagement />}
 
           {/* News Management Tab */}
           {activeTab === 'news' && <NewsManagement />}

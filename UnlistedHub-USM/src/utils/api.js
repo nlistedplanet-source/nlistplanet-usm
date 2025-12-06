@@ -23,6 +23,10 @@ export const listingsAPI = {
   rejectBid: (listingId, bidId) => axios.put(`/listings/${listingId}/bids/${bidId}/reject`),
   counterBid: (listingId, bidId, data) => axios.put(`/listings/${listingId}/bids/${bidId}/counter`, data),
   delete: (id) => axios.delete(`/listings/${id}`),
+  // New actions
+  markAsSold: (id, data) => axios.put(`/listings/${id}/mark-sold`, data),
+  cancel: (id, data) => axios.put(`/listings/${id}/cancel`, data),
+  getCompletedDeals: () => axios.get('/listings/completed-deals'),
 };
 
 // Notifications API
@@ -81,6 +85,10 @@ export const adminAPI = {
   getSettings: () => axios.get('/admin/settings'),
   updateSettings: (data) => axios.put('/admin/settings', data),
   createCompany: (data) => axios.post('/admin/companies', data),
+  // Completed Deals
+  getCompletedDeals: (params) => axios.get('/admin/completed-deals', { params }),
+  markDealContacted: (id, data) => axios.put(`/admin/completed-deals/${id}/mark-contacted`, data),
+  getCompletedDealsStats: () => axios.get('/admin/completed-deals/stats'),
 };
 
 export default axios;

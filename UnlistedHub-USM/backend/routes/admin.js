@@ -8,6 +8,7 @@ import Settings from '../models/Settings.js';
 import Ad from '../models/Ad.js';
 import ReferralTracking from '../models/ReferralTracking.js';
 import UsernameHistory from '../models/UsernameHistory.js';
+import CompletedDeal from '../models/CompletedDeal.js';
 import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -1260,6 +1261,158 @@ router.get('/check-username/:username', async (req, res, next) => {
           changedAt: history.changedAt,
           reason: history.reason
         } : null
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ============ COMPLETED DEALS MANAGEMENT ============
+
+// @route   GET /api/admin/completed-deals
+// @desc    Get all completed deals with verification codes
+// @access  Admin
+router.get('/completed-deals', async (req, res, next) => {
+  try {
+    const { page = 1, limit = 20, search, status } = req.query;
+    
+    let query = {};
+    
+    // Filter by status
+    if (status) {
+      query.status = status;
+    }
+    
+    // Search by company name or username
+    if (search) {
+      query.$or = [
+        { companyName: { $regex: search, $options: 'i' } },
+        { buyerUsername: { $regex: search, $options: 'i' } },
+        { sellerUsername: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    const [deals, total] = await Promise.all([
+      CompletedDeal.find(query)
+        .populate('buyerId', 'username email phone fullName')
+        .populate('sellerId', 'username email phone fullName')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .lean(),
+      CompletedDeal.countDocuments(query)
+    ]);
+    
+    // Get stats
+    const [pending, rmContacted, completed, totalValueAgg] = await Promise.all([
+      CompletedDeal.countDocuments({ status: 'pending_rm_contact' }),
+      CompletedDeal.countDocuments({ status: 'rm_contacted' }),
+      CompletedDeal.countDocuments({ status: 'completed' }),
+      CompletedDeal.aggregate([
+        { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+      ])
+    ]);
+    
+    res.json({
+      success: true,
+      data: deals,
+      stats: {
+        total,
+        pending,
+        rmContacted,
+        completed,
+        totalValue: totalValueAgg[0]?.total || 0
+      },
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   PUT /api/admin/completed-deals/:id/mark-contacted
+// @desc    Mark deal as RM contacted or update status
+// @access  Admin
+router.put('/completed-deals/:id/mark-contacted', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { rmNotes, status } = req.body;
+    
+    const deal = await CompletedDeal.findById(id);
+    
+    if (!deal) {
+      return res.status(404).json({
+        success: false,
+        message: 'Deal not found'
+      });
+    }
+    
+    // Update status based on current status
+    if (deal.status === 'pending_rm_contact') {
+      deal.status = 'rm_contacted';
+      deal.rmContactedAt = new Date();
+    } else if (status) {
+      deal.status = status;
+      if (status === 'completed') {
+        deal.completedAt = new Date();
+      } else if (status === 'cancelled') {
+        deal.cancelledAt = new Date();
+      }
+    }
+    
+    if (rmNotes) {
+      deal.adminNotes = rmNotes;
+    }
+    
+    await deal.save();
+    
+    res.json({
+      success: true,
+      message: 'Deal updated successfully',
+      data: deal
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   GET /api/admin/completed-deals/stats
+// @desc    Get completed deals statistics
+// @access  Admin
+router.get('/completed-deals/stats', async (req, res, next) => {
+  try {
+    const [total, pending, rmContacted, completed, cancelled, totalValueAgg, todayDeals] = await Promise.all([
+      CompletedDeal.countDocuments(),
+      CompletedDeal.countDocuments({ status: 'pending_rm_contact' }),
+      CompletedDeal.countDocuments({ status: 'rm_contacted' }),
+      CompletedDeal.countDocuments({ status: 'completed' }),
+      CompletedDeal.countDocuments({ status: 'cancelled' }),
+      CompletedDeal.aggregate([
+        { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+      ]),
+      CompletedDeal.countDocuments({
+        createdAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) }
+      })
+    ]);
+    
+    res.json({
+      success: true,
+      data: {
+        total,
+        pending,
+        rmContacted,
+        completed,
+        cancelled,
+        totalValue: totalValueAgg[0]?.total || 0,
+        todayDeals
       }
     });
   } catch (error) {

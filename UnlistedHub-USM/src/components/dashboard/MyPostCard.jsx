@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Share2, Zap, Edit, Trash2, CheckCircle, XCircle, MessageSquare, Loader, Eye, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { Share2, Zap, Edit, Trash2, CheckCircle, XCircle, MessageSquare, Loader, Eye, Info, ChevronDown, ChevronUp, DollarSign, Ban } from 'lucide-react';
 import { formatCurrency, formatDate, formatNumber, numberToWords, formatShortAmount, formatShortQuantity } from '../../utils/helpers';
 import * as htmlToImage from 'html-to-image';
 import { listingsAPI } from '../../utils/api';
@@ -18,6 +18,10 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
   const [modifyQuantity, setModifyQuantity] = useState('');
   const [modifyMinQuantity, setModifyMinQuantity] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSoldModal, setShowSoldModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [soldPrice, setSoldPrice] = useState('');
+  const [cancelReason, setCancelReason] = useState('');
   const shareDomRef = useRef(null);
 
   const isSell = listing.type === 'sell';
@@ -111,6 +115,53 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
       } else {
         toast.error(error.response?.data?.message || 'Failed to delete listing');
       }
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Mark as Sold (externally sold)
+  const handleSoldClick = () => {
+    setSoldPrice(sellerPrice.toString());
+    setShowSoldModal(true);
+  };
+
+  const handleSoldConfirm = async (e) => {
+    e.preventDefault();
+    try {
+      setActionLoading('sold');
+      await listingsAPI.markAsSold(listing._id, { soldPrice: parseFloat(soldPrice) });
+      toast.success('Listing marked as sold! 💰');
+      setShowSoldModal(false);
+      setSoldPrice('');
+      if (onDelete) onDelete(listing._id);
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      console.error('Mark sold error:', error);
+      toast.error(error.response?.data?.message || 'Failed to mark as sold');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Cancel listing (don't want to sell/buy anymore)
+  const handleCancelClick = () => {
+    setShowCancelModal(true);
+  };
+
+  const handleCancelConfirm = async (e) => {
+    e.preventDefault();
+    try {
+      setActionLoading('cancel');
+      await listingsAPI.cancel(listing._id, { reason: cancelReason });
+      toast.success('Listing cancelled successfully');
+      setShowCancelModal(false);
+      setCancelReason('');
+      if (onDelete) onDelete(listing._id);
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      console.error('Cancel error:', error);
+      toast.error(error.response?.data?.message || 'Failed to cancel listing');
     } finally {
       setActionLoading(null);
     }
@@ -382,6 +433,16 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
           <button onClick={handleModify} disabled={actionLoading === 'modify'} className="px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm disabled:opacity-50">
             <Edit className="w-3.5 h-3.5" /> Modify
           </button>
+          {/* Sold button - mark as externally sold */}
+          <button onClick={handleSoldClick} disabled={actionLoading === 'sold'} className="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm disabled:opacity-50">
+            <DollarSign className="w-3.5 h-3.5" /> Sold
+          </button>
+          {/* Cancel button - only show if no pending bids */}
+          {activeBidsCount === 0 ? (
+            <button onClick={handleCancelClick} disabled={actionLoading === 'cancel'} className="px-3 py-1 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm disabled:opacity-50">
+              <Ban className="w-3.5 h-3.5" /> Cancel
+            </button>
+          ) : null}
           <button onClick={handleDeleteClick} disabled={actionLoading === 'delete'} className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm disabled:opacity-50">
             <Trash2 className="w-3.5 h-3.5" /> Delete
           </button>
@@ -664,6 +725,166 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sold Modal - Mark as externally sold */}
+      {showSoldModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-in">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 backdrop-blur-sm p-2 rounded-xl">
+                  <DollarSign size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">Mark as Sold</h3>
+                  <p className="text-green-100 text-sm mt-0.5">Share sold outside platform</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <form onSubmit={handleSoldConfirm} className="p-6">
+              <p className="text-dark-700 mb-2">
+                <strong className="text-dark-900">{script}</strong> • {qty} shares
+              </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                <p className="text-amber-800 text-sm flex items-start gap-2">
+                  <Info size={16} className="mt-0.5 flex-shrink-0" />
+                  <span>Mark this listing as sold when you've completed the sale outside our platform.</span>
+                </p>
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-bold text-gray-700 mb-2">Sold Price (per share) *</label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  step="0.01"
+                  value={soldPrice}
+                  onChange={(e) => setSoldPrice(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 font-semibold text-gray-900"
+                  placeholder="Enter sold price per share"
+                />
+                {soldPrice && (
+                  <p className="text-green-600 text-sm mt-1 font-medium italic">
+                    {numberToWords(parseFloat(soldPrice))} Rupees Only
+                  </p>
+                )}
+              </div>
+
+              {soldPrice && (
+                <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl p-4 mb-5 border-2 border-green-300">
+                  <div className="flex items-center justify-between">
+                    <span className="text-green-800 font-bold">Total Sold Amount:</span>
+                    <span className="text-xl font-bold text-green-900">{formatCurrency(parseFloat(soldPrice) * (listing.quantity || 0))}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => { setShowSoldModal(false); setSoldPrice(''); }}
+                  disabled={actionLoading === 'sold'}
+                  className="flex-1 px-4 py-2.5 bg-dark-100 text-dark-700 rounded-xl font-semibold hover:bg-dark-200 transition-all disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={actionLoading === 'sold' || !soldPrice}
+                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {actionLoading === 'sold' ? (
+                    <>
+                      <Loader className="animate-spin" size={18} />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <DollarSign size={18} />
+                      Mark as Sold
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Modal - User doesn't want to sell/buy anymore */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-in">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-gray-500 to-gray-600 p-6 text-white">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 backdrop-blur-sm p-2 rounded-xl">
+                  <Ban size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">Cancel Listing</h3>
+                  <p className="text-gray-200 text-sm mt-0.5">Move to history</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <form onSubmit={handleCancelConfirm} className="p-6">
+              <p className="text-dark-700 mb-2">
+                Are you sure you want to cancel this listing?
+              </p>
+              <p className="text-dark-500 text-sm mb-4">
+                <strong className="text-dark-700">{script}</strong> • {price} • {qty} shares
+              </p>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-bold text-gray-700 mb-2">Reason (optional)</label>
+                <textarea
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 font-medium text-gray-900"
+                  placeholder="Why are you cancelling this listing?"
+                  rows={3}
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => { setShowCancelModal(false); setCancelReason(''); }}
+                  disabled={actionLoading === 'cancel'}
+                  className="flex-1 px-4 py-2.5 bg-dark-100 text-dark-700 rounded-xl font-semibold hover:bg-dark-200 transition-all disabled:opacity-50"
+                >
+                  Keep Listing
+                </button>
+                <button
+                  type="submit"
+                  disabled={actionLoading === 'cancel'}
+                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {actionLoading === 'cancel' ? (
+                    <>
+                      <Loader className="animate-spin" size={18} />
+                      Cancelling...
+                    </>
+                  ) : (
+                    <>
+                      <Ban size={18} />
+                      Cancel Listing
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

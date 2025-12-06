@@ -84,8 +84,10 @@ const ProfileTabPreview = ({ mockUser }) => {
   const handleFileUpload = (docType, event) => {
     const file = event.target.files[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB');
+    // Validate file type for security (no size limit)
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Invalid file type. Please upload JPG, PNG or PDF only.');
       return;
     }
     const reader = new FileReader();

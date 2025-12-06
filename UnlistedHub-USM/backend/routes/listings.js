@@ -5,6 +5,7 @@ import Notification from '../models/Notification.js';
 import ReferralTracking from '../models/ReferralTracking.js';
 import Settings from '../models/Settings.js';
 import User from '../models/User.js';
+import CompletedDeal from '../models/CompletedDeal.js';
 import { protect, optionalAuth } from '../middleware/auth.js';
 import { 
   validateListing, 
@@ -445,6 +446,41 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
     
     await listing.save();
 
+    // ============ CREATE COMPLETED DEAL WITH RM VERIFICATION CODES ============
+    try {
+      const bidderInfo = await User.findById(bid.userId).select('username');
+      const ownerInfo = await User.findById(listing.userId).select('username');
+      
+      // Determine buyer and seller based on listing type
+      const isSellListing = listing.type === 'sell';
+      const sellerId = isSellListing ? listing.userId : bid.userId;
+      const buyerId = isSellListing ? bid.userId : listing.userId;
+      const sellerUsername = isSellListing ? ownerInfo?.username : bidderInfo?.username;
+      const buyerUsername = isSellListing ? bidderInfo?.username : ownerInfo?.username;
+      
+      await CompletedDeal.create({
+        listingId: listing._id,
+        bidId: bid._id,
+        dealType: listing.type,
+        companyName: listing.companyName,
+        companyId: listing.companyId,
+        sellerId,
+        sellerUsername,
+        buyerId,
+        buyerUsername,
+        agreedPrice: bid.price,
+        quantity: bid.quantity,
+        totalAmount: bid.price * bid.quantity,
+        platformFee: (bid.price * bid.quantity * 0.02), // 2% platform fee
+        dealAcceptedAt: new Date()
+      });
+      
+      console.log('✅ CompletedDeal created with RM verification codes');
+    } catch (dealError) {
+      console.error('❌ Failed to create CompletedDeal:', dealError.message);
+      // Don't fail the main operation, just log the error
+    }
+
     // Create notification for bidder
     await Notification.create({
       userId: bid.userId,
@@ -836,6 +872,207 @@ router.delete('/:id', protect, async (req, res, next) => {
     res.json({
       success: true,
       message: 'Listing deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   GET /api/listings/completed-deals
+// @desc    Get user's completed deals with verification codes
+// @access  Private
+router.get('/completed-deals', protect, async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    
+    // Find deals where user is buyer or seller
+    const deals = await CompletedDeal.find({
+      $or: [
+        { buyerId: userId },
+        { sellerId: userId }
+      ]
+    })
+    .populate('buyerId', 'username email phone')
+    .populate('sellerId', 'username email phone')
+    .sort({ createdAt: -1 })
+    .lean();
+    
+    // Add userRole and appropriate verification codes for each deal
+    const dealsWithRole = deals.map(deal => {
+      const isBuyer = deal.buyerId?._id?.toString() === userId.toString();
+      return {
+        ...deal,
+        userRole: isBuyer ? 'buyer' : 'seller',
+        // Show user their own verification code and the RM code
+        myVerificationCode: isBuyer ? deal.buyerVerificationCode : deal.sellerVerificationCode,
+        // RM code is the same for everyone to verify RM
+        rmVerificationCode: deal.rmVerificationCode,
+        // Hide the other party's verification code
+        buyerVerificationCode: undefined,
+        sellerVerificationCode: undefined
+      };
+    });
+    
+    res.json({
+      success: true,
+      data: dealsWithRole,
+      count: dealsWithRole.length
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   PUT /api/listings/:id/mark-sold
+// @desc    Mark listing as sold externally (not through platform)
+// @access  Private (listing owner only)
+router.put('/:id/mark-sold', protect, async (req, res, next) => {
+  try {
+    const { soldPrice, soldQuantity, notes } = req.body;
+    
+    if (!soldPrice || soldPrice <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide the price at which you sold/bought the shares'
+      });
+    }
+    
+    const listing = await Listing.findById(req.params.id);
+    
+    if (!listing) {
+      return res.status(404).json({
+        success: false,
+        message: 'Listing not found'
+      });
+    }
+    
+    // Verify ownership
+    if (listing.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this listing'
+      });
+    }
+    
+    // Can only mark active listings as sold
+    if (listing.status !== 'active') {
+      return res.status(400).json({
+        success: false,
+        message: 'Can only mark active listings as sold'
+      });
+    }
+    
+    // Update listing
+    listing.status = 'sold';
+    listing.soldPrice = soldPrice;
+    listing.soldQuantity = soldQuantity || listing.quantity;
+    listing.soldExternally = true;
+    listing.soldNotes = notes || '';
+    listing.soldAt = new Date();
+    
+    // Reject all pending bids/offers
+    const bidField = listing.type === 'sell' ? 'bids' : 'offers';
+    if (listing[bidField] && listing[bidField].length > 0) {
+      for (const bid of listing[bidField]) {
+        if (bid.status === 'pending' || bid.status === 'countered') {
+          bid.status = 'rejected';
+          bid.rejectedAt = new Date();
+          bid.rejectionReason = 'Listing sold externally';
+          
+          await Notification.create({
+            userId: bid.userId,
+            type: 'bid_rejected',
+            title: 'Listing No Longer Available',
+            message: `The ${listing.type === 'sell' ? 'seller' : 'buyer'} for ${listing.companyName} has completed their transaction elsewhere.`,
+            data: {
+              listingId: listing._id,
+              bidId: bid._id,
+              companyName: listing.companyName
+            }
+          });
+        }
+      }
+    }
+    
+    await listing.save();
+    
+    res.json({
+      success: true,
+      message: `Successfully marked as ${listing.type === 'sell' ? 'sold' : 'bought'}!`,
+      data: listing
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   PUT /api/listings/:id/cancel
+// @desc    Cancel/Delete a listing (user no longer interested)
+// @access  Private (listing owner only)
+router.put('/:id/cancel', protect, async (req, res, next) => {
+  try {
+    const { reason } = req.body;
+    
+    const listing = await Listing.findById(req.params.id);
+    
+    if (!listing) {
+      return res.status(404).json({
+        success: false,
+        message: 'Listing not found'
+      });
+    }
+    
+    // Verify ownership
+    if (listing.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to cancel this listing'
+      });
+    }
+    
+    // Can only cancel active listings
+    if (listing.status !== 'active') {
+      return res.status(400).json({
+        success: false,
+        message: 'Can only cancel active listings'
+      });
+    }
+    
+    // Update listing
+    listing.status = 'cancelled';
+    listing.cancelledAt = new Date();
+    listing.cancelReason = reason || 'User cancelled';
+    
+    // Reject all pending bids/offers
+    const bidField = listing.type === 'sell' ? 'bids' : 'offers';
+    if (listing[bidField] && listing[bidField].length > 0) {
+      for (const bid of listing[bidField]) {
+        if (bid.status === 'pending' || bid.status === 'countered') {
+          bid.status = 'rejected';
+          bid.rejectedAt = new Date();
+          bid.rejectionReason = 'Listing cancelled by owner';
+          
+          await Notification.create({
+            userId: bid.userId,
+            type: 'bid_rejected',
+            title: 'Listing Cancelled',
+            message: `The ${listing.type === 'sell' ? 'seller' : 'buyer'} has cancelled their listing for ${listing.companyName}.`,
+            data: {
+              listingId: listing._id,
+              bidId: bid._id,
+              companyName: listing.companyName
+            }
+          });
+        }
+      }
+    }
+    
+    await listing.save();
+    
+    res.json({
+      success: true,
+      message: 'Listing cancelled successfully',
+      data: listing
     });
   } catch (error) {
     next(error);
