@@ -275,8 +275,42 @@ const BlogPage = () => {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader className="animate-spin text-emerald-500" size={40} />
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 animate-pulse">
+                  {/* Skeleton Image */}
+                  <div className="h-48 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent skeleton-shimmer"></div>
+                  </div>
+                  {/* Skeleton Content */}
+                  <div className="p-5 space-y-3">
+                    <div className="h-3 w-16 bg-gray-200 rounded-full"></div>
+                    <div className="h-5 w-full bg-gray-200 rounded"></div>
+                    <div className="h-5 w-3/4 bg-gray-200 rounded"></div>
+                    <div className="space-y-2 pt-2">
+                      <div className="h-3 w-full bg-gray-100 rounded"></div>
+                      <div className="h-3 w-5/6 bg-gray-100 rounded"></div>
+                      <div className="h-3 w-4/6 bg-gray-100 rounded"></div>
+                    </div>
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      <div className="flex gap-3">
+                        <div className="h-3 w-20 bg-gray-200 rounded"></div>
+                        <div className="h-3 w-14 bg-gray-200 rounded"></div>
+                      </div>
+                      <div className="h-3 w-10 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <style>{`
+                @keyframes shimmer {
+                  0% { transform: translateX(-100%); }
+                  100% { transform: translateX(100%); }
+                }
+                .skeleton-shimmer {
+                  animation: shimmer 1.5s infinite;
+                }
+              `}</style>
             </div>
           ) : news.length === 0 ? (
             <div className="text-center py-20">
