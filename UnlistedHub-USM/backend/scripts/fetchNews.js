@@ -267,7 +267,7 @@ const isRelevantNews = (title, content) => {
   return RELEVANT_KEYWORDS.some(keyword => text.includes(keyword));
 };
 
-// Generate Hindi summary using GPT-4 (natural conversational Hindi)
+// Generate Hindi summary using GPT-4 (Newspaper style formal Hindi)
 const generateHindiSummary = async (title, englishSummary) => {
   if (!process.env.OPENAI_API_KEY) {
     console.log('  ⚠️ OpenAI API key not set, skipping Hindi summary');
@@ -280,23 +280,27 @@ const generateHindiSummary = async (title, englishSummary) => {
       messages: [
         {
           role: 'system',
-          content: `You are a news summarizer. Convert English news to natural, conversational Hindi (aam bolchal wali Hindi). 
-          
+          content: `You are a professional Hindi news translator for a financial newspaper like Dainik Jagran or Amar Ujala.
+
 Rules:
-- Use simple Hindi that common people speak, NOT formal/translated Hindi
+- Use formal, newspaper-style Hindi (समाचार पत्र शैली)
 - Keep it 50-60 words max
-- Make it sound like a friend is telling you the news
-- Use Hinglish where natural (common English words like "shares", "market", "company" can stay)
-- Don't use heavy Sanskrit-based Hindi words
-- The tone should be casual but informative`
+- Use proper Hindi grammar and sentence structure
+- Maintain professional tone like business news
+- Use Hindi numerals for large amounts (करोड़, लाख)
+- Technical terms like IPO, shares, market can stay in English
+- NO casual words like "यार", "भाई", "सुन"
+- Write like a news anchor would read on TV
+
+Example style: "विदेशी संस्थागत निवेशकों ने दिसंबर के पहले सप्ताह में ₹11,820 करोड़ के भारतीय शेयर बेचे। हालांकि, घरेलू संस्थागत निवेशकों की मजबूत खरीदारी ने इस दबाव को संतुलित किया।"`
         },
         {
           role: 'user',
-          content: `Title: ${title}\n\nEnglish Summary: ${englishSummary}\n\nConvert this to natural Hindi:`
+          content: `Title: ${title}\n\nEnglish Summary: ${englishSummary}\n\nTranslate to formal newspaper Hindi:`
         }
       ],
       max_tokens: 200,
-      temperature: 0.7
+      temperature: 0.5
     });
     
     return response.choices[0]?.message?.content?.trim() || '';

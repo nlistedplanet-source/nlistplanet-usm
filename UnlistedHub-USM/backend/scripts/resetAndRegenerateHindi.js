@@ -1,6 +1,6 @@
 /**
- * Update existing news articles with Hindi summaries
- * Run: node scripts/updateHindiSummaries.js
+ * Reset Hindi summaries and regenerate with formal newspaper style
+ * Run: node scripts/resetAndRegenerateHindi.js
  */
 
 import mongoose from 'mongoose';
@@ -18,7 +18,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-// Generate Hindi summary using GPT-4 (Newspaper style formal Hindi)
+// Generate Hindi summary - Newspaper style (formal Hindi)
 const generateHindiSummary = async (title, englishSummary) => {
   try {
     const response = await openai.chat.completions.create({
@@ -35,7 +35,7 @@ Rules:
 - Maintain professional tone like business news
 - Use Hindi numerals for large amounts (करोड़, लाख)
 - Technical terms like IPO, shares, market can stay in English
-- NO casual words like "यार", "भाई", "सुन"
+- NO casual words like "यार", "भाई", "सुन", "अरे"
 - Write like a news anchor would read on TV
 
 Example style: "विदेशी संस्थागत निवेशकों ने दिसंबर के पहले सप्ताह में ₹11,820 करोड़ के भारतीय शेयर बेचे। हालांकि, घरेलू संस्थागत निवेशकों की मजबूत खरीदारी ने इस दबाव को संतुलित किया।"`
@@ -56,8 +56,8 @@ Example style: "विदेशी संस्थागत निवेशक�
   }
 };
 
-const updateHindiSummaries = async () => {
-  console.log('🚀 Starting Hindi Summary Update...\n');
+const regenerateAllHindi = async () => {
+  console.log('🚀 Regenerating ALL Hindi Summaries (Newspaper Style)...\n');
   
   if (!process.env.OPENAI_API_KEY) {
     console.error('❌ OPENAI_API_KEY not set in .env');
@@ -67,16 +67,14 @@ const updateHindiSummaries = async () => {
   await mongoose.connect(process.env.MONGODB_URI);
   console.log('✅ MongoDB connected\n');
   
-  // Find articles without Hindi summary
-  const articles = await News.find({
-    $or: [
-      { hindiSummary: { $exists: false } },
-      { hindiSummary: '' },
-      { hindiSummary: null }
-    ]
-  }).sort({ publishedAt: -1 });
+  // Clear all existing Hindi summaries first
+  console.log('🗑️ Clearing old casual Hindi summaries...');
+  await News.updateMany({}, { $set: { hindiSummary: '' } });
+  console.log('✅ Cleared!\n');
   
-  console.log(`📰 Found ${articles.length} articles without Hindi summary\n`);
+  // Get all articles
+  const articles = await News.find().sort({ publishedAt: -1 });
+  console.log(`📰 Regenerating ${articles.length} articles with formal Hindi\n`);
   
   let updated = 0;
   let failed = 0;
@@ -92,27 +90,27 @@ const updateHindiSummaries = async () => {
         { _id: article._id },
         { $set: { hindiSummary } }
       );
-      console.log(`  ✅ Hindi: ${hindiSummary.substring(0, 60)}...`);
+      console.log(`  ✅ ${hindiSummary.substring(0, 60)}...`);
       updated++;
     } else {
-      console.log(`  ❌ Failed to generate Hindi summary`);
+      console.log(`  ❌ Failed`);
       failed++;
     }
     
-    // Rate limit - wait 500ms between requests
-    await new Promise(r => setTimeout(r, 500));
+    // Rate limit - 400ms between requests
+    await new Promise(r => setTimeout(r, 400));
   }
   
   console.log('\n📊 Summary:');
   console.log(`   Updated: ${updated}`);
   console.log(`   Failed: ${failed}`);
-  console.log('\n✅ Hindi Summary Update Complete!');
+  console.log('\n✅ Newspaper Hindi Regeneration Complete!');
   
   await mongoose.disconnect();
   process.exit(0);
 };
 
-updateHindiSummaries().catch(error => {
+regenerateAllHindi().catch(error => {
   console.error('❌ Fatal error:', error);
   process.exit(1);
 });
