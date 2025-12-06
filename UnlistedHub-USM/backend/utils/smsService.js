@@ -1,28 +1,8 @@
 import axios from 'axios';
 import twilio from 'twilio';
 
-// Initialize Twilio client
-const getTwilioClient = () => {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  
-  if (!accountSid || !authToken) {
-    console.error('[SMS] Twilio credentials not configured');
-    return null;
-  }
-  
-  return twilio(accountSid, authToken);
-};
-
-// Send SMS via Twilio
-const sendViaTwilio = async ({ phone, message }) => {
-  const client = getTwilioClient();
-  
-  if (!client) {
-    throw new Error('Twilio not configured');
-  }
-
-  // Format phone number for India (+91)
+// Format phone number for India (+91)
+const formatPhoneNumber = (phone) => {
   let formattedPhone = phone.replace(/\s+/g, '').replace(/-/g, '');
   if (!formattedPhone.startsWith('+')) {
     if (formattedPhone.startsWith('91')) {
@@ -31,6 +11,67 @@ const sendViaTwilio = async ({ phone, message }) => {
       formattedPhone = '+91' + formattedPhone;
     }
   }
+  return formattedPhone;
+};
+
+// Brevo SMS API (Primary - better for India)
+const sendViaBrevo = async ({ phone, message }) => {
+  const apiKey = process.env.BREVO_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error('Brevo API key not configured');
+  }
+
+  const formattedPhone = formatPhoneNumber(phone);
+
+  try {
+    const response = await axios.post(
+      'https://api.brevo.com/v3/transactionalSMS/sms',
+      {
+        sender: 'NListPlanet',
+        recipient: formattedPhone,
+        content: message,
+        type: 'transactional'
+      },
+      {
+        headers: {
+          'api-key': apiKey,
+          'Content-Type': 'application/json',
+          'accept': 'application/json'
+        },
+        timeout: 15000
+      }
+    );
+    
+    console.log('[SMS] ✅ Sent via Brevo:', response.data.messageId);
+    return { success: true, messageId: response.data.messageId, provider: 'brevo' };
+  } catch (error) {
+    console.error('[SMS] ❌ Brevo SMS error:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Initialize Twilio client (Fallback)
+const getTwilioClient = () => {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  
+  if (!accountSid || !authToken) {
+    return null;
+  }
+  
+  return twilio(accountSid, authToken);
+};
+
+// Send SMS via Twilio (Fallback)
+const sendViaTwilio = async ({ phone, message }) => {
+  const client = getTwilioClient();
+  
+  if (!client) {
+    throw new Error('Twilio not configured');
+  }
+
+  const formattedPhone = formatPhoneNumber(phone);
 
   try {
     const result = await client.messages.create({
@@ -40,7 +81,7 @@ const sendViaTwilio = async ({ phone, message }) => {
     });
     
     console.log('[SMS] ✅ Sent via Twilio:', result.sid);
-    return { success: true, messageId: result.sid };
+    return { success: true, messageId: result.sid, provider: 'twilio' };
   } catch (error) {
     console.error('[SMS] ❌ Twilio SMS error:', error.message);
     throw error;
@@ -52,15 +93,25 @@ export const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Send OTP via SMS
+// Send OTP via SMS (Brevo primary, Twilio fallback)
 export const sendOTPSMS = async (phone, otp) => {
   const message = `Your NList Planet verification code is: ${otp}. Valid for 10 minutes. Do not share this code.`;
   
+  // Try Brevo first (better for India)
+  if (process.env.BREVO_API_KEY) {
+    try {
+      return await sendViaBrevo({ phone, message });
+    } catch (brevoError) {
+      console.log('[SMS] Brevo failed, trying Twilio fallback...');
+    }
+  }
+  
+  // Fallback to Twilio
   try {
     return await sendViaTwilio({ phone, message });
-  } catch (error) {
-    console.error('[SMS] Failed to send OTP:', error.message);
-    return { success: false, error: error.message };
+  } catch (twilioError) {
+    console.error('[SMS] All providers failed');
+    return { success: false, error: 'SMS delivery failed' };
   }
 };
 

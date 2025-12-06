@@ -61,13 +61,17 @@ function AppContent() {
     return <LoadingScreen />;
   }
 
+  // Show header on auth pages too (login, register, forgot-password)
+  const authPages = ['/login', '/register', '/forgot-password'];
+  const isAuthPage = authPages.includes(location.pathname);
+
   return (
     <div className="min-h-screen bg-dark-50">
-      {/* Top Bar */}
-      {showBottomNav && location.pathname !== '/dashboard' && <TopBar />}
+      {/* Top Bar - Show on all pages except dashboard */}
+      {(showBottomNav || isAuthPage) && location.pathname !== '/dashboard' && <TopBar />}
 
       {/* Main Content */}
-      <main className={location.pathname === '/' || location.pathname === '/dashboard-preview' || location.pathname === '/dashboard' ? '' : 'pt-16'}>
+      <main className={location.pathname === '/' || location.pathname === '/dashboard-preview' || location.pathname === '/dashboard' ? '' : 'pt-20'}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />
