@@ -13,7 +13,8 @@ import {
   ExternalLink,
   Calendar,
   Tag,
-  BookOpen
+  BookOpen,
+  Languages
 } from 'lucide-react';
 import axios from 'axios';
 import TopBar from '../components/TopBar';
@@ -33,6 +34,7 @@ const BlogPage = () => {
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [showHindi, setShowHindi] = useState(true); // Default to Hindi
 
   // Fetch news
   const fetchNews = async (page = 1, category = 'all', search = '') => {
@@ -269,9 +271,23 @@ const BlogPage = () => {
               <BookOpen className="text-emerald-500" size={24} />
               {selectedCategory === 'all' ? 'Latest Articles' : `${selectedCategory} News`}
             </h2>
-            <span className="text-gray-500 text-sm">
-              Page {currentPage} of {totalPages}
-            </span>
+            <div className="flex items-center gap-4">
+              {/* Hindi/English Toggle */}
+              <button
+                onClick={() => setShowHindi(!showHindi)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  showHindi 
+                    ? 'bg-orange-100 text-orange-600 border border-orange-300' 
+                    : 'bg-gray-100 text-gray-600 border border-gray-300'
+                }`}
+              >
+                <Languages size={16} />
+                {showHindi ? 'हिंदी' : 'English'}
+              </button>
+              <span className="text-gray-500 text-sm">
+                Page {currentPage} of {totalPages}
+              </span>
+            </div>
           </div>
 
           {loading ? (
@@ -350,7 +366,7 @@ const BlogPage = () => {
                       {item.title}
                     </h3>
                     <p className="text-gray-600 text-sm line-clamp-3 mb-4">
-                      {item.summary}
+                      {showHindi && item.hindiSummary ? item.hindiSummary : item.summary}
                     </p>
 
                     {/* Tags */}
