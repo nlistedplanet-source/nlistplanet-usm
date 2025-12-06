@@ -337,13 +337,13 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex text-[12px]">
-      {/* Left Sidebar Navigation - Ultra Compact */}
-      <aside className="w-52 bg-white border-r border-gray-200 fixed left-0 top-0 h-full flex flex-col z-30">
-        {/* User Profile - Mini */}
-        <div className="p-2 border-b border-gray-100 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Left Sidebar Navigation - Compact */}
+      <aside className="w-56 bg-white border-r border-gray-200 fixed left-0 top-0 h-full flex flex-col z-30">
+        {/* User Profile */}
+        <div className="p-3 border-b border-gray-100 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
               {user.avatar ? (
                 <img src={user.avatar} alt={user.username} className="w-full h-full rounded-full object-cover" />
               ) : (
@@ -351,11 +351,11 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-gray-900 truncate">{user.fullName || user.username}</p>
+              <p className="text-sm font-semibold text-gray-900 truncate">{user.fullName || user.username}</p>
               <div className="flex items-center gap-1">
-                <p className="text-[10px] text-gray-500">@{user.username}</p>
+                <p className="text-xs text-gray-500">@{user.username}</p>
                 {user.role === 'admin' && (
-                  <span className="px-1 rounded text-[8px] font-bold bg-blue-600 text-white">ADM</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-600 text-white">ADM</span>
                 )}
               </div>
             </div>
@@ -363,8 +363,8 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
         </div>
 
         {/* Navigation Menu - Scrollable */}
-        <nav className="flex-1 overflow-y-auto p-1.5 pb-12">
-          <div className="space-y-0.5">
+        <nav className="flex-1 overflow-y-auto p-2 pb-16">
+          <div className="space-y-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -373,13 +373,13 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md font-medium text-[12px] transition-all ${
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
                     isActive
                       ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <Icon size={14} />
+                  <Icon size={18} />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -388,9 +388,9 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
             {/* Admin Section */}
             {user?.role === 'admin' && (
               <>
-                <div className="pt-2 pb-0.5 mt-1 border-t border-gray-200">
-                  <p className="px-2.5 text-[9px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
-                    <Shield size={10} />
+                <div className="pt-3 pb-1 mt-2 border-t border-gray-200">
+                  <p className="px-3 text-[10px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
+                    <Shield size={12} />
                     Admin Panel
                   </p>
                 </div>
@@ -402,13 +402,13 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
                     <button
                       key={tab.id}
                       onClick={() => handleTabChange(tab.id)}
-                      className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md font-medium text-[12px] transition-all ${
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
                         isActive
                           ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
                           : 'text-gray-700 hover:bg-blue-50'
                       }`}
                     >
-                      <Icon size={14} />
+                      <Icon size={18} />
                       <span>{tab.label}</span>
                     </button>
                   );
@@ -417,12 +417,12 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
             )}
 
             {/* Logout inside scroll */}
-            <div className="pt-2 mt-1 border-t border-gray-100">
+            <div className="pt-3 mt-2 border-t border-gray-100">
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md font-medium text-[12px] transition-all text-red-600 hover:bg-red-50"
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition-all text-red-600 hover:bg-red-50"
               >
-                <LogOut size={14} />
+                <LogOut size={18} />
                 <span>Logout</span>
               </button>
             </div>
@@ -431,8 +431,8 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 ml-52 overflow-x-auto">
-        <div className="p-4 min-w-0">
+      <main className="flex-1 ml-56 overflow-x-auto">
+        <div className="p-6 min-w-0">
         
         {/* Tab Content */}
         {activeTab === 'overview' && (
