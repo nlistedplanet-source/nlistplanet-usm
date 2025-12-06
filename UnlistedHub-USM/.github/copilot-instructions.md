@@ -1,25 +1,20 @@
-# Copilot Instructions for NListPlanet/UnlistedHub
+# Copilot Instructions for UnlistedHub-USM
 
 ## Architecture Overview
-P2P marketplace for unlisted shares with admin-mediated transactions. Two active projects share similar structure:
+P2P marketplace for unlisted shares with admin-mediated transactions. Desktop web app.
 
-| Project | Purpose | Backend | Frontend |
-|---------|---------|---------|----------|
-| `UnlistedHub-USM/` | Desktop web app | `backend/` | `frontend/src/` |
-| `nlistplanet-mobile/` | Mobile PWA (forked from USM) | `backend/` | `frontend/src/` |
+**Tech Stack:** React 18, Node.js/Express, MongoDB (Mongoose), JWT auth, Tailwind CSS
 
-**Tech Stack:** React 18/19, Node.js/Express, MongoDB (Mongoose), JWT auth, Tailwind CSS
-
-## Project Structure Pattern
+## Project Structure
 ```
-{project}/backend/
+backend/
 ├── server.js          # Express app with Helmet, CORS, rate limiting
 ├── models/            # Mongoose schemas (User, Listing, Company, Transaction...)
 ├── routes/            # API endpoints (/api/auth, /api/listings, /api/admin...)
 ├── middleware/        # auth.js (JWT), validation.js, securityLogger.js
 └── utils/             # emailService.js, smsService.js
 
-{project}/frontend/src/
+frontend/src/
 ├── context/           # AuthContext.jsx (login state, axios interceptor)
 ├── pages/             # Route components
 ├── components/        # Reusable UI (ListingCard, etc.)
@@ -29,13 +24,13 @@ P2P marketplace for unlisted shares with admin-mediated transactions. Two active
 ## Developer Workflows
 ```bash
 # Backend
-cd {project}/backend && npm install
+cd backend && npm install
 npm run dev          # nodemon hot-reload
 npm start            # production
 GET /api/health      # health check
 
 # Frontend
-cd {project}/frontend && npm install
+cd frontend && npm install
 npm start            # dev server (localhost:3000)
 npm run build        # production build
 ```
@@ -121,17 +116,7 @@ company.Logo || company.logo
 company.Sector || company.sector
 ```
 
-## Mobile-Specific Utilities
-`nlistplanet-mobile/frontend/src/utils/helpers.js` has additional mobile helpers:
-```javascript
-haptic.light()    // Vibration feedback
-haptic.success()  // Success pattern [10, 50, 10]ms
-triggerHaptic('medium')
-formatShortNumber(1500000)  // → "15 L"
-```
-
 ## Reference Docs
-- `NlistPlanet_System_Architecture_FULL.md` - Full system design
 - `PROJECT_DOCUMENTATION.md` - Database models, API specs, admin flows
 - `SECURITY_FEATURES.md` - Security implementation details
 - `PASSWORD_POLICY_GUIDE.md` - Password requirements
