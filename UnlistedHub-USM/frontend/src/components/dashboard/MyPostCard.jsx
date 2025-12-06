@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import SoldConfirmModal from '../SoldConfirmModal';
-import { Share2, Zap, Edit, Trash2, CheckCircle, XCircle, MessageSquare, Loader, Eye, Info, ChevronDown, ChevronUp } from 'lucide-react';
-import { formatCurrency, formatDate, formatNumber, numberToWords, formatShortAmount, formatShortQuantity } from '../../utils/helpers';
+import { Share2, Zap, Edit, Trash2, CheckCircle, XCircle, MessageSquare, Loader, Eye, Info, ChevronDown, ChevronUp, History, Clock, AlertCircle } from 'lucide-react';
+import { formatCurrency, formatDate, formatNumber, numberToWords, formatShortAmount, formatShortQuantity, calculateSellerGets } from '../../utils/helpers';
 import * as htmlToImage from 'html-to-image';
 import { listingsAPI } from '../../utils/api';
 import toast from 'react-hot-toast';
@@ -30,7 +30,8 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
   const [counterPrice, setCounterPrice] = useState('');
   const [counterQuantity, setCounterQuantity] = useState('');
   const [sortBy, setSortBy] = useState('latest');
-  const [bidsExpanded, setBidsExpanded] = useState(false);
+  const [counterOffersExpanded, setCounterOffersExpanded] = useState(true);
+  const [pendingBidsExpanded, setPendingBidsExpanded] = useState(true);
   const [expandedBidIds, setExpandedBidIds] = useState(new Set());
   const [showModifyModal, setShowModifyModal] = useState(false);
   const [modifyPrice, setModifyPrice] = useState('');
@@ -44,7 +45,11 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
 
   const isSell = listing.type === 'sell';
   const bidsArray = (isSell ? listing.bids : listing.offers) || [];
-  const activeBidsCount = bidsArray.filter(b => b.status === 'pending' || b.status === 'countered').length;
+  
+  // Separate bids into Counter Offers (in-progress) and Pending Bids
+  const counterOfferBids = bidsArray.filter(b => b.status === 'countered');
+  const pendingBids = bidsArray.filter(b => b.status === 'pending');
+  const activeBidsCount = counterOfferBids.length + pendingBids.length;
   
   // Use seller's desired price (what they entered) for display
   const sellerPrice = isSell ? (listing.sellerDesiredPrice || listing.price) : (listing.buyerMaxPrice || listing.price);
@@ -54,6 +59,39 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
   const script = listing.companyId?.ScriptName || listing.companyName || 'Company';
   const price = formatCurrency(sellerPrice);
   const qty = formatShortQuantity(listing.quantity || 0);
+
+  // Helper to get latest counter info for a bid
+  const getLatestCounterInfo = (bid) => {
+    if (!bid.counterHistory || bid.counterHistory.length === 0) {
+      return { buyerBid: bid.price, buyerQty: bid.quantity, yourPrice: null, yourQty: null, rounds: 0, latestBy: 'buyer' };
+    }
+    
+    const history = bid.counterHistory;
+    let latestBuyerCounter = null;
+    let latestSellerCounter = null;
+    
+    // Find latest buyer and seller counters
+    for (let i = history.length - 1; i >= 0; i--) {
+      if (!latestBuyerCounter && history[i].by === 'buyer') {
+        latestBuyerCounter = history[i];
+      }
+      if (!latestSellerCounter && history[i].by === 'seller') {
+        latestSellerCounter = history[i];
+      }
+      if (latestBuyerCounter && latestSellerCounter) break;
+    }
+    
+    const latestEntry = history[history.length - 1];
+    
+    return {
+      buyerBid: latestBuyerCounter ? latestBuyerCounter.price : bid.price,
+      buyerQty: latestBuyerCounter ? latestBuyerCounter.quantity : bid.quantity,
+      yourPrice: latestSellerCounter ? latestSellerCounter.price : null,
+      yourQty: latestSellerCounter ? latestSellerCounter.quantity : null,
+      rounds: history.length,
+      latestBy: latestEntry.by
+    };
+  };
 
   const handleAccept = async (bid) => {
     try {
@@ -338,7 +376,7 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
           <table className="w-full border-2 border-gray-400">
             <thead>
               <tr className="bg-gray-100">
-                <th className="border-2 border-gray-400 px-2 py-1 text-center text-[11px] font-bold text-gray-700 uppercase">Final Price</th>
+                <th className="border-2 border-gray-400 px-2 py-1 text-center text-[11px] font-bold text-gray-700 uppercase">{isSell ? 'Selling Price' : 'Buying Price'}</th>
                 <th className="border-2 border-gray-400 px-2 py-1 text-center text-[11px] font-bold text-gray-700 uppercase">Quantity</th>
                 <th className="border-2 border-gray-400 px-2 py-1 text-center text-[11px] font-bold text-gray-700 uppercase">Min Lot</th>
                 <th className="border-2 border-gray-400 px-2 py-1 text-center text-[11px] font-bold text-gray-700 uppercase">Total</th>
@@ -396,175 +434,256 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
           )}
         </div>
 
-        {/* Bids Table - Collapsible */}
+        {/* Two Sections: Counter Offers In-Progress + Pending Bids */}
         {bidsArray.length > 0 && (
-          <div className="px-3 py-2">
-            <button 
-              onClick={() => setBidsExpanded(!bidsExpanded)}
-              className="w-full bg-gradient-to-r from-blue-100 to-purple-100 px-3 py-2 rounded-md border border-gray-400 flex items-center justify-between hover:from-blue-200 hover:to-purple-200 transition-colors"
-            >
-              <h4 className="font-bold text-gray-900 text-[11px]">Bids ({activeBidsCount})</h4>
-              {bidsExpanded ? <ChevronUp className="w-4 h-4 text-gray-700" /> : <ChevronDown className="w-4 h-4 text-gray-700" />}
-            </button>
-            
-            {bidsExpanded && (
-              <div className="border-2 border-gray-400 border-t-0 rounded-b-lg overflow-hidden shadow-lg mt-0">
-                <div className="bg-gray-50 px-3 py-1 border-b border-gray-300 flex justify-end">
-                    <select className="text-[11px] border border-gray-400 rounded px-2 py-1 bg-white font-semibold" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                    <option value="latest">Sort: Latest</option>
-                    <option value="highest">Sort: Highest Price</option>
-                    <option value="lowest">Sort: Lowest Price</option>
-                  </select>
-                </div>
-                <table className="w-full bg-white">
-                  <thead className="bg-gray-100 border-b-2 border-gray-400">
-                    <tr>
-                        <th className="px-2 py-1 text-center text-[11px] font-bold text-gray-700 uppercase border-r-2 border-gray-300">#</th>
-                        <th className="px-2 py-1 text-left text-[11px] font-bold text-gray-700 uppercase border-r-2 border-gray-300">{isSell ? 'Buyer' : 'Seller'}</th>
-                        <th className="px-2 py-1 text-left text-[11px] font-bold text-gray-700 uppercase border-r-2 border-gray-300">Price</th>
-                        <th className="px-2 py-1 text-left text-[11px] font-bold text-gray-700 uppercase border-r-2 border-gray-300">Qty</th>
-                        <th className="px-2 py-1 text-left text-[11px] font-bold text-gray-700 uppercase border-r-2 border-gray-300">Total</th>
-                        <th className="px-2 py-1 text-left text-[11px] font-bold text-gray-700 uppercase border-r-2 border-gray-300">Status</th>
-                        <th className="px-2 py-1 text-center text-[11px] font-bold text-gray-700 uppercase">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y-2 divide-gray-300">
-                    {sortedBids.map((bid, index) => {
-                      // Use originalPrice for buyer's original bid (fallback to price for old bids)
-                      const buyerOriginalPrice = bid.originalPrice || bid.price;
-                      // Seller sees what they'll receive after 2% platform fee on buyer's original bid
-                      const displayPrice = buyerOriginalPrice * 0.98;
-                      const bidTotal = displayPrice * bid.quantity;
-                      const hasCounterHistory = bid.counterHistory && bid.counterHistory.length > 0;
-                      const isExpanded = expandedBidIds.has(bid._id);
-                      const latestCounter = hasCounterHistory ? bid.counterHistory[bid.counterHistory.length - 1] : null;
-                      const isLatestFromBuyer = latestCounter?.by === 'buyer';
-                      const canShowActions = bid.status === 'countered' && isLatestFromBuyer;
-                      
-                      return (
-                        <React.Fragment key={bid._id}>
-                          {/* Main Bid Row */}
-                          <tr className="hover:bg-blue-50 transition-colors">
-                            <td className="px-2 py-1 text-[11px] font-bold text-gray-900 border-r-2 border-gray-200 text-center">{index + 1}</td>
-                            <td className="px-2 py-1 text-[11px] border-r-2 border-gray-200">
-                              <div className="font-bold text-blue-700 text-[11px]">@{bid.user?.username || bid.username || 'trader_' + (index + 1)}</div>
-                              <div className="text-[10px] text-gray-600 mt-0.5">⭐ {bid.user?.rating?.toFixed(1) || '4.5'}</div>
-                            </td>
-                            <td className="px-2 py-1 text-[11px] font-bold text-gray-900 border-r-2 border-gray-200 cursor-help" title={numberToWords(displayPrice)}>{formatCurrency(displayPrice)}</td>
-                            <td className="px-2 py-1 text-[11px] font-bold text-gray-900 border-r-2 border-gray-200 cursor-help" title={`${bid.quantity?.toLocaleString('en-IN')} shares`}>{formatShortQuantity(bid.quantity || 0)}</td>
-                            <td className="px-2 py-1 text-[11px] border-r-2 border-gray-200">
-                              <div className="font-bold text-green-600 cursor-help text-[11px]" title={numberToWords(bidTotal)}>{formatShortAmount(bidTotal)}</div>
-                            </td>
-                            <td className="px-2 py-1 text-[11px] border-r-2 border-gray-200">
-                              <div className="flex items-center gap-1">
-                                <span className={`px-2 py-0.5 rounded-full text-xs font-bold uppercase border-2 ${
-                                  bid.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-400' :
-                                  bid.status === 'accepted' ? 'bg-green-100 text-green-800 border-green-400' :
-                                  bid.status === 'rejected' ? 'bg-red-100 text-red-800 border-red-400' :
-                                  bid.status === 'countered' ? 'bg-blue-100 text-blue-800 border-blue-400' :
-                                  'bg-gray-100 text-gray-800 border-gray-400'
-                                }`}>{bid.status || 'Pending'}</span>
-                                {hasCounterHistory && (
-                                  <button
-                                    onClick={() => {
-                                      const newSet = new Set(expandedBidIds);
-                                      if (newSet.has(bid._id)) {
-                                        newSet.delete(bid._id);
-                                      } else {
-                                        newSet.add(bid._id);
-                                      }
-                                      setExpandedBidIds(newSet);
-                                    }}
-                                    className="text-blue-600 hover:text-blue-800"
-                                  >
-                                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-2 py-1 text-[11px]">
-                              {bid.status === 'pending' && (
-                                <div className="flex items-center justify-center gap-2">
-                                  <button onClick={() => handleAccept(bid)} disabled={actionLoading === bid._id} className="flex flex-col items-center p-1 hover:bg-green-100 rounded-md transition-colors border border-green-300 bg-green-50">
-                                    <span className="text-base">✅</span>
-                                    <span className="text-[11px] font-bold text-green-700 mt-0.5">Accept</span>
-                                  </button>
-                                  <button onClick={() => handleReject(bid)} disabled={actionLoading === bid._id} className="flex flex-col items-center p-1 hover:bg-red-100 rounded-md transition-colors border border-red-300 bg-red-50">
-                                    <span className="text-base">❌</span>
-                                    <span className="text-[11px] font-bold text-red-700 mt-0.5">Reject</span>
-                                  </button>
-                                  <button onClick={() => handleCounterClick(bid)} disabled={actionLoading === bid._id} className="flex flex-col items-center p-1 hover:bg-blue-100 rounded-md transition-colors border border-blue-300 bg-blue-50">
-                                    <span className="text-base">💬</span>
-                                    <span className="text-[11px] font-bold text-blue-700 mt-0.5">Counter</span>
-                                  </button>
-                                </div>
-                              )}
-                              {canShowActions && (
-                                <div className="flex items-center justify-center gap-2">
-                                  <button onClick={() => handleAccept(bid)} disabled={actionLoading === bid._id} className="flex flex-col items-center p-1 hover:bg-green-100 rounded-md transition-colors border border-green-300 bg-green-50">
-                                    <span className="text-base">✅</span>
-                                    <span className="text-[11px] font-bold text-green-700 mt-0.5">Accept</span>
-                                  </button>
-                                  <button onClick={() => handleReject(bid)} disabled={actionLoading === bid._id} className="flex flex-col items-center p-1 hover:bg-red-100 rounded-md transition-colors border border-red-300 bg-red-50">
-                                    <span className="text-base">❌</span>
-                                    <span className="text-[11px] font-bold text-red-700 mt-0.5">Reject</span>
-                                  </button>
-                                  <button onClick={() => handleCounterClick(bid)} disabled={actionLoading === bid._id} className="flex flex-col items-center p-1 hover:bg-blue-100 rounded-md transition-colors border border-blue-300 bg-blue-50">
-                                    <span className="text-base">💬</span>
-                                    <span className="text-[11px] font-bold text-blue-700 mt-0.5">Counter</span>
-                                  </button>
-                                </div>
-                              )}
-                              {bid.status === 'accepted' && <div className="text-center font-bold text-green-700">✅ Done</div>}
-                              {bid.status === 'rejected' && <div className="text-center font-bold text-red-700">❌ Rejected</div>}
-                              {bid.status === 'countered' && !canShowActions && <div className="text-center text-[10px] text-blue-600 italic">Waiting...</div>}
-                            </td>
-                          </tr>
+          <div className="px-3 py-2 space-y-3">
+            {/* Section 1: Counter Offers In-Progress */}
+            {counterOfferBids.length > 0 && (
+              <div>
+                <button 
+                  onClick={() => setCounterOffersExpanded(!counterOffersExpanded)}
+                  className="w-full bg-gradient-to-r from-blue-100 to-indigo-100 px-3 py-2 rounded-md border-2 border-blue-400 flex items-center justify-between hover:from-blue-200 hover:to-indigo-200 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-blue-600 text-lg">🔵</span>
+                    <h4 className="font-bold text-blue-800 text-[12px]">Counter Offers In-Progress ({counterOfferBids.length})</h4>
+                  </div>
+                  {counterOffersExpanded ? <ChevronUp className="w-4 h-4 text-blue-700" /> : <ChevronDown className="w-4 h-4 text-blue-700" />}
+                </button>
+                
+                {counterOffersExpanded && (
+                  <div className="border-2 border-blue-400 border-t-0 rounded-b-lg overflow-hidden shadow-lg">
+                    <table className="w-full bg-white">
+                      <thead className="bg-blue-50 border-b-2 border-blue-400">
+                        <tr>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-blue-800 uppercase border-r border-blue-300 w-8">#</th>
+                          <th className="px-2 py-1.5 text-left text-[11px] font-bold text-blue-800 uppercase border-r border-blue-300">{isSell ? 'Buyer' : 'Seller'}</th>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-blue-800 uppercase border-r border-blue-300">{isSell ? 'Buyer Bid' : 'Seller Offer'}</th>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-blue-800 uppercase border-r border-blue-300">Your Price</th>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-blue-800 uppercase border-r border-blue-300 w-16">Rounds</th>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-blue-800 uppercase border-r border-blue-300">Status</th>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-blue-800 uppercase">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-blue-200">
+                        {counterOfferBids.map((bid, index) => {
+                          const counterInfo = getLatestCounterInfo(bid);
+                          // Display prices adjusted for platform fee
+                          const displayBuyerBid = calculateSellerGets(counterInfo.buyerBid);
+                          const hasCounterHistory = bid.counterHistory && bid.counterHistory.length > 0;
+                          const isExpanded = expandedBidIds.has(bid._id);
+                          const isLatestFromBuyer = counterInfo.latestBy === 'buyer';
+                          const canShowActions = isLatestFromBuyer; // Show actions only when it's seller's turn
                           
-                          {/* Counter History Sub-rows */}
-                          {isExpanded && hasCounterHistory && bid.counterHistory.map((counter, cIdx) => {
-                            // Seller's counter = seller enters what they want to receive (no fee deduction)
-                            // Buyer's counter = buyer enters what they'll pay (seller receives 98%)
-                            const counterPrice = counter.by === 'seller' 
-                              ? counter.price  // Seller's counter is already what seller receives
-                              : counter.price * 0.98;  // Buyer's counter - seller gets 98%
-                            const counterTotal = counterPrice * counter.quantity;
-                            const isLatest = cIdx === bid.counterHistory.length - 1;
-                            
-                            return (
-                              <tr key={`${bid._id}-counter-${cIdx}`} className="bg-gray-50 border-l-4 border-blue-400">
-                                <td className="px-2 py-1 border-r-2 border-gray-200"></td>
-                                <td className="px-2 py-1 text-[10px] border-r-2 border-gray-200">
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-blue-600">↳</span>
-                                    <span className="font-semibold">{counter.by === 'buyer' ? 'Buyer' : 'Seller'} Counter #{counter.round || cIdx + 1}</span>
+                          return (
+                            <React.Fragment key={bid._id}>
+                              {/* Main Row */}
+                              <tr className={`hover:bg-blue-50 transition-colors ${isLatestFromBuyer ? 'bg-orange-50' : ''}`}>
+                                <td className="px-2 py-2 text-[11px] font-bold text-gray-900 border-r border-blue-200 text-center">{index + 1}</td>
+                                <td className="px-2 py-2 text-[11px] border-r border-blue-200">
+                                  <div className="font-bold text-blue-700">@{bid.user?.username || bid.username || 'trader_' + (index + 1)}</div>
+                                  <div className="text-[10px] text-gray-500">⭐ {bid.user?.rating?.toFixed(1) || '4.5'}</div>
+                                </td>
+                                <td className="px-2 py-2 text-center border-r border-blue-200">
+                                  <div className="text-[11px] font-bold text-gray-900">{formatCurrency(displayBuyerBid)}</div>
+                                  <div className="text-[9px] text-gray-500">×{formatShortQuantity(counterInfo.buyerQty)}</div>
+                                </td>
+                                <td className="px-2 py-2 text-center border-r border-blue-200">
+                                  {counterInfo.yourPrice ? (
+                                    <>
+                                      <div className="text-[11px] font-bold text-purple-700">{formatCurrency(counterInfo.yourPrice)}</div>
+                                      <div className="text-[9px] text-gray-500">×{formatShortQuantity(counterInfo.yourQty)}</div>
+                                    </>
+                                  ) : (
+                                    <span className="text-[10px] text-gray-400">-</span>
+                                  )}
+                                </td>
+                                <td className="px-2 py-2 text-center border-r border-blue-200">
+                                  <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-[11px] font-bold">{counterInfo.rounds}</span>
+                                </td>
+                                <td className="px-2 py-2 text-center border-r border-blue-200">
+                                  <div className="flex items-center justify-center gap-1">
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                      isLatestFromBuyer 
+                                        ? 'bg-orange-100 text-orange-800 border border-orange-400' 
+                                        : 'bg-blue-100 text-blue-800 border border-blue-400'
+                                    }`}>
+                                      {isLatestFromBuyer ? 'Your Turn' : 'Waiting'}
+                                    </span>
+                                    {hasCounterHistory && (
+                                      <button
+                                        onClick={() => {
+                                          const newSet = new Set(expandedBidIds);
+                                          if (newSet.has(bid._id)) newSet.delete(bid._id);
+                                          else newSet.add(bid._id);
+                                          setExpandedBidIds(newSet);
+                                        }}
+                                        className="p-1 hover:bg-blue-100 rounded transition-colors"
+                                        title="View counter history"
+                                      >
+                                        <History size={14} className="text-blue-600" />
+                                      </button>
+                                    )}
                                   </div>
-                                  <div className="text-[9px] text-gray-500 mt-0.5">{formatDate(counter.timestamp)}</div>
                                 </td>
-                                <td className="px-2 py-1 text-[10px] font-semibold text-gray-800 border-r-2 border-gray-200 cursor-help" title={numberToWords(counterPrice)}>{formatCurrency(counterPrice)}</td>
-                                <td className="px-2 py-1 text-[10px] font-semibold text-gray-800 border-r-2 border-gray-200">{formatShortQuantity(counter.quantity)}</td>
-                                <td className="px-2 py-1 text-[10px] font-semibold text-blue-600 border-r-2 border-gray-200 cursor-help" title={numberToWords(counterTotal)}>{formatShortAmount(counterTotal)}</td>
-                                <td className="px-2 py-1 border-r-2 border-gray-200">
-                                  {counter.by === 'buyer' && isLatest && (
-                                    <span className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full font-bold">LATEST</span>
-                                  )}
-                                  {counter.by === 'seller' && (
-                                    <span className="text-[9px] text-gray-500 italic">Your counter</span>
-                                  )}
-                                </td>
-                                <td className="px-2 py-1 text-[10px] text-gray-500 italic">
-                                  {counter.message && (
-                                    <div className="text-[9px] text-gray-600 italic truncate max-w-[100px]" title={counter.message}>"{counter.message}"</div>
+                                <td className="px-2 py-2 text-center">
+                                  {canShowActions ? (
+                                    <div className="flex items-center justify-center gap-1">
+                                      <button onClick={() => handleAccept(bid)} disabled={actionLoading === bid._id} className="p-1.5 bg-green-100 hover:bg-green-200 rounded-lg transition-colors border border-green-400" title="Accept">
+                                        <CheckCircle size={16} className="text-green-700" />
+                                      </button>
+                                      <button onClick={() => handleReject(bid)} disabled={actionLoading === bid._id} className="p-1.5 bg-red-100 hover:bg-red-200 rounded-lg transition-colors border border-red-400" title="Reject">
+                                        <XCircle size={16} className="text-red-700" />
+                                      </button>
+                                      <button onClick={() => handleCounterClick(bid)} disabled={actionLoading === bid._id} className="p-1.5 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors border border-blue-400" title="Counter">
+                                        <MessageSquare size={16} className="text-blue-700" />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <span className="text-[10px] text-blue-600 italic flex items-center justify-center gap-1">
+                                      <Clock size={12} /> Waiting...
+                                    </span>
                                   )}
                                 </td>
                               </tr>
-                            );
-                          })}
-                        </React.Fragment>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                              
+                              {/* Counter History Sub-rows */}
+                              {isExpanded && hasCounterHistory && (
+                                <tr>
+                                  <td colSpan="7" className="p-0 bg-gray-50">
+                                    <div className="px-4 py-2">
+                                      <div className="text-[10px] font-bold text-gray-600 mb-2 flex items-center gap-1">
+                                        <History size={12} /> Counter History
+                                      </div>
+                                      <table className="w-full border border-gray-300 rounded">
+                                        <thead className="bg-gray-100">
+                                          <tr>
+                                            <th className="px-2 py-1 text-[10px] font-bold text-gray-600 text-left border-r border-gray-300">Round</th>
+                                            <th className="px-2 py-1 text-[10px] font-bold text-gray-600 text-left border-r border-gray-300">By</th>
+                                            <th className="px-2 py-1 text-[10px] font-bold text-gray-600 text-center border-r border-gray-300">Price</th>
+                                            <th className="px-2 py-1 text-[10px] font-bold text-gray-600 text-center border-r border-gray-300">Qty</th>
+                                            <th className="px-2 py-1 text-[10px] font-bold text-gray-600 text-left">Date</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-200">
+                                          {bid.counterHistory.map((counter, cIdx) => {
+                                            const counterDisplayPrice = counter.by === 'seller' 
+                                              ? counter.price  
+                                              : calculateSellerGets(counter.price);
+                                            return (
+                                              <tr key={cIdx} className={counter.by === 'seller' ? 'bg-purple-50' : 'bg-white'}>
+                                                <td className="px-2 py-1 text-[10px] font-semibold text-gray-700 border-r border-gray-200">#{counter.round || cIdx + 1}</td>
+                                                <td className="px-2 py-1 text-[10px] border-r border-gray-200">
+                                                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                                                    counter.by === 'seller' ? 'bg-purple-200 text-purple-800' : 'bg-blue-200 text-blue-800'
+                                                  }`}>
+                                                    {counter.by === 'seller' ? 'You' : 'Buyer'}
+                                                  </span>
+                                                </td>
+                                                <td className="px-2 py-1 text-[10px] font-semibold text-gray-800 text-center border-r border-gray-200">{formatCurrency(counterDisplayPrice)}</td>
+                                                <td className="px-2 py-1 text-[10px] text-gray-700 text-center border-r border-gray-200">{formatShortQuantity(counter.quantity)}</td>
+                                                <td className="px-2 py-1 text-[9px] text-gray-500">{formatDate(counter.timestamp)}</td>
+                                              </tr>
+                                            );
+                                          })}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Section 2: Pending Bids */}
+            {pendingBids.length > 0 && (
+              <div>
+                <button 
+                  onClick={() => setPendingBidsExpanded(!pendingBidsExpanded)}
+                  className="w-full bg-gradient-to-r from-orange-100 to-amber-100 px-3 py-2 rounded-md border-2 border-orange-400 flex items-center justify-between hover:from-orange-200 hover:to-amber-200 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-orange-600 text-lg">🟠</span>
+                    <h4 className="font-bold text-orange-800 text-[12px]">Pending Bids ({pendingBids.length})</h4>
+                  </div>
+                  {pendingBidsExpanded ? <ChevronUp className="w-4 h-4 text-orange-700" /> : <ChevronDown className="w-4 h-4 text-orange-700" />}
+                </button>
+                
+                {pendingBidsExpanded && (
+                  <div className="border-2 border-orange-400 border-t-0 rounded-b-lg overflow-hidden shadow-lg">
+                    <table className="w-full bg-white">
+                      <thead className="bg-orange-50 border-b-2 border-orange-400">
+                        <tr>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-orange-800 uppercase border-r border-orange-300 w-8">#</th>
+                          <th className="px-2 py-1.5 text-left text-[11px] font-bold text-orange-800 uppercase border-r border-orange-300">{isSell ? 'Buyer' : 'Seller'}</th>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-orange-800 uppercase border-r border-orange-300">{isSell ? 'Bid Price' : 'Offer Price'}</th>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-orange-800 uppercase border-r border-orange-300">Quantity</th>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-orange-800 uppercase border-r border-orange-300">Total</th>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-orange-800 uppercase border-r border-orange-300">Date</th>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-orange-800 uppercase">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-orange-200">
+                        {pendingBids.map((bid, index) => {
+                          // Seller sees what they'll receive after 2% platform fee
+                          const displayPrice = calculateSellerGets(bid.originalPrice || bid.price);
+                          const bidTotal = displayPrice * bid.quantity;
+                          
+                          return (
+                            <tr key={bid._id} className="hover:bg-orange-50 transition-colors">
+                              <td className="px-2 py-2 text-[11px] font-bold text-gray-900 border-r border-orange-200 text-center">{index + 1}</td>
+                              <td className="px-2 py-2 text-[11px] border-r border-orange-200">
+                                <div className="font-bold text-orange-700">@{bid.user?.username || bid.username || 'trader_' + (index + 1)}</div>
+                                <div className="text-[10px] text-gray-500">⭐ {bid.user?.rating?.toFixed(1) || '4.5'}</div>
+                              </td>
+                              <td className="px-2 py-2 text-center border-r border-orange-200">
+                                <div className="text-[12px] font-bold text-gray-900">{formatCurrency(displayPrice)}</div>
+                                <div className="text-[9px] text-gray-400">You receive</div>
+                              </td>
+                              <td className="px-2 py-2 text-center border-r border-orange-200">
+                                <div className="text-[11px] font-bold text-gray-900">{formatShortQuantity(bid.quantity)}</div>
+                              </td>
+                              <td className="px-2 py-2 text-center border-r border-orange-200">
+                                <div className="text-[11px] font-bold text-green-600">{formatShortAmount(bidTotal)}</div>
+                              </td>
+                              <td className="px-2 py-2 text-center border-r border-orange-200">
+                                <div className="text-[10px] text-gray-500">{formatDate(bid.createdAt)}</div>
+                              </td>
+                              <td className="px-2 py-2 text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                  <button onClick={() => handleAccept(bid)} disabled={actionLoading === bid._id} className="p-1.5 bg-green-100 hover:bg-green-200 rounded-lg transition-colors border border-green-400" title="Accept">
+                                    <CheckCircle size={16} className="text-green-700" />
+                                  </button>
+                                  <button onClick={() => handleReject(bid)} disabled={actionLoading === bid._id} className="p-1.5 bg-red-100 hover:bg-red-200 rounded-lg transition-colors border border-red-400" title="Reject">
+                                    <XCircle size={16} className="text-red-700" />
+                                  </button>
+                                  <button onClick={() => handleCounterClick(bid)} disabled={actionLoading === bid._id} className="p-1.5 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors border border-blue-400" title="Counter">
+                                    <MessageSquare size={16} className="text-blue-700" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* No Active Bids */}
+            {counterOfferBids.length === 0 && pendingBids.length === 0 && (
+              <div className="text-center py-4 text-gray-500">
+                <AlertCircle className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                <p className="text-sm">No active bids yet</p>
               </div>
             )}
           </div>
