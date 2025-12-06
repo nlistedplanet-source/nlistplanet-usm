@@ -244,7 +244,7 @@ const BlogPage = () => {
                         {item.title}
                       </h3>
                       <p className={`text-gray-300 ${index === 0 ? 'line-clamp-3' : 'line-clamp-2'} text-sm`}>
-                        {item.summary}
+                        {showHindi && item.hindiSummary ? item.hindiSummary : item.summary}
                       </p>
                       <div className="flex items-center gap-4 mt-3 text-gray-400 text-xs">
                         <span className="flex items-center gap-1">
@@ -272,18 +272,29 @@ const BlogPage = () => {
               {selectedCategory === 'all' ? 'Latest Articles' : `${selectedCategory} News`}
             </h2>
             <div className="flex items-center gap-4">
-              {/* Hindi/English Toggle */}
-              <button
-                onClick={() => setShowHindi(!showHindi)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  showHindi 
-                    ? 'bg-orange-100 text-orange-600 border border-orange-300' 
-                    : 'bg-gray-100 text-gray-600 border border-gray-300'
-                }`}
-              >
-                <Languages size={16} />
-                {showHindi ? 'हिंदी' : 'English'}
-              </button>
+              {/* Inshorts-style Language Toggle */}
+              <div className="flex items-center bg-gray-100 rounded-full p-1">
+                <button
+                  onClick={() => setShowHindi(false)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${
+                    !showHindi 
+                      ? 'bg-white text-gray-900 shadow-sm' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  English
+                </button>
+                <button
+                  onClick={() => setShowHindi(true)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${
+                    showHindi 
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-sm' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  हिंदी
+                </button>
+              </div>
               <span className="text-gray-500 text-sm">
                 Page {currentPage} of {totalPages}
               </span>
