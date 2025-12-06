@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, IndianRupee, Package, Send } from 'lucide-react';
 import { listingsAPI } from '../utils/api';
-import { formatCurrency, numberToWords } from '../utils/helpers';
+import { formatCurrency, numberToWords, calculateTotalWithFee, calculateSellerGets } from '../utils/helpers';
 import toast from 'react-hot-toast';
 
 // Format quantity in shorthand
@@ -20,7 +20,9 @@ const BidOfferModal = ({ listing, onClose, onSuccess }) => {
   //           displayPrice = what buyer must pay (with platform fee)
   // BUY Request: listing.price = what buyer will pay (total)
   //              displayPrice = what seller will get (after platform fee)
-  const displayPrice = isSell ? calculateTotalWithFee(listing.price) : listing.price;
+  const displayPrice = isSell 
+    ? calculateTotalWithFee(listing.price)  // Buyer pays +2%
+    : calculateSellerGets(listing.price);   // Seller receives -2%
   
   const [formData, setFormData] = useState({
     price: '',
