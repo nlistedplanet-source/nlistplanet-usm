@@ -14,12 +14,26 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import OpenAI from 'openai';
+import { v2 as cloudinary } from 'cloudinary';
 import News from '../models/News.js';
 
 // Fix path for dotenv when running from scripts folder
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '..', '.env') });
+
+// Initialize OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+// Initialize Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 // Connect to MongoDB
 const connectDB = async () => {
@@ -253,6 +267,98 @@ const isRelevantNews = (title, content) => {
   return RELEVANT_KEYWORDS.some(keyword => text.includes(keyword));
 };
 
+// Generate Hindi summary using GPT-4 (natural conversational Hindi)
+const generateHindiSummary = async (title, englishSummary) => {
+  if (!process.env.OPENAI_API_KEY) {
+    console.log('  ⚠️ OpenAI API key not set, skipping Hindi summary');
+    return '';
+  }
+  
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a news summarizer. Convert English news to natural, conversational Hindi (aam bolchal wali Hindi). 
+          
+Rules:
+- Use simple Hindi that common people speak, NOT formal/translated Hindi
+- Keep it 50-60 words max
+- Make it sound like a friend is telling you the news
+- Use Hinglish where natural (common English words like "shares", "market", "company" can stay)
+- Don't use heavy Sanskrit-based Hindi words
+- The tone should be casual but informative`
+        },
+        {
+          role: 'user',
+          content: `Title: ${title}\n\nEnglish Summary: ${englishSummary}\n\nConvert this to natural Hindi:`
+        }
+      ],
+      max_tokens: 200,
+      temperature: 0.7
+    });
+    
+    return response.choices[0]?.message?.content?.trim() || '';
+  } catch (error) {
+    console.log(`  ⚠️ Hindi summary error: ${error.message}`);
+    return '';
+  }
+};
+
+// Generate AI image for news without thumbnail
+const generateAIImage = async (title, category) => {
+  if (!process.env.OPENAI_API_KEY) {
+    console.log('  ⚠️ OpenAI API key not set, skipping image generation');
+    return null;
+  }
+  
+  try {
+    const prompt = `Professional, clean business/finance news thumbnail for: "${title}". Category: ${category}. Style: Modern, minimal, corporate blue tones, abstract financial graphics. No text in image.`;
+    
+    const response = await openai.images.generate({
+      model: 'dall-e-3',
+      prompt: prompt,
+      n: 1,
+      size: '1024x1024',
+      quality: 'standard'
+    });
+    
+    const imageUrl = response.data[0]?.url;
+    if (imageUrl) {
+      // Upload to Cloudinary for permanent storage
+      const uploaded = await uploadToCloudinary(imageUrl);
+      return uploaded;
+    }
+    return null;
+  } catch (error) {
+    console.log(`  ⚠️ Image generation error: ${error.message}`);
+    return null;
+  }
+};
+
+// Upload image to Cloudinary
+const uploadToCloudinary = async (imageUrl) => {
+  if (!process.env.CLOUDINARY_CLOUD_NAME) {
+    console.log('  ⚠️ Cloudinary not configured, using direct URL');
+    return imageUrl;
+  }
+  
+  try {
+    const result = await cloudinary.uploader.upload(imageUrl, {
+      folder: 'nlistplanet-news',
+      transformation: [
+        { width: 800, height: 450, crop: 'fill' },
+        { quality: 'auto' }
+      ]
+    });
+    return result.secure_url;
+  } catch (error) {
+    console.log(`  ⚠️ Cloudinary upload error: ${error.message}`);
+    return imageUrl;
+  }
+};
+
 // Extract tags from content
 const extractTags = (title, content) => {
   const text = `${title} ${content}`.toLowerCase();
@@ -304,12 +410,29 @@ const fetchRSSFeed = async (feed) => {
         // Extract tags
         const tags = extractTags(item.title, content);
         
+        // Generate Hindi summary (AI-powered)
+        const hindiSummary = await generateHindiSummary(item.title, summary);
+        
+        // Generate AI image if no thumbnail
+        let finalThumbnail = thumbnail;
+        let thumbnailAIGenerated = false;
+        if (!thumbnail || thumbnail.trim() === '') {
+          console.log(`  🎨 Generating AI image for: ${item.title.substring(0, 30)}...`);
+          const aiImageUrl = await generateAIImage(item.title, category);
+          if (aiImageUrl) {
+            finalThumbnail = aiImageUrl;
+            thumbnailAIGenerated = true;
+          }
+        }
+        
         const newsItem = {
           title: item.title,
           summary,
+          hindiSummary,
           content: content.substring(0, 2000), // Limit content
           category,
-          thumbnail,
+          thumbnail: finalThumbnail,
+          thumbnailAIGenerated,
           sourceUrl: item.link,
           sourceName: feed.name,
           author: item.creator || item.author || feed.name,
