@@ -86,4 +86,46 @@ router.put('/read-all', protect, async (req, res, next) => {
   }
 });
 
+// @route   DELETE /api/notifications/:id
+// @desc    Delete a notification
+// @access  Private
+router.delete('/:id', protect, async (req, res, next) => {
+  try {
+    const notification = await Notification.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user._id
+    });
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: 'Notification not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Notification deleted'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   POST /api/notifications/clear-all
+// @desc    Delete all notifications for user
+// @access  Private
+router.post('/clear-all', protect, async (req, res, next) => {
+  try {
+    await Notification.deleteMany({ userId: req.user._id });
+
+    res.json({
+      success: true,
+      message: 'All notifications cleared'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
