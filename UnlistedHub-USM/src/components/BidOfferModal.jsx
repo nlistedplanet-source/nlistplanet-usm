@@ -7,14 +7,15 @@ import toast from 'react-hot-toast';
 const BidOfferModal = ({ listing, onClose, onSuccess }) => {
   const isSell = listing.type === 'sell';
   
-  // Calculate display price (same as marketplace card)
-  // For sell posts: displayPrice = price / 0.98 (includes platform fee)
-  // For buy posts: displayPrice = price (no fee)
-  const displayPrice = isSell ? (listing.price / 0.98) : listing.price;
+  // Calculate display price (what the counterparty sees)
+  // For SELL: Buyer pays price + 2% (seller wants X, buyer pays X * 1.02)
+  // For BUY: Seller gets price - 2% (buyer budget X, seller gets X * 0.98)
+  const displayPrice = isSell ? (listing.price * 1.02) : (listing.price * 0.98);
+  const minLot = listing.minLot || 1;
   
   const [formData, setFormData] = useState({
     price: listing.price.toString(),
-    quantity: listing.minLot.toString()
+    quantity: minLot.toString()
   });
   const [loading, setLoading] = useState(false);
 
@@ -28,19 +29,31 @@ const BidOfferModal = ({ listing, onClose, onSuccess }) => {
     e.preventDefault();
 
     const quantity = parseInt(formData.quantity);
-    if (quantity < listing.minLot) {
-      toast.error(`Minimum lot size is ${listing.minLot}`);
+    const price = parseFloat(formData.price);
+
+    if (!price || price <= 0) {
+      toast.error('Price must be greater than 0');
+      return;
+    }
+
+    if (!quantity || quantity <= 0) {
+      toast.error('Quantity must be greater than 0');
+      return;
+    }
+
+    if (quantity < minLot) {
+      toast.error(`Minimum lot size is ${minLot} shares`);
       return;
     }
     if (quantity > listing.quantity) {
-      toast.error(`Maximum available quantity is ${listing.quantity}`);
+      toast.error(`Maximum available quantity is ${listing.quantity} shares`);
       return;
     }
 
     setLoading(true);
     try {
       await listingsAPI.placeBid(listing._id, {
-        price: parseFloat(formData.price),
+        price: price,
         quantity: quantity
       });
       onSuccess();
@@ -164,7 +177,7 @@ const BidOfferModal = ({ listing, onClose, onSuccess }) => {
                   )}
                 </div>
                 <p className="text-[10px] text-gray-500 mt-0.5">
-                  Min: {listing.minLot} | Max: {listing.quantity} shares
+                  Min: {minLot} | Max: {listing.quantity} shares
                 </p>
               </div>
 

@@ -335,6 +335,31 @@ router.post('/:id/bid', protect, async (req, res, next) => {
       });
     }
 
+    // Validate quantity against minLot
+    const minLot = listing.minLot || 1;
+    if (quantity < minLot) {
+      return res.status(400).json({
+        success: false,
+        message: `Minimum lot size is ${minLot} shares`
+      });
+    }
+
+    // Validate quantity doesn't exceed available
+    if (quantity > listing.quantity) {
+      return res.status(400).json({
+        success: false,
+        message: `Maximum available is ${listing.quantity} shares`
+      });
+    }
+
+    // Validate price is positive
+    if (!price || price <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Price must be greater than 0'
+      });
+    }
+
     // Add bid/offer
     const bidData = {
       userId: req.user._id,
