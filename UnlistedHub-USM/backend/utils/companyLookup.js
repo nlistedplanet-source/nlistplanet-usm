@@ -214,23 +214,42 @@ async function notifyAdminsAboutNewCompany(company, addedByUserId) {
  */
 export async function searchCompanyByName(companyName) {
   try {
-    // Exact match first (case-insensitive)
+    const searchTerm = companyName.trim();
+    const searchRegex = new RegExp(searchTerm, 'i');
+    
+    // First: Exact match on name (case-insensitive)
     let company = await Company.findOne({
-      name: { $regex: new RegExp(`^${companyName.trim()}$`, 'i') }
+      name: { $regex: new RegExp(`^${searchTerm}$`, 'i') }
     });
-
     if (company) return company;
 
-    // Try partial match
+    // Second: Exact match on scriptName (case-insensitive)
     company = await Company.findOne({
-      name: { $regex: new RegExp(companyName.trim(), 'i') }
+      scriptName: { $regex: new RegExp(`^${searchTerm}$`, 'i') }
     });
-
     if (company) return company;
 
-    // Try with CompanyName field (legacy)
+    // Third: Exact match on CompanyName (legacy field)
     company = await Company.findOne({
-      CompanyName: { $regex: new RegExp(companyName.trim(), 'i') }
+      CompanyName: { $regex: new RegExp(`^${searchTerm}$`, 'i') }
+    });
+    if (company) return company;
+
+    // Fourth: Partial match on name
+    company = await Company.findOne({
+      name: searchRegex
+    });
+    if (company) return company;
+
+    // Fifth: Partial match on scriptName
+    company = await Company.findOne({
+      scriptName: searchRegex
+    });
+    if (company) return company;
+
+    // Sixth: Partial match on CompanyName (legacy)
+    company = await Company.findOne({
+      CompanyName: searchRegex
     });
 
     return company;
