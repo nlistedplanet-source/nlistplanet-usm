@@ -52,10 +52,10 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
       if (searchTerm.length > 0) {
         try {
           const response = await companiesAPI.getAll({ search: searchTerm, limit: 10 });
-          // Filter companies by both name and script name
+          // Filter companies by both name and script name (check all field variations)
           const filteredCompanies = response.data.data.filter(company => {
             const companyName = (company.CompanyName || company.name || '').toLowerCase();
-            const scriptName = (company.ScripName || company.ScriptName || '').toLowerCase();
+            const scriptName = (company.scriptName || company.ScripName || company.ScriptName || '').toLowerCase();
             const searchLower = searchTerm.toLowerCase();
             return companyName.includes(searchLower) || scriptName.includes(searchLower);
           });
@@ -252,9 +252,9 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                     <div className="flex-1 min-w-0">
                       <h4 className="font-semibold text-dark-900 text-sm truncate">{company.CompanyName || company.name}</h4>
                       <div className="flex items-center gap-2 mt-0.5">
-                        {company.ScripName && (
+                        {(company.scriptName || company.ScripName) && (
                           <span className="text-xs bg-purple-600 text-white px-2 py-0.5 rounded font-semibold">
-                            {company.ScripName}
+                            {company.scriptName || company.ScripName}
                           </span>
                         )}
                         <span className="text-xs text-dark-500 truncate">{company.Sector || company.sector}</span>
