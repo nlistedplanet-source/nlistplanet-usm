@@ -269,15 +269,15 @@ router.post('/', protect, async (req, res, next) => {
 
     // Calculate platform fee fields
     if (type === 'sell') {
-      // For SELL: Seller enters desired amount
+      // For SELL: Seller enters desired amount, buyer pays +2%
       listingData.sellerDesiredPrice = price;
-      listingData.displayPrice = price / 0.98; // Add 2% for buyer to pay
-      listingData.platformFee = listingData.displayPrice - price;
+      listingData.displayPrice = price * 1.02; // Buyer pays price + 2%
+      listingData.platformFee = price * 0.02; // 2% fee on base price
     } else {
-      // For BUY: Buyer enters max budget
+      // For BUY: Buyer enters max budget, seller gets -2%
       listingData.buyerMaxPrice = price;
-      listingData.displayPrice = price * 0.98; // Show 2% less to sellers
-      listingData.platformFee = price - listingData.displayPrice;
+      listingData.displayPrice = price * 0.98; // Seller gets price - 2%
+      listingData.platformFee = price * 0.02; // 2% fee on base price
     }
 
     const listing = await Listing.create(listingData);
@@ -825,12 +825,14 @@ router.put('/:id', protect, async (req, res, next) => {
       // Recalculate platform fee fields
       if (listing.type === 'sell') {
         listing.sellerDesiredPrice = price;
-        listing.displayPrice = price / 0.98;
-        listing.platformFee = listing.displayPrice - price;
+        // SELL: Buyer pays price + 2%
+        listing.displayPrice = price * 1.02;
+        listing.platformFee = price * 0.02;
       } else {
         listing.buyerMaxPrice = price;
+        // BUY: Seller gets price - 2%
         listing.displayPrice = price * 0.98;
-        listing.platformFee = price - listing.displayPrice;
+        listing.platformFee = price * 0.02;
       }
     }
     if (quantity !== undefined) listing.quantity = quantity;

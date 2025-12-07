@@ -114,7 +114,9 @@ const listingSchema = new mongoose.Schema({
   displayPrice: {
     type: Number,
     default: function() { 
-      return this.type === 'sell' ? this.price / 0.98 : this.price * 0.98;
+      // SELL: Buyer pays price + 2% (seller wants X, buyer pays X * 1.02)
+      // BUY: Seller gets price - 2% (buyer budget X, seller gets X * 0.98)
+      return this.type === 'sell' ? this.price * 1.02 : this.price * 0.98;
     }
   },
   platformFeePercentage: {
