@@ -89,60 +89,215 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Company Logos Section */}
+      {/* Company Logos Section - Auto-scrolling Marquee */}
+      <style>{`
+        @keyframes scroll-marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-scroll-marquee {
+          animation: scroll-marquee 40s linear infinite;
+        }
+        .animate-scroll-marquee:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
       <div className="bg-gray-50 py-16 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">Featured Unlisted Companies</h2>
           
           <div className="relative">
-            <div className="flex gap-8 animate-scroll items-center">
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/nseindia.com" alt="NSE" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">NSE India Limited</span>
+            {/* Gradient overlays for fade effect */}
+            <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-gray-50 to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-gray-50 to-transparent z-10 pointer-events-none"></div>
+            
+            <div className="flex gap-6 animate-scroll-marquee items-center" style={{ width: 'max-content' }}>
+              {/* First set of companies */}
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/nseindia.com" alt="NSE" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">NSE India</span>
               </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/hdfcsec.com" alt="HDFC" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">HDFC Securities</span>
-              </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/sbimf.com" alt="SBI" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">SBI Funds Management</span>
-              </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/capgemini.com" alt="Capgemini" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">Capgemini Technology</span>
-              </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/herofincorp.com" alt="Hero" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">Hero Fincorp</span>
-              </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/bira91.com" alt="Bira" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">Bira 91</span>
-              </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/ncdex.com" alt="NCDEX" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">NCDEX</span>
-              </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/apollohospitals.com" alt="Apollo" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">Apollo Hospitals</span>
-              </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/oyorooms.com" alt="OYO" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">OYO</span>
-              </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/swiggy.com" alt="Swiggy" className="h-10 w-10 object-contain" />
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/swiggy.com" alt="Swiggy" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
                 <span className="text-sm font-semibold text-gray-700">Swiggy</span>
               </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/zomato.com" alt="Zomato" className="h-10 w-10 object-contain" />
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/zomato.com" alt="Zomato" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
                 <span className="text-sm font-semibold text-gray-700">Zomato</span>
               </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/byjus.com" alt="Byju's" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">Byju's</span>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/oyorooms.com" alt="OYO" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">OYO Rooms</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/phonepe.com" alt="PhonePe" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">PhonePe</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/razorpay.com" alt="Razorpay" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Razorpay</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/olacabs.com" alt="Ola" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Ola Cabs</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/flipkart.com" alt="Flipkart" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Flipkart</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/paytm.com" alt="Paytm" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Paytm</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/dream11.com" alt="Dream11" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Dream11</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/upgrad.com" alt="upGrad" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">upGrad</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/lenskart.com" alt="Lenskart" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Lenskart</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/boat-lifestyle.com" alt="boAt" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">boAt</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/firstcry.com" alt="FirstCry" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">FirstCry</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/zepto.co" alt="Zepto" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Zepto</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/bigbasket.com" alt="BigBasket" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">BigBasket</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/cardekho.com" alt="CarDekho" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">CarDekho</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/policybazaar.com" alt="PolicyBazaar" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">PolicyBazaar</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/cars24.com" alt="Cars24" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Cars24</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/meesho.com" alt="Meesho" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Meesho</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/delhivery.com" alt="Delhivery" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Delhivery</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/hdfcsec.com" alt="HDFC" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">HDFC Securities</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/herofincorp.com" alt="Hero" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Hero FinCorp</span>
+              </div>
+              
+              {/* Duplicate set for seamless loop */}
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/nseindia.com" alt="NSE" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">NSE India</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/swiggy.com" alt="Swiggy" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Swiggy</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/zomato.com" alt="Zomato" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Zomato</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/oyorooms.com" alt="OYO" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">OYO Rooms</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/phonepe.com" alt="PhonePe" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">PhonePe</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/razorpay.com" alt="Razorpay" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Razorpay</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/olacabs.com" alt="Ola" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Ola Cabs</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/flipkart.com" alt="Flipkart" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Flipkart</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/paytm.com" alt="Paytm" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Paytm</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/dream11.com" alt="Dream11" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Dream11</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/upgrad.com" alt="upGrad" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">upGrad</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/lenskart.com" alt="Lenskart" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Lenskart</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/boat-lifestyle.com" alt="boAt" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">boAt</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/firstcry.com" alt="FirstCry" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">FirstCry</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/zepto.co" alt="Zepto" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Zepto</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/bigbasket.com" alt="BigBasket" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">BigBasket</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/cardekho.com" alt="CarDekho" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">CarDekho</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/policybazaar.com" alt="PolicyBazaar" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">PolicyBazaar</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/cars24.com" alt="Cars24" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Cars24</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/meesho.com" alt="Meesho" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Meesho</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/delhivery.com" alt="Delhivery" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Delhivery</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/hdfcsec.com" alt="HDFC" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">HDFC Securities</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3">
+                <img src="https://logo.clearbit.com/herofincorp.com" alt="Hero" className="h-10 w-10 object-contain" onError={(e) => e.target.style.display='none'} />
+                <span className="text-sm font-semibold text-gray-700">Hero FinCorp</span>
               </div>
             </div>
           </div>

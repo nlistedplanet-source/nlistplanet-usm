@@ -14,6 +14,7 @@ import {
   validateCounterOffer, 
   validateObjectId 
 } from '../middleware/validation.js';
+import { createNewCompanyFromListing, searchCompanyByName } from '../utils/companyLookup.js';
 
 const router = express.Router();
 
@@ -198,6 +199,7 @@ router.post('/', protect, async (req, res, next) => {
 
     let company = null;
     let finalCompanyName = manualCompanyName;
+    let isNewCompany = false;
 
     // If companyId provided, validate company exists
     if (companyId) {
@@ -209,7 +211,38 @@ router.post('/', protect, async (req, res, next) => {
         });
       }
       finalCompanyName = company.CompanyName || company.name;
-    } else if (!manualCompanyName) {
+    } else if (manualCompanyName) {
+      // Company name provided but no ID - search for existing or create new
+      company = await searchCompanyByName(manualCompanyName);
+      
+      if (company) {
+        // Found existing company
+        finalCompanyName = company.CompanyName || company.name;
+      } else {
+        // Company not found - create new company with pending verification
+        const result = await createNewCompanyFromListing(
+          manualCompanyName,
+          req.user._id,
+          {
+            pan: companyPan || null,
+            isin: companyISIN || null,
+            cin: companyCIN || null,
+            sector: companySegmentation || null
+          }
+        );
+
+        if (result.success) {
+          company = result.company;
+          isNewCompany = result.isNew;
+          finalCompanyName = company.name;
+          console.log(`New company "${company.name}" created by user ${req.user.username}, pending admin verification`);
+        } else {
+          console.error('Failed to create new company:', result.error);
+          // Continue without company reference
+          finalCompanyName = manualCompanyName;
+        }
+      }
+    } else {
       // Neither companyId nor companyName provided
       return res.status(400).json({
         success: false,
@@ -249,10 +282,16 @@ router.post('/', protect, async (req, res, next) => {
 
     const listing = await Listing.create(listingData);
 
-    // Update company listings count (only if company from database)
-    if (company) {
+    // Update company listings count (only if company from database and not newly created)
+    if (company && !isNewCompany) {
       company.totalListings += 1;
       await company.save();
+    }
+
+    // Prepare response message
+    let message = `${type === 'sell' ? 'Sell post' : 'Buy request'} created successfully`;
+    if (isNewCompany) {
+      message += `. Note: "${company.name}" is a new company and pending admin verification.`;
     }
 
     res.status(201).json({

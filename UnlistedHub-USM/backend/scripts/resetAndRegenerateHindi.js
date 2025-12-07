@@ -97,8 +97,9 @@ const regenerateAllHindi = async () => {
       failed++;
     }
     
-    // Rate limit - 400ms between requests
-    await new Promise(r => setTimeout(r, 400));
+    // Rate limit - 25 seconds between requests (free tier: 3 RPM)
+    console.log(`  ⏳ Waiting 25s for rate limit...`);
+    await new Promise(r => setTimeout(r, 25000));
   }
   
   console.log('\n📊 Summary:');

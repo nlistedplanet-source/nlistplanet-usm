@@ -1420,4 +1420,139 @@ router.get('/completed-deals/stats', async (req, res, next) => {
   }
 });
 
+// ============================================
+// COMPANY VERIFICATION ROUTES
+// ============================================
+
+// @route   GET /api/admin/companies/pending
+// @desc    Get companies pending verification
+// @access  Admin
+router.get('/companies/pending', async (req, res, next) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const companies = await Company.find({ verificationStatus: 'pending' })
+      .populate('addedByUser', 'username email fullName')
+      .sort('-createdAt')
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Company.countDocuments({ verificationStatus: 'pending' });
+
+    res.json({
+      success: true,
+      data: companies,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   PUT /api/admin/companies/:id/verify
+// @desc    Verify or reject a company
+// @access  Admin
+router.put('/companies/:id/verify', async (req, res, next) => {
+  try {
+    const { status, notes, name, sector, isin, pan, cin, website, logo } = req.body;
+
+    if (!['verified', 'rejected'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status must be "verified" or "rejected"'
+      });
+    }
+
+    const company = await Company.findById(req.params.id);
+    
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found'
+      });
+    }
+
+    // Update company details if provided
+    if (name) company.name = name;
+    if (sector) company.sector = sector;
+    if (isin) company.isin = isin;
+    if (pan) company.pan = pan;
+    if (cin) company.cin = cin;
+    if (website) company.website = website;
+    if (logo) company.logo = logo;
+
+    // Update verification status
+    company.verificationStatus = status;
+    company.verificationNotes = notes || null;
+    company.verifiedBy = req.user._id;
+    company.verifiedAt = new Date();
+
+    await company.save();
+
+    // Notify the user who added the company
+    if (company.addedByUser) {
+      const Notification = (await import('../models/Notification.js')).default;
+      await Notification.create({
+        userId: company.addedByUser,
+        type: status === 'verified' ? 'success' : 'warning',
+        title: status === 'verified' 
+          ? '✅ Company Verified' 
+          : '❌ Company Rejected',
+        message: status === 'verified'
+          ? `Great news! "${company.name}" has been verified. Your listing is now visible with full company details.`
+          : `"${company.name}" was not approved. ${notes || 'Please contact support for more information.'}`,
+        data: {
+          companyId: company._id,
+          companyName: company.name,
+          verificationStatus: status
+        }
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Company ${status === 'verified' ? 'verified' : 'rejected'} successfully`,
+      data: company
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   GET /api/admin/companies/stats
+// @desc    Get company verification statistics
+// @access  Admin
+router.get('/companies/stats', async (req, res, next) => {
+  try {
+    const [total, verified, pending, rejected, userAdded, adminAdded] = await Promise.all([
+      Company.countDocuments(),
+      Company.countDocuments({ verificationStatus: 'verified' }),
+      Company.countDocuments({ verificationStatus: 'pending' }),
+      Company.countDocuments({ verificationStatus: 'rejected' }),
+      Company.countDocuments({ addedBy: 'user' }),
+      Company.countDocuments({ addedBy: { $in: ['admin', 'system', null] } })
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        total,
+        verified,
+        pending,
+        rejected,
+        userAdded,
+        adminAdded
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

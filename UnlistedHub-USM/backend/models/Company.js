@@ -57,6 +57,39 @@ const companySchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  // Verification status - for companies added by users
+  verificationStatus: {
+    type: String,
+    enum: ['verified', 'pending', 'rejected'],
+    default: 'verified'
+  },
+  // Who added this company
+  addedBy: {
+    type: String,
+    enum: ['admin', 'system', 'user'],
+    default: 'admin'
+  },
+  // User who added this company (if addedBy is 'user')
+  addedByUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  // Admin verification notes
+  verificationNotes: {
+    type: String,
+    default: null
+  },
+  // Verified by admin
+  verifiedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  verifiedAt: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true

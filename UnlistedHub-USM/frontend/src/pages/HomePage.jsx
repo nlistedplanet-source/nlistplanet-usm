@@ -90,64 +90,129 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Company Logos Section */}
+      {/* Company Logos Section - Auto-scrolling Marquee */}
       <div className="bg-gray-50 py-16 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">Featured Unlisted Companies</h2>
           
-          <div className="relative">
-            <div className="flex gap-8 animate-scroll items-center">
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/nseindia.com" alt="NSE" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">NSE India Limited</span>
+          <div className="relative overflow-hidden">
+            {/* Gradient overlays for smooth edges */}
+            <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-gray-50 to-transparent z-10"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-gray-50 to-transparent z-10"></div>
+            
+            <div className="flex gap-6 animate-marquee hover:pause-animation">
+              {/* First set of companies */}
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://www.nseindia.com/assets/images/nse-logo.svg" alt="NSE" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=NSE&background=0D8ABC&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">NSE India</span>
               </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/hdfcsec.com" alt="HDFC" className="h-10 w-10 object-contain" />
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://www.hdfcsec.com/images/hdfc-sec-logo.png" alt="HDFC" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=HDFC&background=004C8F&color=fff&size=40'} />
                 <span className="text-sm font-semibold text-gray-700">HDFC Securities</span>
               </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/sbimf.com" alt="SBI" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">SBI Funds Management</span>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg" alt="IBM" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=IBM&background=0066B3&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">IBM India</span>
               </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/capgemini.com" alt="Capgemini" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">Capgemini Technology</span>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Amazon&background=FF9900&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">Amazon India</span>
               </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/herofincorp.com" alt="Hero" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">Hero Fincorp</span>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Google&background=4285F4&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">Google India</span>
               </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/bira91.com" alt="Bira" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">Bira 91</span>
-              </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/ncdex.com" alt="NCDEX" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">NCDEX</span>
-              </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/apollohospitals.com" alt="Apollo" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">Apollo Hospitals</span>
-              </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/oyorooms.com" alt="OYO" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">OYO</span>
-              </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/swiggy.com" alt="Swiggy" className="h-10 w-10 object-contain" />
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Swiggy_logo.svg/1200px-Swiggy_logo.svg.png" alt="Swiggy" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Swiggy&background=FC8019&color=fff&size=40'} />
                 <span className="text-sm font-semibold text-gray-700">Swiggy</span>
               </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/zomato.com" alt="Zomato" className="h-10 w-10 object-contain" />
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/1/13/Zomato_logo_%282021%29.svg" alt="Zomato" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Zomato&background=E23744&color=fff&size=40'} />
                 <span className="text-sm font-semibold text-gray-700">Zomato</span>
               </div>
-              <div className="bg-white px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit">
-                <img src="https://logo.clearbit.com/byjus.com" alt="Byju's" className="h-10 w-10 object-contain" />
-                <span className="text-sm font-semibold text-gray-700">Byju's</span>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/28/PhonePe_Logo.svg" alt="PhonePe" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=PhonePe&background=5F259F&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">PhonePe</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Razorpay_logo.svg" alt="Razorpay" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Razorpay&background=0C2651&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">Razorpay</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/OYO_Rooms_%28logo%29.svg" alt="OYO" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=OYO&background=EE2E24&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">OYO Rooms</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Ola_Cabs_logo.svg" alt="Ola" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Ola&background=43B02A&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">Ola Cabs</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/f/f5/Paytm_logo.svg" alt="Paytm" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Paytm&background=00BAF2&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">Paytm</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/ab/CRED_brand_logo.svg" alt="CRED" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=CRED&background=2D2D2D&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">CRED</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6e/LIC_India_Logo.svg" alt="LIC" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=LIC&background=004E7C&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">LIC India</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/en/5/5b/Zerodha_Logo.png" alt="Zerodha" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Zerodha&background=387ED1&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">Zerodha</span>
+              </div>
+              
+              {/* Duplicate set for seamless loop */}
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://www.nseindia.com/assets/images/nse-logo.svg" alt="NSE" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=NSE&background=0D8ABC&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">NSE India</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://www.hdfcsec.com/images/hdfc-sec-logo.png" alt="HDFC" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=HDFC&background=004C8F&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">HDFC Securities</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg" alt="IBM" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=IBM&background=0066B3&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">IBM India</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Amazon&background=FF9900&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">Amazon India</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Google&background=4285F4&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">Google India</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Swiggy_logo.svg/1200px-Swiggy_logo.svg.png" alt="Swiggy" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Swiggy&background=FC8019&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">Swiggy</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/1/13/Zomato_logo_%282021%29.svg" alt="Zomato" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Zomato&background=E23744&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">Zomato</span>
+              </div>
+              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/28/PhonePe_Logo.svg" alt="PhonePe" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=PhonePe&background=5F259F&color=fff&size=40'} />
+                <span className="text-sm font-semibold text-gray-700">PhonePe</span>
               </div>
             </div>
           </div>
         </div>
+        
+        {/* Marquee Animation CSS */}
+        <style>{`
+          @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .animate-marquee {
+            animation: marquee 30s linear infinite;
+          }
+          .animate-marquee:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
       </div>
 
       {/* How to Buy Section */}
