@@ -297,8 +297,7 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
     { id: 'marketplace', label: 'Marketplace', icon: Radio },
     { id: 'portfolio', label: 'Portfolio', icon: Briefcase },
     { id: 'posts', label: 'My Posts', icon: FileText },
-    { id: 'my-bids-offers', label: 'My Bids & Offers', icon: TrendingUp },
-    { id: 'received-bids-offers', label: 'Received Bids & Offers', icon: TrendingDown },
+    { id: 'my-bids-offers', label: 'My Bids', icon: TrendingUp },
     { id: 'history', label: 'History', icon: Package },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'referrals', label: 'Referrals', icon: Gift },
@@ -619,32 +618,46 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
             <div className="p-6 border-b border-gray-100">
               <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
-              <p className="text-sm text-gray-600 mt-1">Your latest transactions</p>
+              <p className="text-sm text-gray-600 mt-1">Your listings, bids & transactions</p>
             </div>
             
             <div className="p-6">
               <div className="space-y-4">
-                {recentActivities.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                {recentActivities.map((activity, index) => (
+                  <div key={index} className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      activity.type === 'buy' 
+                      activity.type === 'listing' 
+                        ? 'bg-purple-100 text-purple-600'
+                        : activity.action === 'buy' 
                         ? 'bg-green-100 text-green-600' 
-                        : activity.type === 'sell'
+                        : activity.action === 'sell'
                         ? 'bg-red-100 text-red-600'
-                        : 'bg-blue-100 text-blue-600'
+                        : activity.type === 'bid'
+                        ? 'bg-blue-100 text-blue-600'
+                        : 'bg-orange-100 text-orange-600'
                     }`}>
-                      {activity.type === 'buy' ? <TrendingUp size={20} /> : 
-                       activity.type === 'sell' ? <TrendingDown size={20} /> : 
+                      {activity.type === 'listing' ? <Briefcase size={20} /> :
+                       activity.action === 'buy' ? <TrendingUp size={20} /> : 
+                       activity.action === 'sell' ? <TrendingDown size={20} /> : 
                        <Eye size={20} />}
                     </div>
                     <div className="flex-1">
                       <p className="font-semibold text-gray-900 text-sm">
-                        {activity.type === 'buy' ? 'Bought' : activity.type === 'sell' ? 'Sold' : 'Bid on'} {activity.company}
+                        {activity.type === 'listing' 
+                          ? (activity.action === 'listed_sell' ? '📦 Listed for Sale' : '🛒 Created Buy Order')
+                          : activity.type === 'bid' 
+                          ? '💰 Placed Bid'
+                          : activity.type === 'offer'
+                          ? '🏷️ Placed Offer'
+                          : activity.action === 'buy' 
+                          ? '✅ Bought' 
+                          : '✅ Sold'
+                        }
                       </p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        {activity.shares} shares • {formatCurrency(activity.amount)}
+                      <p className="text-xs text-gray-700 mt-1">
+                        {activity.companyName} • {activity.quantity} shares @ ₹{activity.price?.toLocaleString('en-IN')}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">{activity.date}</p>
+                      <p className="text-xs text-gray-500 mt-1">{new Date(activity.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                     </div>
                   </div>
                 ))}

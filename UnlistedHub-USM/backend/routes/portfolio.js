@@ -130,7 +130,7 @@ router.get('/holdings', protect, async (req, res, next) => {
 });
 
 // @route   GET /api/portfolio/activities
-// @desc    Get recent portfolio activities (transactions, bids, offers)
+// @desc    Get recent portfolio activities (listings created, bids placed, offers placed, transactions)
 // @access  Private
 router.get('/activities', protect, async (req, res, next) => {
   try {
@@ -145,8 +145,14 @@ router.get('/activities', protect, async (req, res, next) => {
       .sort({ createdAt: -1 })
       .limit(limit);
 
-    // Get recent bids/offers placed by user
-    const listings = await Listing.find({
+    // Get user's own listings (posts they created)
+    const userListings = await Listing.find({ userId: userId })
+      .select('companyName listingType price quantity status createdAt')
+      .sort({ createdAt: -1 })
+      .limit(limit);
+
+    // Get listings where user placed bids/offers
+    const listingsWithBidsOffers = await Listing.find({
       $or: [
         { 'bids.userId': userId },
         { 'offers.userId': userId }
@@ -159,21 +165,41 @@ router.get('/activities', protect, async (req, res, next) => {
     // Format activities
     const activities = [];
 
+    // Add user's own listings (posts)
+    userListings.forEach(listing => {
+      activities.push({
+        type: 'listing',
+        action: listing.listingType === 'SELL' ? 'listed_sell' : 'listed_buy',
+        companyName: listing.companyName || 'Unknown',
+        quantity: listing.quantity,
+        price: listing.price,
+        status: listing.status,
+        date: listing.createdAt,
+        description: listing.listingType === 'SELL' 
+          ? `Listed ${listing.quantity} shares of ${listing.companyName} for sale at ₹${listing.price}`
+          : `Created buy order for ${listing.quantity} shares of ${listing.companyName} at ₹${listing.price}`
+      });
+    });
+
     // Add transactions
     transactions.forEach(tx => {
+      const isBuyer = tx.buyerId.toString() === userId.toString();
       activities.push({
         type: 'transaction',
-        action: tx.buyerId.toString() === userId.toString() ? 'buy' : 'sell',
+        action: isBuyer ? 'buy' : 'sell',
         companyName: tx.listingId?.companyName || 'Unknown',
         quantity: tx.quantity,
         price: tx.price,
         status: tx.status,
-        date: tx.createdAt
+        date: tx.createdAt,
+        description: isBuyer 
+          ? `Bought ${tx.quantity} shares of ${tx.listingId?.companyName || 'Unknown'} at ₹${tx.price}`
+          : `Sold ${tx.quantity} shares of ${tx.listingId?.companyName || 'Unknown'} at ₹${tx.price}`
       });
     });
 
-    // Add bids/offers
-    listings.forEach(listing => {
+    // Add bids/offers placed by user on others' listings
+    listingsWithBidsOffers.forEach(listing => {
       const userBids = listing.bids?.filter(b => b.userId.toString() === userId.toString()) || [];
       const userOffers = listing.offers?.filter(o => o.userId.toString() === userId.toString()) || [];
 
@@ -181,11 +207,12 @@ router.get('/activities', protect, async (req, res, next) => {
         activities.push({
           type: 'bid',
           action: 'placed_bid',
-          companyName: listing.companyName,
+          companyName: listing.companyName || 'Unknown',
           quantity: bid.quantity,
           price: bid.price,
           status: bid.status,
-          date: bid.createdAt
+          date: bid.createdAt,
+          description: `Placed bid for ${bid.quantity} shares of ${listing.companyName} at ₹${bid.price}`
         });
       });
 
@@ -193,11 +220,12 @@ router.get('/activities', protect, async (req, res, next) => {
         activities.push({
           type: 'offer',
           action: 'placed_offer',
-          companyName: listing.companyName,
+          companyName: listing.companyName || 'Unknown',
           quantity: offer.quantity,
           price: offer.price,
           status: offer.status,
-          date: offer.createdAt
+          date: offer.createdAt,
+          description: `Placed offer for ${offer.quantity} shares of ${listing.companyName} at ₹${offer.price}`
         });
       });
     });

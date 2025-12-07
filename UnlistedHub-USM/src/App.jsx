@@ -16,6 +16,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import AdminDashboard from './pages/AdminDashboard';
 import BlogPage from './pages/BlogPage';
 import BlogDetailPage from './pages/BlogDetailPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 // Components
 import BottomNav from './components/BottomNav';
@@ -88,8 +89,8 @@ function AppContent() {
             } 
           />
 
-          {/* Catch all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* 404 Not Found */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
 
