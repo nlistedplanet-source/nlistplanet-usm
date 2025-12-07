@@ -260,7 +260,7 @@ const ListingsManagement = () => {
         <>
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="w-full" style={{ overflowX: 'scroll', overflowY: 'auto', maxHeight: '70vh' }}>
-              <table className="text-[11px]" style={{ minWidth: '1800px', tableLayout: 'auto' }}>
+              <table className="text-[11px]" style={{ minWidth: '2000px', tableLayout: 'auto' }}>
                 <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
                   <tr>
                     <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Post ID</th>
@@ -268,7 +268,9 @@ const ListingsManagement = () => {
                     <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Type</th>
                     <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">User</th>
                     <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Qty</th>
-                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Price/Share</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Base Price</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Platform Fee</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Display Price</th>
                     <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Total Value</th>
                     <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Bids/Offers</th>
                     <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px] whitespace-nowrap">Counters</th>
@@ -344,9 +346,34 @@ const ListingsManagement = () => {
                           <td className="px-2 py-1.5 whitespace-nowrap font-medium text-gray-900">
                             {formatNumber(listing.quantity)}
                           </td>
-                          {/* Price/Share */}
-                          <td className="px-2 py-1.5 whitespace-nowrap font-medium text-gray-900">
-                            {formatCurrency(listing.price)}
+                          {/* Base Price (User's entered price) */}
+                          <td className="px-2 py-1.5 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <span className="font-medium text-gray-900">{formatCurrency(listing.price)}</span>
+                              <span className="text-[9px] text-gray-500">
+                                {listing.type === 'sell' ? 'Seller wants' : 'Buyer budget'}
+                              </span>
+                            </div>
+                          </td>
+                          {/* Platform Fee (2%) */}
+                          <td className="px-2 py-1.5 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <span className="font-medium text-orange-600">
+                                {formatCurrency(listing.platformFee || (listing.price * 0.02))}
+                              </span>
+                              <span className="text-[9px] text-gray-500">2% fee</span>
+                            </div>
+                          </td>
+                          {/* Display Price (what others see) */}
+                          <td className="px-2 py-1.5 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-indigo-600">
+                                {formatCurrency(listing.displayPrice || (listing.type === 'sell' ? listing.price * 1.02 : listing.price * 0.98))}
+                              </span>
+                              <span className="text-[9px] text-gray-500">
+                                {listing.type === 'sell' ? 'Buyer pays' : 'Seller gets'}
+                              </span>
+                            </div>
                           </td>
                           {/* Total Value */}
                           <td className="px-2 py-1.5 whitespace-nowrap font-bold text-green-600">
