@@ -247,10 +247,10 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
       const newSet = new Set(prev);
       if (newSet.has(listing._id)) {
         newSet.delete(listing._id);
-        toast.success('Removed like');
+        toast('Removed like', { icon: '👎' });
       } else {
         newSet.add(listing._id);
-        toast.success('Liked!');
+        toast.success('👍 Liked this listing!', { icon: '👍' });
       }
       return newSet;
     });
@@ -261,10 +261,10 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
       const newSet = new Set(prev);
       if (newSet.has(listing._id)) {
         newSet.delete(listing._id);
-        toast.success('Removed from favorites');
+        toast('Removed from Watchlist', { icon: '🗑️' });
       } else {
         newSet.add(listing._id);
-        toast.success('Added to favorites!');
+        toast.success('⭐ Added to your Watchlist!', { icon: '⭐', duration: 2000 });
       }
       return newSet;
     });
