@@ -1,21 +1,21 @@
-/**
- * Auto News Fetcher Script
- * 
- * This script automatically fetches news from RSS feeds and APIs,
- * summarizes them (Inshorts-style 60-80 words), and stores in database.
- * 
- * Run via cron job: 0 *\/6 * * * (every 6 hours)
- * Or manually: node scripts/fetchNews.js
- */
+// Auto News Fetcher Script for Mobile Backend
+// 
+// This script automatically fetches news from RSS feeds and APIs,
+// summarizes them (Inshorts-style 60 words max), and stores in database.
+// 
+// NEW FEATURES:
+// - Hindi summarization using OpenAI GPT-4 (natural conversational Hindi)
+// - AI image generation using DALL-E 3 for articles without thumbnails
+// 
+// Run via cron job every 6 hours or manually: node scripts/fetchNews.js
+// GitHub Actions workflow: .github/workflows/fetch-news.yml
 
 import mongoose from 'mongoose';
 import Parser from 'rss-parser';
-import axios from 'axios';
+import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import OpenAI from 'openai';
-import { v2 as cloudinary } from 'cloudinary';
 import News from '../models/News.js';
 
 // Fix path for dotenv when running from scripts folder
@@ -28,12 +28,11 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-// Initialize Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
+// Check if OpenAI is configured
+const isOpenAIConfigured = !!process.env.OPENAI_API_KEY;
+if (!isOpenAIConfigured) {
+  console.log('⚠️ OPENAI_API_KEY not set - Hindi summaries and AI images will be skipped');
+}
 
 // Connect to MongoDB
 const connectDB = async () => {
@@ -165,6 +164,149 @@ const RELEVANT_KEYWORDS = [
   'fintech', 'pharma', 'it sector', 'banking', 'insurance'
 ];
 
+// ===============================================
+// AI FUNCTIONS - Hindi News Writing (Like a News Anchor)
+// =======================================================
+
+// Generate Hindi news content - OpenAI reads the news and writes fresh content
+const generateHindiContent = async (title, englishSummary, category) => {
+  if (!isOpenAIConfigured) return { titleHindi: '', summaryHindi: '' };
+  
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `तुम एक experienced Hindi news anchor हो जो unlisted shares, IPO और stock market की news cover करते हो।
+
+तुम्हारा काम है:
+1. दी गई English news को पढ़ो और समझो
+2. फिर अपने शब्दों में एक FRESH Hindi headline और summary लिखो
+3. ऐसे लिखो जैसे तुम खुद एक news anchor हो और audience को बता रहे हो
+
+STYLE GUIDE:
+- Headline: Catchy, crisp, 8-12 words max
+- Summary: Conversational Hindi जैसे TV news anchor बोलता है
+- English words जो commonly use होते हैं वो English में रखो (IPO, shares, market, company, funding, investors, stock, trading, valuation)
+- Numbers और percentages clearly mention करो
+- Reader को engage करो - ऐसे लिखो जैसे उनसे directly बात कर रहे हो
+
+EXAMPLE OUTPUT:
+Headline: Reliance की subsidiary का valuation ₹50,000 करोड़ पहुंचा, जल्द आएगा IPO
+Summary: बड़ी खबर आई है investors के लिए! Reliance की unlisted subsidiary ने अपना valuation ₹50,000 करोड़ तक पहुंचा दिया है। Company अब IPO की तैयारी में है। Market experts का कहना है कि ये retail investors के लिए एक golden opportunity हो सकती है। अगर आप unlisted shares में interested हैं, तो इस पर नज़र रखना जरूरी है।
+
+AVOID:
+- Google Translate जैसी awkward Hindi (e.g., "असूचीबद्ध", "प्रतिभूति")
+- Boring, formal tone
+- Simply translating word-by-word
+- Labels like "शीर्षक:" or "सारांश:" - सीधे content दो`
+        },
+        {
+          role: 'user',
+          content: `इस ${category} news को पढ़ो और अपने style में Hindi में लिखो:
+
+ENGLISH HEADLINE: ${title}
+
+ENGLISH CONTENT: ${englishSummary}
+
+---
+अब इसे अपने शब्दों में Hindi में लिखो:
+
+HEADLINE:
+[यहाँ catchy Hindi headline लिखो]
+
+SUMMARY:
+[यहाँ engaging Hindi summary लिखो - 60-100 words]`
+        }
+      ],
+      max_tokens: 400,
+      temperature: 0.8 // Slightly more creative
+    });
+
+    const output = response.choices[0].message.content;
+    
+    // Parse the response - look for HEADLINE: and SUMMARY: markers
+    let titleHindi = '';
+    let summaryHindi = '';
+    
+    // Try to extract headline
+    const headlineMatch = output.match(/HEADLINE:\s*\n?(.+?)(?:\n\n|SUMMARY:)/s);
+    if (headlineMatch) {
+      titleHindi = headlineMatch[1].trim();
+    }
+    
+    // Try to extract summary
+    const summaryMatch = output.match(/SUMMARY:\s*\n?(.+)/s);
+    if (summaryMatch) {
+      summaryHindi = summaryMatch[1].trim();
+    }
+    
+    // Fallback: if markers not found, try to split by double newline
+    if (!titleHindi && !summaryHindi) {
+      const parts = output.split('\n\n').filter(p => p.trim());
+      if (parts.length >= 2) {
+        titleHindi = parts[0].replace(/^(HEADLINE|शीर्षक|Title):\s*/i, '').trim();
+        summaryHindi = parts.slice(1).join('\n\n').replace(/^(SUMMARY|सारांश|Content):\s*/i, '').trim();
+      } else if (parts.length === 1) {
+        // All in one paragraph - use first sentence as title
+        const sentences = parts[0].split(/[।.!]/);
+        titleHindi = sentences[0].trim();
+        summaryHindi = sentences.slice(1).join('। ').trim();
+      }
+    }
+    
+    // Clean up any remaining labels
+    titleHindi = titleHindi.replace(/^(HEADLINE|शीर्षक|Title):\s*/i, '').trim();
+    summaryHindi = summaryHindi.replace(/^(SUMMARY|सारांश|Content):\s*/i, '').trim();
+    
+    console.log(`  ✅ Hindi content generated: "${titleHindi.substring(0, 40)}..."`);
+    
+    return { titleHindi, summaryHindi };
+  } catch (error) {
+    console.log(`  ⚠️ Hindi content generation failed: ${error.message}`);
+    return { titleHindi: '', summaryHindi: '' };
+  }
+};
+
+// Generate AI image using DALL-E 3
+const generateAIImage = async (title, category) => {
+  if (!isOpenAIConfigured) return '';
+  
+  try {
+    // Create a prompt based on the news title and category
+    const categoryThemes = {
+      'IPO': 'stock market trading floor, IPO bell ringing, celebration',
+      'Market': 'stock charts, trading graphs, financial data visualization',
+      'Startup': 'modern office, entrepreneurs, innovation, technology',
+      'Unlisted': 'private equity, exclusive investment, premium stocks',
+      'Regulatory': 'government building, official documents, policy',
+      'Company': 'corporate office, business meeting, company growth',
+      'Analysis': 'data analysis, charts, financial research',
+      'General': 'Indian stock market, investment, finance'
+    };
+    
+    const theme = categoryThemes[category] || categoryThemes['General'];
+    
+    const response = await openai.images.generate({
+      model: 'dall-e-3',
+      prompt: `Professional, clean, modern financial news thumbnail image. Theme: ${theme}. Style: Minimal, corporate, blue and green color scheme, no text or words in image. High quality, suitable for news article. Context: ${title.substring(0, 100)}`,
+      n: 1,
+      size: '1024x1024',
+      quality: 'standard'
+    });
+
+    return response.data[0].url;
+  } catch (error) {
+    console.log(`  ⚠️ Image generation failed: ${error.message}`);
+    return '';
+  }
+};
+
+// ===============================================
+// ORIGINAL FUNCTIONS
+// ===============================================
+
 // Auto-detect category based on content
 const detectCategory = (title, summary) => {
   const text = `${title} ${summary}`.toLowerCase();
@@ -267,102 +409,6 @@ const isRelevantNews = (title, content) => {
   return RELEVANT_KEYWORDS.some(keyword => text.includes(keyword));
 };
 
-// Generate Hindi summary using GPT-4 (Newspaper style formal Hindi)
-const generateHindiSummary = async (title, englishSummary) => {
-  if (!process.env.OPENAI_API_KEY) {
-    console.log('  ⚠️ OpenAI API key not set, skipping Hindi summary');
-    return '';
-  }
-  
-  try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: `You are a professional Hindi news translator for a financial newspaper like Dainik Jagran or Amar Ujala.
-
-Rules:
-- Use formal, newspaper-style Hindi (समाचार पत्र शैली)
-- Keep it 50-60 words max
-- Use proper Hindi grammar and sentence structure
-- Maintain professional tone like business news
-- Use Hindi numerals for large amounts (करोड़, लाख)
-- Technical terms like IPO, shares, market can stay in English
-- NO casual words like "यार", "भाई", "सुन"
-- Write like a news anchor would read on TV
-
-Example style: "विदेशी संस्थागत निवेशकों ने दिसंबर के पहले सप्ताह में ₹11,820 करोड़ के भारतीय शेयर बेचे। हालांकि, घरेलू संस्थागत निवेशकों की मजबूत खरीदारी ने इस दबाव को संतुलित किया।"`
-        },
-        {
-          role: 'user',
-          content: `Title: ${title}\n\nEnglish Summary: ${englishSummary}\n\nTranslate to formal newspaper Hindi:`
-        }
-      ],
-      max_tokens: 200,
-      temperature: 0.5
-    });
-    
-    return response.choices[0]?.message?.content?.trim() || '';
-  } catch (error) {
-    console.log(`  ⚠️ Hindi summary error: ${error.message}`);
-    return '';
-  }
-};
-
-// Generate AI image for news without thumbnail
-const generateAIImage = async (title, category) => {
-  if (!process.env.OPENAI_API_KEY) {
-    console.log('  ⚠️ OpenAI API key not set, skipping image generation');
-    return null;
-  }
-  
-  try {
-    const prompt = `Professional, clean business/finance news thumbnail for: "${title}". Category: ${category}. Style: Modern, minimal, corporate blue tones, abstract financial graphics. No text in image.`;
-    
-    const response = await openai.images.generate({
-      model: 'dall-e-3',
-      prompt: prompt,
-      n: 1,
-      size: '1024x1024',
-      quality: 'standard'
-    });
-    
-    const imageUrl = response.data[0]?.url;
-    if (imageUrl) {
-      // Upload to Cloudinary for permanent storage
-      const uploaded = await uploadToCloudinary(imageUrl);
-      return uploaded;
-    }
-    return null;
-  } catch (error) {
-    console.log(`  ⚠️ Image generation error: ${error.message}`);
-    return null;
-  }
-};
-
-// Upload image to Cloudinary
-const uploadToCloudinary = async (imageUrl) => {
-  if (!process.env.CLOUDINARY_CLOUD_NAME) {
-    console.log('  ⚠️ Cloudinary not configured, using direct URL');
-    return imageUrl;
-  }
-  
-  try {
-    const result = await cloudinary.uploader.upload(imageUrl, {
-      folder: 'nlistplanet-news',
-      transformation: [
-        { width: 800, height: 450, crop: 'fill' },
-        { quality: 'auto' }
-      ]
-    });
-    return result.secure_url;
-  } catch (error) {
-    console.log(`  ⚠️ Cloudinary upload error: ${error.message}`);
-    return imageUrl;
-  }
-};
-
 // Extract tags from content
 const extractTags = (title, content) => {
   const text = `${title} ${content}`.toLowerCase();
@@ -409,34 +455,40 @@ const fetchRSSFeed = async (feed) => {
         const category = detectCategory(item.title, summary) || feed.category;
         
         // Extract thumbnail
-        const thumbnail = extractThumbnail(item);
+        let thumbnail = extractThumbnail(item);
+        let isAiGeneratedImage = false;
+        
+        // Generate AI image if no thumbnail (limit to save costs)
+        if (!thumbnail && isOpenAIConfigured) {
+          console.log(`  🎨 Generating AI image for: ${item.title.substring(0, 40)}...`);
+          thumbnail = await generateAIImage(item.title, category);
+          if (thumbnail) {
+            isAiGeneratedImage = true;
+          }
+        }
+        
+        // Generate Hindi content (OpenAI reads and rewrites like a news anchor)
+        let titleHindi = '';
+        let summaryHindi = '';
+        if (isOpenAIConfigured) {
+          console.log(`  🇮🇳 Creating Hindi news content...`);
+          const hindiContent = await generateHindiContent(item.title, summary, category);
+          titleHindi = hindiContent.titleHindi;
+          summaryHindi = hindiContent.summaryHindi;
+        }
         
         // Extract tags
         const tags = extractTags(item.title, content);
         
-        // Generate Hindi summary (AI-powered)
-        const hindiSummary = await generateHindiSummary(item.title, summary);
-        
-        // Generate AI image if no thumbnail
-        let finalThumbnail = thumbnail;
-        let thumbnailAIGenerated = false;
-        if (!thumbnail || thumbnail.trim() === '') {
-          console.log(`  🎨 Generating AI image for: ${item.title.substring(0, 30)}...`);
-          const aiImageUrl = await generateAIImage(item.title, category);
-          if (aiImageUrl) {
-            finalThumbnail = aiImageUrl;
-            thumbnailAIGenerated = true;
-          }
-        }
-        
         const newsItem = {
           title: item.title,
+          titleHindi,
           summary,
-          hindiSummary,
+          summaryHindi,
           content: content.substring(0, 2000), // Limit content
           category,
-          thumbnail: finalThumbnail,
-          thumbnailAIGenerated,
+          thumbnail,
+          isAiGeneratedImage,
           sourceUrl: item.link,
           sourceName: feed.name,
           author: item.creator || item.author || feed.name,
@@ -460,7 +512,7 @@ const fetchRSSFeed = async (feed) => {
 
 // Main function
 const fetchAllNews = async () => {
-  console.log('\n🚀 Starting Auto News Fetch...');
+  console.log('\n🚀 Starting Auto News Fetch (Mobile Backend)...');
   console.log(`📅 ${new Date().toISOString()}\n`);
   
   await connectDB();
