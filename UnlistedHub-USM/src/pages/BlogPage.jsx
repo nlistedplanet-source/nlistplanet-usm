@@ -130,12 +130,31 @@ const BlogPage = () => {
       .trim();
   };
 
+  // Get Hindi title - extract from summary if title is empty
+  const getHindiTitle = (item) => {
+    // If hindiTitle exists, use it
+    if (item.hindiTitle && stripLabels(item.hindiTitle)) {
+      return stripLabels(item.hindiTitle);
+    }
+    // If no hindiTitle but hindiSummary exists, extract first sentence as title
+    if (item.hindiSummary) {
+      const summary = stripLabels(item.hindiSummary);
+      // Get first sentence (up to first । or : or first 80 chars)
+      const match = summary.match(/^(.{20,80}?)(?:[।:.]|$)/);
+      if (match) return match[1].trim();
+      // Fallback: first 60 chars
+      return summary.substring(0, 60).trim() + (summary.length > 60 ? '...' : '');
+    }
+    // Fallback to English title
+    return item.title;
+  };
+
   // Inshorts-style News Card
   const InshortsCard = ({ item }) => {
     const categoryColor = categoryColors[item.category] || categoryColors['General'];
     
-    // Use Hindi title and summary if available (strip any labels)
-    const displayTitle = stripLabels(item.hindiTitle) || item.title;
+    // Use Hindi title (extracted if needed) and summary
+    const displayTitle = getHindiTitle(item);
     const displaySummary = stripLabels(item.hindiSummary) || item.summary;
     
     // Extract source name from sourceUrl or use default
@@ -222,8 +241,8 @@ const BlogPage = () => {
   // Featured Card - Large Inshorts style
   const FeaturedCard = ({ item, index }) => {
     const categoryColor = categoryColors[item.category] || categoryColors['General'];
-    const displayTitle = item.hindiTitle || item.title;
-    const displaySummary = item.hindiSummary || item.summary;
+    const displayTitle = getHindiTitle(item);
+    const displaySummary = stripLabels(item.hindiSummary) || item.summary;
     
     const getSourceName = (url) => {
       if (!url) return 'NlistPlanet';
