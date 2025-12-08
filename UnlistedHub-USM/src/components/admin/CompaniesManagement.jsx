@@ -104,7 +104,7 @@ const CompaniesManagement = () => {
       isin: company.isin || '',
       cin: company.cin || '',
       pan: company.pan || '',
-      registrationDate: company.registrationDate ? new Date(company.registrationDate).toISOString().split('T')[0] : '',
+      registrationDate: company.registrationDate ? new Date(company.registrationDate).toLocaleDateString('en-GB') : '',
       description: company.description || ''
     });
     setLogoFile(null);
@@ -444,33 +444,16 @@ const CompaniesManagement = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Registration Date</label>
                   <input
                     type="text"
-                    value={formData.registrationDate ? new Date(formData.registrationDate).toLocaleDateString('en-GB') : ''}
+                    value={formData.registrationDate || ''}
                     onChange={(e) => {
-                      // Accept DD/MM/YYYY format and convert to YYYY-MM-DD for storage
                       const val = e.target.value;
-                      const match = val.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-                      if (match) {
-                        const [, day, month, year] = match;
-                        setFormData({ ...formData, registrationDate: `${year}-${month}-${day}` });
-                      } else {
-                        // Allow typing in progress
-                        setFormData({ ...formData, registrationDate: val });
-                      }
-                    }}
-                    onBlur={(e) => {
-                      // On blur, try to parse the date
-                      const val = e.target.value;
-                      const match = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-                      if (match) {
-                        const [, day, month, year] = match;
-                        const d = day.padStart(2, '0');
-                        const m = month.padStart(2, '0');
-                        setFormData({ ...formData, registrationDate: `${year}-${m}-${d}` });
-                      }
+                      // Just store the raw value, we'll format on submit
+                      setFormData({ ...formData, registrationDate: val });
                     }}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     placeholder="DD/MM/YYYY"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Format: DD/MM/YYYY (e.g., 18/08/2005)</p>
                 </div>
               </div>
 
