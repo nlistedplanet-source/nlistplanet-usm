@@ -119,13 +119,24 @@ const BlogPage = () => {
     return `${day} ${month} ${year}`;
   };
 
+  // Strip labels like "शीर्षक:", "संक्षेप:" from Hindi text
+  const stripLabels = (text) => {
+    if (!text) return '';
+    return text
+      .replace(/^शीर्षक:\s*/i, '')
+      .replace(/^संक्षेप:\s*/i, '')
+      .replace(/^TITLE_HINDI:\s*/i, '')
+      .replace(/^SUMMARY_HINDI:\s*/i, '')
+      .trim();
+  };
+
   // Inshorts-style News Card
   const InshortsCard = ({ item }) => {
     const categoryColor = categoryColors[item.category] || categoryColors['General'];
     
-    // Use Hindi title and summary if available
-    const displayTitle = item.hindiTitle || item.title;
-    const displaySummary = item.hindiSummary || item.summary;
+    // Use Hindi title and summary if available (strip any labels)
+    const displayTitle = stripLabels(item.hindiTitle) || item.title;
+    const displaySummary = stripLabels(item.hindiSummary) || item.summary;
     
     // Extract source name from sourceUrl or use default
     const getSourceName = (url) => {
