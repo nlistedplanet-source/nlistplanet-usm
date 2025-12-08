@@ -470,8 +470,8 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                       <tbody className="divide-y divide-blue-200">
                         {counterOfferBids.map((bid, index) => {
                           const counterInfo = getLatestCounterInfo(bid);
-                          // Show actual bid price (no fee calculation)
-                          const displayBuyerBid = counterInfo.buyerBid;
+                          // Seller sees what they will RECEIVE (buyer's bid × 0.98)
+                          const displayBuyerBid = calculateSellerGets(counterInfo.buyerBid);
                           const hasCounterHistory = bid.counterHistory && bid.counterHistory.length > 0;
                           const isExpanded = expandedBidIds.has(bid._id);
                           const isLatestFromBuyer = counterInfo.latestBy === 'buyer';
@@ -569,8 +569,10 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                                         </thead>
                                         <tbody className="divide-y divide-gray-200">
                                           {bid.counterHistory.map((counter, cIdx) => {
-                                            // Show actual counter price (no fee calculation)
-                                            const counterDisplayPrice = counter.price;
+                                            // Seller sees: own counter as-is, buyer's counter ×0.98
+                                            const counterDisplayPrice = counter.by === 'seller' 
+                                              ? counter.price 
+                                              : calculateSellerGets(counter.price);
                                             return (
                                               <tr key={cIdx} className={counter.by === 'seller' ? 'bg-purple-50' : 'bg-white'}>
                                                 <td className="px-2 py-1 text-[10px] font-semibold text-gray-700 border-r border-gray-200">#{counter.round || cIdx + 1}</td>
@@ -633,8 +635,9 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                       </thead>
                       <tbody className="divide-y divide-orange-200">
                         {pendingBids.map((bid, index) => {
-                          // Show the actual bid price (what buyer is paying)
-                          const displayPrice = bid.originalPrice || bid.price;
+                          // Seller sees what they will RECEIVE (buyer's bid × 0.98)
+                          const buyerBidPrice = bid.originalPrice || bid.price;
+                          const displayPrice = calculateSellerGets(buyerBidPrice);
                           const bidTotal = displayPrice * bid.quantity;
                           
                           return (
@@ -709,7 +712,9 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                       </thead>
                       <tbody className="divide-y divide-green-200">
                         {acceptedBids.map((bid, index) => {
-                          const displayPrice = bid.originalPrice || bid.price;
+                          // Seller sees what they will RECEIVE (buyer's bid × 0.98)
+                          const buyerBidPrice = bid.originalPrice || bid.price;
+                          const displayPrice = calculateSellerGets(buyerBidPrice);
                           const bidTotal = displayPrice * bid.quantity;
                           
                           return (

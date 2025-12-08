@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader, TrendingUp, TrendingDown, Clock, CheckCircle, XCircle, MessageCircle, Eye, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { listingsAPI } from '../../utils/api';
-import { formatCurrency, formatDate, getStatusColor, numberToWords, formatShortAmount, formatShortQuantity } from '../../utils/helpers';
+import { formatCurrency, formatDate, getStatusColor, numberToWords, formatShortAmount, formatShortQuantity, calculateSellerGets, calculateBuyerPays } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 
 const MyBidsOffersTab = () => {
@@ -317,14 +317,30 @@ const MyBidsOffersTab = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y-2 divide-gray-300">
-                            {activity.counterHistory.map((counter, idx) => (
+                            {activity.counterHistory.map((counter, idx) => {
+                              // Viewer perspective price adjustment:
+                              // - If isBid (buyer viewing their bids on SELL listings):
+                              //   - Seller's counter: buyer sees ×1.02 (what they'll pay)
+                              //   - Buyer's counter: shows as-is (their own entered price)
+                              // - If !isBid (seller viewing their offers on BUY listings):
+                              //   - Buyer's counter: seller sees ×0.98 (what they'll receive)
+                              //   - Seller's counter: shows as-is (their own entered price)
+                              const isSellerCounter = counter.by === 'seller';
+                              let displayPrice;
+                              if (isBid) {
+                                displayPrice = isSellerCounter ? calculateBuyerPays(counter.price) : counter.price;
+                              } else {
+                                displayPrice = !isSellerCounter ? calculateSellerGets(counter.price) : counter.price;
+                              }
+                              
+                              return (
                               <tr key={idx} className="hover:bg-blue-50 transition-colors">
                                 <td className="border-r-2 border-gray-200 px-2 py-2 text-[11px] font-bold text-gray-900">#{counter.round}</td>
                                 <td className="border-r-2 border-gray-200 px-2 py-2 text-[11px] font-semibold text-blue-700">{counter.by}</td>
-                                <td className="border-r-2 border-gray-200 px-2 py-2 text-[11px] font-bold text-purple-700">{formatCurrency(counter.price)}</td>
+                                <td className="border-r-2 border-gray-200 px-2 py-2 text-[11px] font-bold text-purple-700">{formatCurrency(displayPrice)}</td>
                                 <td className="px-2 py-2 text-[11px] text-gray-700">{counter.message || '—'}</td>
                               </tr>
-                            ))}
+                            );})}
                           </tbody>
                         </table>
                       </div>

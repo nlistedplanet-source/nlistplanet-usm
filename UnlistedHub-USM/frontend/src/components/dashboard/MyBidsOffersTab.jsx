@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader, TrendingUp, TrendingDown, Clock, CheckCircle, XCircle, RotateCcw, MessageCircle } from 'lucide-react';
 import { listingsAPI } from '../../utils/api';
-import { formatCurrency, formatDate } from '../../utils/helpers';
+import { formatCurrency, formatDate, calculateSellerGets, calculateBuyerPays } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 
 const MyBidsOffersTab = () => {
@@ -233,6 +233,22 @@ const MyBidsOffersTab = () => {
                           const isLatestRow = idx === counterHistory.length - 1;
                           const canTakeAction = isLatestRow && showActions && isSellerCounter;
                           
+                          // Viewer perspective:
+                          // - If isBid (buyer viewing their bids on SELL listings):
+                          //   - Seller's counter: buyer sees ×1.02 (what they'll pay)
+                          //   - Buyer's counter: shows as-is (their own entered price)
+                          // - If !isBid (seller viewing their offers on BUY listings):
+                          //   - Buyer's counter: seller sees ×0.98 (what they'll receive)
+                          //   - Seller's counter: shows as-is (their own entered price)
+                          let displayPrice;
+                          if (isBid) {
+                            // Buyer viewing - seller's counter needs ×1.02
+                            displayPrice = isSellerCounter ? calculateBuyerPays(counter.price) : counter.price;
+                          } else {
+                            // Seller viewing - buyer's counter needs ×0.98
+                            displayPrice = !isSellerCounter ? calculateSellerGets(counter.price) : counter.price;
+                          }
+                          
                           return (
                             <tr key={idx} className={`${isSellerCounter ? 'bg-orange-50 hover:bg-orange-100' : 'bg-blue-50 hover:bg-blue-100'}`}>
                               <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-purple-700">
@@ -247,7 +263,7 @@ const MyBidsOffersTab = () => {
                                 </span>
                               </td>
                               <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-gray-900 text-right">
-                                {formatCurrency(counter.price)}
+                                {formatCurrency(displayPrice)}
                               </td>
                               <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-gray-900 text-right">
                                 {counter.quantity} shares

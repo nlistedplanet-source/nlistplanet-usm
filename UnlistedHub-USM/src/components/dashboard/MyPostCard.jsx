@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Share2, Zap, Edit, Trash2, CheckCircle, XCircle, MessageSquare, Loader, Eye, Info, ChevronDown, ChevronUp, DollarSign, Ban } from 'lucide-react';
-import { formatCurrency, formatDate, formatNumber, numberToWords, formatShortAmount, formatShortQuantity } from '../../utils/helpers';
+import { formatCurrency, formatDate, formatNumber, numberToWords, formatShortAmount, formatShortQuantity, calculateSellerGets } from '../../utils/helpers';
 import * as htmlToImage from 'html-to-image';
 import { listingsAPI } from '../../utils/api';
 import toast from 'react-hot-toast';
@@ -484,8 +484,9 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
                   </thead>
                   <tbody className="divide-y-2 divide-gray-300">
                     {sortedBids.map((bid, index) => {
-                      // Show the actual bid price (what buyer is paying)
-                      const displayPrice = bid.originalPrice || bid.price;
+                      // Seller sees what they will RECEIVE (buyer's bid × 0.98)
+                      const buyerBidPrice = bid.originalPrice || bid.price;
+                      const displayPrice = calculateSellerGets(buyerBidPrice);
                       const bidTotal = displayPrice * bid.quantity;
                       return (
                         <tr key={bid._id} className="hover:bg-blue-50 transition-colors">
