@@ -623,6 +623,8 @@ router.post('/companies', upload.single('logo'), async (req, res, next) => {
       data: company
     });
   } catch (error) {
+    console.error('Company create error:', error.message);
+    console.error('Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
@@ -637,7 +639,11 @@ router.post('/companies', upload.single('logo'), async (req, res, next) => {
         message: messages.join(', ')
       });
     }
-    console.error('Company create error:', error);
+    // Return detailed error for debugging
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Server error'
+    });
     next(error);
   }
 });
