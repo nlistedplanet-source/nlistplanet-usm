@@ -185,40 +185,24 @@ const MyBidsOffersTab = () => {
         </button>
       </div>
 
-      {/* Active/Expired Filter */}
-      <div className="flex gap-2 mb-4">
+      {/* Active/Expired Toggle - Small Switch */}
+      <div className="flex items-center justify-end gap-3 mb-4">
+        <span className={`text-xs font-medium ${statusFilter === 'active' ? 'text-emerald-600' : 'text-gray-400'}`}>
+          Active ({currentCounts.activeCount})
+        </span>
         <button
-          onClick={() => setStatusFilter('active')}
-          className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
-            statusFilter === 'active'
-              ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-300'
-              : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+          onClick={() => setStatusFilter(statusFilter === 'active' ? 'expired' : 'active')}
+          className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
+            statusFilter === 'expired' ? 'bg-gray-400' : 'bg-emerald-500'
           }`}
         >
-          <Clock size={16} />
-          Active
-          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-            statusFilter === 'active' ? 'bg-emerald-200' : 'bg-gray-200'
-          }`}>
-            {currentCounts.activeCount}
-          </span>
+          <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300 ${
+            statusFilter === 'expired' ? 'left-8' : 'left-1'
+          }`} />
         </button>
-        <button
-          onClick={() => setStatusFilter('expired')}
-          className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
-            statusFilter === 'expired'
-              ? 'bg-gray-200 text-gray-700 border-2 border-gray-400'
-              : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
-          }`}
-        >
-          <XCircle size={16} />
-          Expired/Done
-          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-            statusFilter === 'expired' ? 'bg-gray-300' : 'bg-gray-200'
-          }`}>
-            {currentCounts.expiredCount}
-          </span>
-        </button>
+        <span className={`text-xs font-medium ${statusFilter === 'expired' ? 'text-gray-700' : 'text-gray-400'}`}>
+          Expired ({currentCounts.expiredCount})
+        </span>
       </div>
 
       {/* Content */}
