@@ -482,10 +482,8 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
                   </thead>
                   <tbody className="divide-y-2 divide-gray-300">
                     {sortedBids.map((bid, index) => {
-                      // Use originalPrice for buyer's original bid (fallback to price for old bids)
-                      const buyerOriginalPrice = bid.originalPrice || bid.price;
-                      // Seller sees what they'll receive after 2% platform fee on buyer's original bid
-                      const displayPrice = buyerOriginalPrice * 0.98;
+                      // Show the actual bid price (what buyer is paying)
+                      const displayPrice = bid.originalPrice || bid.price;
                       const bidTotal = displayPrice * bid.quantity;
                       return (
                         <tr key={bid._id} className="hover:bg-blue-50 transition-colors">
