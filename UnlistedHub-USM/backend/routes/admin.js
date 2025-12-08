@@ -4,6 +4,18 @@ import User from '../models/User.js';
 import Listing from '../models/Listing.js';
 import Transaction from '../models/Transaction.js';
 import Company from '../models/Company.js';
+
+// Parse DD/MM/YYYY format to Date
+const parseIndianDate = (dateStr) => {
+  if (!dateStr) return null;
+  const parts = dateStr.split('/');
+  if (parts.length === 3) {
+    const [day, month, year] = parts;
+    return new Date(year, month - 1, day);
+  }
+  // Fallback to default parsing
+  return new Date(dateStr);
+};
 import Settings from '../models/Settings.js';
 import Ad from '../models/Ad.js';
 import ReferralTracking from '../models/ReferralTracking.js';
@@ -601,7 +613,7 @@ router.post('/companies', upload.single('logo'), async (req, res, next) => {
       isin: (isin && isin.trim()) ? isin.trim() : null,
       cin: (cin && cin.trim()) ? cin.trim() : null,
       pan: (pan && pan.trim()) ? pan.trim() : null,
-      registrationDate: registrationDate ? new Date(registrationDate) : null,
+      registrationDate: parseIndianDate(registrationDate),
       description: (description && description.trim()) ? description.trim() : null
     });
 
@@ -652,7 +664,7 @@ router.put('/companies/:id', upload.single('logo'), async (req, res, next) => {
     company.isin = (isin && isin.trim()) ? isin.trim() : null;
     company.cin = (cin && cin.trim()) ? cin.trim() : null;
     company.pan = (pan && pan.trim()) ? pan.trim() : null;
-    company.registrationDate = registrationDate ? new Date(registrationDate) : null;
+    company.registrationDate = parseIndianDate(registrationDate);
     company.description = (description && description.trim()) ? description.trim() : null;
 
     // Handle logo upload
