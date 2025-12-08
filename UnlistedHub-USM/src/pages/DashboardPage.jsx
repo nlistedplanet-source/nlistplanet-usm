@@ -152,9 +152,22 @@ const DashboardPage = () => {
     setShowBidModal(true);
   };
 
-  const handleAccept = (listing) => {
-    // Navigate to listing detail with accept action
-    navigate(`/listing/${listing._id}?action=accept`);
+  const handleAccept = async (listing) => {
+    try {
+      // Place a bid/offer at the listing price to accept
+      await listingsAPI.placeBid(listing._id, {
+        price: listing.price,
+        quantity: listing.quantity || 1,
+        message: 'Accepted at listing price'
+      });
+      
+      toast.success('Offer placed successfully!');
+      // Refresh listings
+      fetchListings();
+    } catch (error) {
+      console.error('Error accepting listing:', error);
+      toast.error(error.response?.data?.message || 'Failed to place offer');
+    }
   };
 
   const handleShare = async (listing) => {
