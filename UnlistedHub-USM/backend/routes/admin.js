@@ -4,6 +4,12 @@ import User from '../models/User.js';
 import Listing from '../models/Listing.js';
 import Transaction from '../models/Transaction.js';
 import Company from '../models/Company.js';
+import Settings from '../models/Settings.js';
+import Ad from '../models/Ad.js';
+import ReferralTracking from '../models/ReferralTracking.js';
+import UsernameHistory from '../models/UsernameHistory.js';
+import CompletedDeal from '../models/CompletedDeal.js';
+import { protect, authorize } from '../middleware/auth.js';
 
 // Parse DD/MM/YYYY format to Date
 const parseIndianDate = (dateStr) => {
@@ -16,12 +22,6 @@ const parseIndianDate = (dateStr) => {
   // Fallback to default parsing
   return new Date(dateStr);
 };
-import Settings from '../models/Settings.js';
-import Ad from '../models/Ad.js';
-import ReferralTracking from '../models/ReferralTracking.js';
-import UsernameHistory from '../models/UsernameHistory.js';
-import CompletedDeal from '../models/CompletedDeal.js';
-import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
