@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 
 const MyBidsOffersTab = () => {
   const [activeSubmenu, setActiveSubmenu] = useState('bids'); // 'bids' or 'offers'
+  const [statusFilter, setStatusFilter] = useState('active'); // 'active' or 'expired'
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
@@ -13,6 +14,10 @@ const MyBidsOffersTab = () => {
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [counterPrice, setCounterPrice] = useState('');
   const [counterQuantity, setCounterQuantity] = useState('');
+
+  // Define which statuses are "active" vs "expired"
+  const activeStatuses = ['pending', 'countered'];
+  const expiredStatuses = ['accepted', 'rejected', 'expired', 'completed', 'cancelled'];
 
   useEffect(() => {
     fetchMyActivity();
@@ -84,14 +89,41 @@ const MyBidsOffersTab = () => {
     }
   };
 
-  // Filter activities based on submenu
+  // Filter activities based on submenu and status
   const filteredActivities = activities.filter(activity => {
-    if (activeSubmenu === 'bids') {
-      return activity.type === 'bid'; // Bids placed on SELL listings
+    // First filter by type (bids vs offers)
+    const typeMatch = activeSubmenu === 'bids' 
+      ? activity.type === 'bid' 
+      : activity.type === 'offer';
+    
+    if (!typeMatch) return false;
+    
+    // Then filter by status (active vs expired)
+    // Also check if listing is deleted (listing might be null or have isActive = false)
+    const isListingDeleted = !activity.listing || activity.listing.isActive === false;
+    const isActive = activeStatuses.includes(activity.status) && !isListingDeleted;
+    
+    if (statusFilter === 'active') {
+      return isActive;
     } else {
-      return activity.type === 'offer'; // Offers made on BUY listings
+      return !isActive; // expired, rejected, completed, or listing deleted
     }
   });
+
+  // Count for badges
+  const getStatusCounts = (type) => {
+    const typeActivities = activities.filter(a => 
+      type === 'bids' ? a.type === 'bid' : a.type === 'offer'
+    );
+    const activeCount = typeActivities.filter(a => {
+      const isListingDeleted = !a.listing || a.listing.isActive === false;
+      return activeStatuses.includes(a.status) && !isListingDeleted;
+    }).length;
+    const expiredCount = typeActivities.length - activeCount;
+    return { activeCount, expiredCount, total: typeActivities.length };
+  };
+
+  const currentCounts = getStatusCounts(activeSubmenu);
 
   if (loading) {
     return (
@@ -112,9 +144,12 @@ const MyBidsOffersTab = () => {
       </div>
 
       {/* Submenu Tabs */}
-      <div className="flex gap-2 mb-4 bg-gray-100 p-1 rounded-xl">
+      <div className="flex gap-2 mb-3 bg-gray-100 p-1 rounded-xl">
         <button
-          onClick={() => setActiveSubmenu('bids')}
+          onClick={() => {
+            setActiveSubmenu('bids');
+            setStatusFilter('active');
+          }}
           className={`flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
             activeSubmenu === 'bids'
               ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
@@ -130,7 +165,10 @@ const MyBidsOffersTab = () => {
           </span>
         </button>
         <button
-          onClick={() => setActiveSubmenu('offers')}
+          onClick={() => {
+            setActiveSubmenu('offers');
+            setStatusFilter('active');
+          }}
           className={`flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
             activeSubmenu === 'offers'
               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
@@ -147,17 +185,57 @@ const MyBidsOffersTab = () => {
         </button>
       </div>
 
+      {/* Active/Expired Filter */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setStatusFilter('active')}
+          className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+            statusFilter === 'active'
+              ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-300'
+              : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+          }`}
+        >
+          <Clock size={16} />
+          Active
+          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+            statusFilter === 'active' ? 'bg-emerald-200' : 'bg-gray-200'
+          }`}>
+            {currentCounts.activeCount}
+          </span>
+        </button>
+        <button
+          onClick={() => setStatusFilter('expired')}
+          className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+            statusFilter === 'expired'
+              ? 'bg-gray-200 text-gray-700 border-2 border-gray-400'
+              : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+          }`}
+        >
+          <XCircle size={16} />
+          Expired/Done
+          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+            statusFilter === 'expired' ? 'bg-gray-300' : 'bg-gray-200'
+          }`}>
+            {currentCounts.expiredCount}
+          </span>
+        </button>
+      </div>
+
       {/* Content */}
       {filteredActivities.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 bg-dark-50 rounded-2xl">
-          <Clock className="text-dark-300 mb-3" size={48} />
+          {statusFilter === 'active' ? (
+            <Clock className="text-dark-300 mb-3" size={48} />
+          ) : (
+            <CheckCircle className="text-dark-300 mb-3" size={48} />
+          )}
           <p className="text-dark-600 font-medium mb-2">
-            No {activeSubmenu === 'bids' ? 'bids placed' : 'offers made'} yet
+            No {statusFilter === 'active' ? 'active' : 'expired/completed'} {activeSubmenu === 'bids' ? 'bids' : 'offers'}
           </p>
           <p className="text-dark-500 text-sm text-center">
-            {activeSubmenu === 'bids' 
-              ? 'Bids you place on sell listings will appear here'
-              : 'Offers you make on buy requests will appear here'
+            {statusFilter === 'active'
+              ? `Your active ${activeSubmenu === 'bids' ? 'bids' : 'offers'} will appear here`
+              : `${activeSubmenu === 'bids' ? 'Bids' : 'Offers'} that are expired, rejected, or completed will appear here`
             }
           </p>
         </div>
@@ -166,28 +244,38 @@ const MyBidsOffersTab = () => {
           {filteredActivities.map((activity) => {
             const isBid = activity.type === 'bid';
             const counterHistory = activity.counterHistory || [];
-            const listingPrice = activity.listing.displayPrice || activity.listing.listingPrice || activity.listing.price;
+            const listingPrice = activity.listing?.displayPrice || activity.listing?.listingPrice || activity.listing?.price || 0;
             const hasCounterHistory = counterHistory.length > 0;
-            const showActions = activity.status === 'countered';
+            const isListingDeleted = !activity.listing || activity.listing.isActive === false;
+            const showActions = activity.status === 'countered' && statusFilter === 'active';
             
             return (
-              <div key={activity._id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div key={activity._id} className={`bg-white rounded-xl shadow-sm border overflow-hidden ${statusFilter === 'expired' ? 'border-gray-200 opacity-75' : 'border-gray-200'}`}>
                 {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
+                <div className={`flex items-center justify-between px-4 py-3 border-b border-gray-200 ${statusFilter === 'expired' ? 'bg-gray-100' : 'bg-gray-50'}`}>
                   <div>
-                    <h4 className="font-bold text-gray-900">{activity.listing.companyName}</h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-gray-900">{activity.listing?.companyName || 'Deleted Listing'}</h4>
+                      {isListingDeleted && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600">DELETED</span>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-500">
-                      {isBid ? 'Seller' : 'Buyer'}: @{activity.listing.owner?.username || 'Unknown'}
+                      {isBid ? 'Seller' : 'Buyer'}: @{activity.listing?.owner?.username || 'Unknown'}
                     </p>
-                    <p className="text-xs text-gray-500">
-                      Listed Price: {formatCurrency(listingPrice)} x {activity.listing.quantity} shares
-                    </p>
+                    {!isListingDeleted && (
+                      <p className="text-xs text-gray-500">
+                        Listed Price: {formatCurrency(listingPrice)} x {activity.listing?.quantity || 0} shares
+                      </p>
+                    )}
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                     activity.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
                     activity.status === 'accepted' ? 'bg-green-100 text-green-700' :
                     activity.status === 'rejected' ? 'bg-red-100 text-red-700' :
                     activity.status === 'countered' ? 'bg-purple-100 text-purple-700' :
+                    activity.status === 'expired' ? 'bg-gray-100 text-gray-600' :
+                    activity.status === 'completed' ? 'bg-green-100 text-green-700' :
                     'bg-gray-100 text-gray-700'
                   }`}>
                     {activity.status}
