@@ -176,8 +176,8 @@ const BlogPage = () => {
             {displayTitle}
           </h3>
           
-          {/* Hindi Summary - 60 words style */}
-          <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-4">
+          {/* News Summary - Professional anchor style */}
+          <p className="text-gray-700 text-sm leading-relaxed mb-4">
             {displaySummary}
           </p>
 
@@ -274,7 +274,7 @@ const BlogPage = () => {
             </h3>
             
             <p className={`text-gray-300 mb-3 leading-relaxed ${
-              index === 0 ? 'line-clamp-3 text-base' : 'line-clamp-2 text-sm'
+              index === 0 ? 'text-base' : 'text-sm'
             }`}>
               {displaySummary}
             </p>
