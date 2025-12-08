@@ -36,7 +36,7 @@ const companySchema = new mongoose.Schema({
   },
   cin: {
     type: String,
-    match: [/^[UL][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/, 'Invalid CIN format']
+    match: [/^[UL][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{5,6}$/, 'Invalid CIN format']
   },
   website: String,
   foundedYear: Number,

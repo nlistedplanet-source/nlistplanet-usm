@@ -443,10 +443,33 @@ const CompaniesManagement = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Registration Date</label>
                   <input
-                    type="date"
-                    value={formData.registrationDate}
-                    onChange={(e) => setFormData({ ...formData, registrationDate: e.target.value })}
+                    type="text"
+                    value={formData.registrationDate ? new Date(formData.registrationDate).toLocaleDateString('en-GB') : ''}
+                    onChange={(e) => {
+                      // Accept DD/MM/YYYY format and convert to YYYY-MM-DD for storage
+                      const val = e.target.value;
+                      const match = val.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+                      if (match) {
+                        const [, day, month, year] = match;
+                        setFormData({ ...formData, registrationDate: `${year}-${month}-${day}` });
+                      } else {
+                        // Allow typing in progress
+                        setFormData({ ...formData, registrationDate: val });
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // On blur, try to parse the date
+                      const val = e.target.value;
+                      const match = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+                      if (match) {
+                        const [, day, month, year] = match;
+                        const d = day.padStart(2, '0');
+                        const m = month.padStart(2, '0');
+                        setFormData({ ...formData, registrationDate: `${year}-${m}-${d}` });
+                      }
+                    }}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder="DD/MM/YYYY"
                   />
                 </div>
               </div>
