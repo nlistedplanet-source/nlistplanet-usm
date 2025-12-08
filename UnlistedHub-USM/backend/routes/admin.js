@@ -589,6 +589,8 @@ router.get('/companies', async (req, res, next) => {
 router.post('/companies', upload.single('logo'), async (req, res, next) => {
   try {
     const { name, scriptName, sector, isin, cin, pan, registrationDate, description } = req.body;
+    
+    console.log('Creating company with data:', { name, scriptName, sector, isin, cin, pan, registrationDate });
 
     // Check if company already exists
     const existingCompany = await Company.findOne({ name: name.trim() });
