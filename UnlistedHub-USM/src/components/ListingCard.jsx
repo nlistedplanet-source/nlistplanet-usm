@@ -90,9 +90,6 @@ const ListingCard = ({ listing, onBidOffer, onShare, onBoost, isOwner }) => {
         <div className="bg-dark-50 rounded-lg p-3">
           <p className="text-xs text-dark-500 mb-1">Price per Share</p>
           <p className="text-lg font-bold text-dark-900">{formatCurrency(listing.price)}</p>
-          <p className="text-xs text-dark-500 mt-1">
-            + {formatCurrency(listing.price * 0.02)} (2% fee)
-          </p>
         </div>
         <div className="bg-dark-50 rounded-lg p-3">
           <p className="text-xs text-dark-500 mb-1">Quantity</p>

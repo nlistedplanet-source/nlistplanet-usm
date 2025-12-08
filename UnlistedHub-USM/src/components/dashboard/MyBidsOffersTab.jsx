@@ -245,9 +245,6 @@ const MyBidsOffersTab = () => {
                           <div className={`text-sm font-bold cursor-help ${isBid ? 'text-red-600' : 'text-green-600'}`} title={numberToWords(isBid ? activity.price : sellerReceivesPrice)}>
                             {formatCurrency(isBid ? activity.price : sellerReceivesPrice)}
                           </div>
-                          {!isBid && (
-                            <div className="text-[10px] text-gray-500 mt-0.5">After 2% fee</div>
-                          )}
                         </td>
                         <td className="border-2 border-gray-400 px-2 py-2 text-center">
                           <div className="text-sm font-bold text-gray-900 cursor-help" title={`${activity.quantity?.toLocaleString('en-IN')} shares`}>

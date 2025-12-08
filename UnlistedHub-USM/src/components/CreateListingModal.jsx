@@ -331,12 +331,7 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
               <label className="absolute left-10 -top-2.5 text-xs text-gray-500 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white">
                 Price per Share
               </label>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 group">
-                <Info size={18} className="text-gray-400 cursor-help" />
-                <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block w-48 bg-gray-900 text-white text-xs rounded-lg p-2 shadow-lg z-20">
-                  Platform fee (2%) will be added automatically
-                </div>
-              </div>
+
               {formData.price && (
                 <p className="text-sm font-semibold text-purple-600 mt-2 ml-1 bg-purple-50 px-3 py-1 rounded-lg inline-block">
                   ₹ {numberToWords(parseFloat(formData.price))} Rupees
@@ -516,10 +511,7 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                     </div>
                   )}
 
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-                    <p className="text-xs text-blue-600 font-semibold mb-1">Platform Fee</p>
-                    <p className="text-sm text-gray-700">2% fee (₹{(parseFloat(formData.price) * 0.02).toFixed(2)}) will be added</p>
-                  </div>
+
                 </div>
 
                 <div className="flex gap-3">

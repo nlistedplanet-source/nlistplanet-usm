@@ -125,7 +125,7 @@ const ReferralsTab = () => {
           </li>
           <li className="flex items-start gap-2">
             <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs flex-shrink-0 mt-0.5">3</div>
-            <span>You earn 5% of platform fees from their trades</span>
+            <span>You earn rewards from their trades</span>
           </li>
         </ul>
       </div>

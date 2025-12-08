@@ -98,7 +98,7 @@ const ShareModal = ({ listing, onClose }) => {
                 <ul className="text-xs text-dark-600 space-y-1">
                   <li>• Share this listing with your unique referral link</li>
                   <li>• When someone signs up through your link</li>
-                  <li>• You earn 5% of platform fees from their trades</li>
+                  <li>• You earn rewards from their trades</li>
                 </ul>
               </div>
             </div>
