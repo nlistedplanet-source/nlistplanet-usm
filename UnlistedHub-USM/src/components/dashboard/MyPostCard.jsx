@@ -26,7 +26,9 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
 
   const isSell = listing.type === 'sell';
   const bidsArray = (isSell ? listing.bids : listing.offers) || [];
-  const activeBidsCount = bidsArray.filter(b => b.status === 'pending' || b.status === 'countered').length;
+  const pendingBids = bidsArray.filter(b => b.status === 'pending' || b.status === 'countered');
+  const acceptedBids = bidsArray.filter(b => b.status === 'accepted');
+  const activeBidsCount = pendingBids.length;
   
   // Use seller's desired price (what they entered) for display
   const sellerPrice = isSell ? (listing.sellerDesiredPrice || listing.price) : (listing.buyerMaxPrice || listing.price);
@@ -306,8 +308,8 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
     toast.success('Link copied to clipboard! 📋');
   };
 
-  // Sorted bids
-  const sortedBids = [...bidsArray].sort((a, b) => {
+  // Sorted bids - only pending/countered for active bids section
+  const sortedBids = [...pendingBids].sort((a, b) => {
     if (sortBy === 'highest') return b.price - a.price;
     if (sortBy === 'lowest') return a.price - b.price;
     return new Date(b.createdAt) - new Date(a.createdAt);
@@ -449,7 +451,7 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
         </div>
 
         {/* Bids Table - Collapsible */}
-        {bidsArray.length > 0 && (
+        {pendingBids.length > 0 && (
           <div className="px-3 py-2">
             <button 
               onClick={() => setBidsExpanded(!bidsExpanded)}
@@ -525,6 +527,66 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
                             )}
                             {bid.status === 'accepted' && <div className="text-center font-bold text-green-700">✅ Done</div>}
                             {bid.status === 'rejected' && <div className="text-center font-bold text-red-700">❌ Rejected</div>}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Accepted Bids Section */}
+        {acceptedBids.length > 0 && (
+          <div className="px-3 py-2">
+            <button 
+              onClick={() => setBidsExpanded(!bidsExpanded)}
+              className="w-full bg-gradient-to-r from-green-100 to-emerald-100 px-3 py-2 rounded-md border-2 border-green-400 flex items-center justify-between hover:from-green-200 hover:to-emerald-200 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-green-600 text-lg">✅</span>
+                <h4 className="font-bold text-green-800 text-[11px]">Accepted ({acceptedBids.length})</h4>
+              </div>
+              {bidsExpanded ? <ChevronUp className="w-4 h-4 text-green-700" /> : <ChevronDown className="w-4 h-4 text-green-700" />}
+            </button>
+            
+            {bidsExpanded && (
+              <div className="border-2 border-green-400 border-t-0 rounded-b-lg overflow-hidden shadow-lg mt-0">
+                <table className="w-full bg-white">
+                  <thead className="bg-green-50 border-b-2 border-green-400">
+                    <tr>
+                      <th className="px-2 py-1 text-center text-[11px] font-bold text-green-800 uppercase border-r border-green-300 w-8">#</th>
+                      <th className="px-2 py-1 text-left text-[11px] font-bold text-green-800 uppercase border-r border-green-300">{isSell ? 'Buyer' : 'Seller'}</th>
+                      <th className="px-2 py-1 text-left text-[11px] font-bold text-green-800 uppercase border-r border-green-300">Price</th>
+                      <th className="px-2 py-1 text-left text-[11px] font-bold text-green-800 uppercase border-r border-green-300">Qty</th>
+                      <th className="px-2 py-1 text-left text-[11px] font-bold text-green-800 uppercase border-r border-green-300">Total</th>
+                      <th className="px-2 py-1 text-left text-[11px] font-bold text-green-800 uppercase border-r border-green-300">Date</th>
+                      <th className="px-2 py-1 text-center text-[11px] font-bold text-green-800 uppercase">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-green-200">
+                    {acceptedBids.map((bid, index) => {
+                      const displayPrice = bid.originalPrice || bid.price;
+                      const bidTotal = displayPrice * bid.quantity;
+                      return (
+                        <tr key={bid._id} className="hover:bg-green-50 transition-colors">
+                          <td className="px-2 py-1 text-[11px] font-bold text-gray-900 border-r border-green-200 text-center">{index + 1}</td>
+                          <td className="px-2 py-1 text-[11px] border-r border-green-200">
+                            <div className="font-bold text-green-700 text-[11px]">@{bid.user?.username || bid.username || 'trader_' + (index + 1)}</div>
+                            <div className="text-[10px] text-gray-600 mt-0.5">⭐ {bid.user?.rating?.toFixed(1) || '4.5'}</div>
+                          </td>
+                          <td className="px-2 py-1 text-[11px] font-bold text-gray-900 border-r border-green-200 cursor-help" title={numberToWords(displayPrice)}>{formatCurrency(displayPrice)}</td>
+                          <td className="px-2 py-1 text-[11px] font-bold text-gray-900 border-r border-green-200 cursor-help" title={`${bid.quantity?.toLocaleString('en-IN')} shares`}>{formatShortQuantity(bid.quantity || 0)}</td>
+                          <td className="px-2 py-1 text-[11px] border-r border-green-200">
+                            <div className="font-bold text-green-600 cursor-help text-[11px]" title={numberToWords(bidTotal)}>{formatShortAmount(bidTotal)}</div>
+                          </td>
+                          <td className="px-2 py-1 text-[10px] text-gray-500 border-r border-green-200">{formatDate(bid.updatedAt || bid.createdAt)}</td>
+                          <td className="px-2 py-1 text-center">
+                            <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-[10px] font-bold border border-green-400">
+                              ✓ Accepted
+                            </span>
                           </td>
                         </tr>
                       );

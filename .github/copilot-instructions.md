@@ -42,20 +42,28 @@ npm run build        # production build
 **Environment:** Copy `.env.example` → `.env`, never commit secrets. Restart server after changes.
 
 ## Critical Business Logic: Platform Fee (2%)
-The platform fee is the core pricing mechanism. Use helper functions from `utils/helpers.js`:
+The platform fee is the core pricing mechanism but is **HIDDEN from users**. See `PLATFORM_FEE_MODEL.md` for complete documentation.
+
+**Core Principle:**
+- **SELLER always sees:** What they will RECEIVE (price × 0.98)
+- **BUYER always sees:** What they will PAY (price × 1.02)
+- **Fee is NEVER shown** to users - only adjusted prices
+
+Use helper functions from `utils/helpers.js`:
 
 ```javascript
 // frontend/src/utils/helpers.js
 calculateBuyerPays(price)  // → price * 1.02 (buyer pays +2%)
 calculateSellerGets(price) // → price * 0.98 (seller gets -2%)
-getPriceDisplay(price, listingType, isOwner) // → { displayPrice, label }
 ```
 
 **Price Display Rules:**
-| Listing Type | Owner Sees | Others See |
-|--------------|------------|------------|
-| SELL (₹100)  | ₹100 (Your Price) | ₹102 (Buyer Pays) |
-| BUY (₹100)   | ₹100 (Your Price) | ₹98 (Seller Gets) |
+| Context | Seller Sees | Buyer Sees |
+|---------|-------------|------------|
+| SELL listing (₹238) | ₹238 (own price) | ₹242.76 (pays) |
+| BUY listing (₹500) | ₹490 (receives) | ₹500 (own budget) |
+| Bid ₹230 on SELL | ₹225.49 (receives) | ₹230 (pays) |
+| Offer ₹520 on BUY | ₹520 (receives) | ₹530.61 (pays) |
 
 Backend mirrors this in `models/Listing.js` with `buyerOfferedPrice`, `sellerReceivesPrice`, `platformFee` fields on bids.
 

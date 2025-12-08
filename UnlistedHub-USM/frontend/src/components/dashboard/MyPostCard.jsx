@@ -32,6 +32,7 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
   const [sortBy, setSortBy] = useState('latest');
   const [counterOffersExpanded, setCounterOffersExpanded] = useState(true);
   const [pendingBidsExpanded, setPendingBidsExpanded] = useState(true);
+  const [acceptedBidsExpanded, setAcceptedBidsExpanded] = useState(true);
   const [expandedBidIds, setExpandedBidIds] = useState(new Set());
   const [showModifyModal, setShowModifyModal] = useState(false);
   const [modifyPrice, setModifyPrice] = useState('');
@@ -46,9 +47,10 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
   const isSell = listing.type === 'sell';
   const bidsArray = (isSell ? listing.bids : listing.offers) || [];
   
-  // Separate bids into Counter Offers (in-progress) and Pending Bids
+  // Separate bids into Counter Offers (in-progress), Pending Bids, and Accepted
   const counterOfferBids = bidsArray.filter(b => b.status === 'countered');
   const pendingBids = bidsArray.filter(b => b.status === 'pending');
+  const acceptedBids = bidsArray.filter(b => b.status === 'accepted');
   const activeBidsCount = counterOfferBids.length + pendingBids.length;
   
   // Use seller's desired price (what they entered) for display
@@ -677,8 +679,75 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
               </div>
             )}
 
+            {/* Section 3: Accepted Bids */}
+            {acceptedBids.length > 0 && (
+              <div>
+                <button 
+                  onClick={() => setAcceptedBidsExpanded(!acceptedBidsExpanded)}
+                  className="w-full bg-gradient-to-r from-green-100 to-emerald-100 px-3 py-2 rounded-md border-2 border-green-400 flex items-center justify-between hover:from-green-200 hover:to-emerald-200 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-600 text-lg">✅</span>
+                    <h4 className="font-bold text-green-800 text-[12px]">Accepted ({acceptedBids.length})</h4>
+                  </div>
+                  {acceptedBidsExpanded ? <ChevronUp className="w-4 h-4 text-green-700" /> : <ChevronDown className="w-4 h-4 text-green-700" />}
+                </button>
+                
+                {acceptedBidsExpanded && (
+                  <div className="border-2 border-green-400 border-t-0 rounded-b-lg overflow-hidden shadow-lg">
+                    <table className="w-full bg-white">
+                      <thead className="bg-green-50 border-b-2 border-green-400">
+                        <tr>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-green-800 uppercase border-r border-green-300 w-8">#</th>
+                          <th className="px-2 py-1.5 text-left text-[11px] font-bold text-green-800 uppercase border-r border-green-300">{isSell ? 'Buyer' : 'Seller'}</th>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-green-800 uppercase border-r border-green-300">Price</th>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-green-800 uppercase border-r border-green-300">Quantity</th>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-green-800 uppercase border-r border-green-300">Total</th>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-green-800 uppercase border-r border-green-300">Date</th>
+                          <th className="px-2 py-1.5 text-center text-[11px] font-bold text-green-800 uppercase">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-green-200">
+                        {acceptedBids.map((bid, index) => {
+                          const displayPrice = bid.originalPrice || bid.price;
+                          const bidTotal = displayPrice * bid.quantity;
+                          
+                          return (
+                            <tr key={bid._id} className="hover:bg-green-50 transition-colors">
+                              <td className="px-2 py-2 text-[11px] font-bold text-gray-900 border-r border-green-200 text-center">{index + 1}</td>
+                              <td className="px-2 py-2 text-[11px] border-r border-green-200">
+                                <div className="font-bold text-green-700">@{bid.user?.username || bid.username || 'trader_' + (index + 1)}</div>
+                                <div className="text-[10px] text-gray-500">⭐ {bid.user?.rating?.toFixed(1) || '4.5'}</div>
+                              </td>
+                              <td className="px-2 py-2 text-center border-r border-green-200">
+                                <div className="text-[12px] font-bold text-gray-900">{formatCurrency(displayPrice)}</div>
+                              </td>
+                              <td className="px-2 py-2 text-center border-r border-green-200">
+                                <div className="text-[11px] font-bold text-gray-900">{formatShortQuantity(bid.quantity)}</div>
+                              </td>
+                              <td className="px-2 py-2 text-center border-r border-green-200">
+                                <div className="text-[11px] font-bold text-green-600">{formatShortAmount(bidTotal)}</div>
+                              </td>
+                              <td className="px-2 py-2 text-center border-r border-green-200">
+                                <div className="text-[10px] text-gray-500">{formatDate(bid.updatedAt || bid.createdAt)}</div>
+                              </td>
+                              <td className="px-2 py-2 text-center">
+                                <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-[10px] font-bold border border-green-400">
+                                  ✓ Accepted
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* No Active Bids */}
-            {counterOfferBids.length === 0 && pendingBids.length === 0 && (
+            {counterOfferBids.length === 0 && pendingBids.length === 0 && acceptedBids.length === 0 && (
               <div className="text-center py-4 text-gray-500">
                 <AlertCircle className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                 <p className="text-sm">No active bids yet</p>
