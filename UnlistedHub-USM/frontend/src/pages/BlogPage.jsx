@@ -142,7 +142,7 @@ const BlogPage = () => {
     const sourceName = item.source || getSourceName(item.sourceUrl);
 
     return (
-      <article className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group">
+      <article className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col">
         {/* Image Section */}
         <div 
           onClick={() => navigate(`/blog/${item._id}`)}
@@ -167,44 +167,42 @@ const BlogPage = () => {
         </div>
 
         {/* Content Section */}
-        <div className="p-5">
-          {/* Hindi Headline */}
+        <div className="p-5 flex-1 flex flex-col">
+          {/* Headline - Hindi */}
           <h3 
             onClick={() => navigate(`/blog/${item._id}`)}
-            className="font-bold text-gray-900 text-lg mb-3 line-clamp-2 cursor-pointer hover:text-emerald-600 transition-colors leading-snug"
+            className="font-bold text-gray-900 text-lg mb-3 cursor-pointer hover:text-emerald-600 transition-colors leading-snug"
           >
             {displayTitle}
           </h3>
           
-          {/* News Summary - Professional anchor style */}
-          <p className="text-gray-700 text-sm leading-relaxed mb-4">
+          {/* Summary */}
+          <p className="text-gray-600 text-sm leading-relaxed flex-1">
             {displaySummary}
           </p>
+        </div>
 
-          {/* Footer: Date & Source */}
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-            {/* Date */}
-            <div className="flex items-center gap-1.5 text-gray-500 text-xs">
-              <Calendar size={14} />
-              <span>{formatDate(item.publishedAt)}</span>
-            </div>
-            
-            {/* Source - Clickable */}
-            {item.sourceUrl ? (
-              <a
-                href={item.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-1.5 text-emerald-600 text-xs font-semibold hover:text-emerald-700 transition-colors"
-              >
-                <span>{sourceName}</span>
-                <ExternalLink size={12} />
-              </a>
-            ) : (
-              <span className="text-gray-400 text-xs">NlistPlanet</span>
-            )}
+        {/* Bottom Bar - Date & Source */}
+        <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-gray-500 text-xs">
+            <Calendar size={14} />
+            <span>{formatDate(item.publishedAt)}</span>
           </div>
+          
+          {item.sourceUrl ? (
+            <a
+              href={item.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1.5 text-emerald-600 text-xs font-semibold hover:text-emerald-700 transition-colors"
+            >
+              <span>{sourceName}</span>
+              <ExternalLink size={12} />
+            </a>
+          ) : (
+            <span className="text-gray-400 text-xs">NlistPlanet</span>
+          )}
         </div>
       </article>
     );
