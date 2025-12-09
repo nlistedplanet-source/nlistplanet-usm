@@ -380,7 +380,43 @@ router.post('/companies/bulk-csv', protect, authorize('admin'), upload.single('c
       const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
       const company = {};
       headers.forEach((header, index) => {
-        company[header] = values[index] || '';
+        // Normalize header to a safe key (lowercase, remove dots/spaces)
+        const key = header.replace(/\s+/g, ' ').trim();
+        const lower = key.toLowerCase();
+
+        // Map common header variations to schema fields
+        let mappedKey = lower;
+        if (['name', 'company', 'companyname', 'company name'].includes(lower)) mappedKey = 'name';
+        else if (['scripname', 'scrip', 'script', 'scriptname', 'scrip name'].includes(lower)) mappedKey = 'scriptName';
+        else if (['logo', 'logo url', 'logo_url', 'image'].includes(lower)) mappedKey = 'logo';
+        else if (['sector', 'industry'].includes(lower)) mappedKey = 'sector';
+        else if (['description', 'desc'].includes(lower)) mappedKey = 'description';
+        else if (['isin'].includes(lower)) mappedKey = 'isin';
+        else if (['pan'].includes(lower)) mappedKey = 'pan';
+        else if (['cin'].includes(lower)) mappedKey = 'cin';
+        else if (['website', 'url', 'website_url'].includes(lower)) mappedKey = 'website';
+        else if (['reg date', 'reg. date', 'registrationdate', 'registration date', 'registration_date', 'regdate'].includes(lower)) mappedKey = 'registrationDate';
+
+        let cell = values[index] || '';
+
+        // Parse registration date into ISO if mapped
+        if (mappedKey === 'registrationDate' && cell) {
+          // Try common date formats dd/mm/yyyy, yyyy-mm-dd, dd-mm-yyyy
+          const d1 = cell.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+          if (d1) {
+            const day = d1[1].padStart(2, '0');
+            const month = d1[2].padStart(2, '0');
+            const year = d1[3].length === 2 ? `20${d1[3]}` : d1[3];
+            const iso = `${year}-${month}-${day}`;
+            cell = iso;
+          } else {
+            // Try parse with Date
+            const parsed = new Date(cell);
+            if (!isNaN(parsed)) cell = parsed.toISOString();
+          }
+        }
+
+        company[mappedKey] = cell;
       });
       companies.push(company);
     }
