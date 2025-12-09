@@ -199,6 +199,9 @@ router.post('/companies', protect, authorize('admin'), upload.single('logo'), as
     let logoUrl = '';
     if (req.file) {
       logoUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    } else if (req.body.logo) {
+      // Allow passing a logo URL in the request body (Cloudinary/remote URL)
+      logoUrl = req.body.logo;
     }
 
     // Create company

@@ -23,7 +23,8 @@ const CompaniesManagement = () => {
     cin: '',
     pan: '',
     registrationDate: '',
-    description: ''
+    description: '',
+    logoUrl: ''
   });
 
   // Fetch companies
@@ -131,7 +132,8 @@ const CompaniesManagement = () => {
       cin: '',
       pan: '',
       registrationDate: '',
-      description: ''
+      description: '',
+      logoUrl: ''
     });
     setLogoFile(null);
     setLogoPreview(null);
@@ -149,7 +151,8 @@ const CompaniesManagement = () => {
       cin: company.cin || '',
       pan: company.pan || '',
       registrationDate: company.registrationDate ? new Date(company.registrationDate).toLocaleDateString('en-GB') : '',
-      description: company.description || ''
+      description: company.description || '',
+      logoUrl: company.logo || ''
     });
     setLogoFile(null);
     setLogoPreview(company.logo || null);
@@ -173,6 +176,9 @@ const CompaniesManagement = () => {
       
       if (logoFile) {
         submitData.append('logo', logoFile);
+      } else if (formData.logoUrl) {
+        // If admin supplied a logo URL, send it in body so backend can use it
+        submitData.append('logo', formData.logoUrl);
       }
 
       if (editingCompany) {
@@ -490,6 +496,17 @@ const CompaniesManagement = () => {
                       <Upload size={18} />
                       {logoPreview ? 'Change Logo' : 'Upload Logo'}
                     </label>
+                    <div className="mt-3">
+                      <label className="block text-sm font-medium text-gray-700">Or provide Logo URL</label>
+                      <input
+                        type="url"
+                        value={formData.logoUrl}
+                        onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+                        placeholder="https://example.com/logo.png"
+                        className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">If a file is uploaded, file takes precedence over URL.</p>
+                    </div>
                     <p className="text-sm text-gray-500 mt-2">PNG, JPG up to 5MB</p>
                   </div>
                 </div>
