@@ -365,9 +365,10 @@ router.get('/companies', protect, authorize('admin'), async (req, res, next) => 
 // @desc    Download sample CSV format for bulk company upload
 // @access  Admin
 router.get('/companies/sample-csv', protect, authorize('admin'), (req, res) => {
-  const sampleCsv = `name,CompanyName,scriptName,ScripName,logo,Logo,sector,description,isin,cin,website
-PhonePe,PhonePe Private Limited,PhonePe,PhonePe,https://example.com/logo1.png,https://example.com/logo1.png,Fintech,Leading digital payments platform,INE00PP01014,U72900KA2012PTC066107,https://www.phonepe.com
-CRED,CRED Private Limited,CRED,CRED,https://example.com/logo2.png,https://example.com/logo2.png,Fintech,Credit card bill payment rewards platform,INE00CR01015,U74999KA2018PTC108912,https://cred.club`;
+  const sampleCsv = `name,scriptName,isin,pan,cin,sector,registrationDate,logo,website,description
+PhonePe,PhonePe,INE00PP01014,AAECH7240N,U72900KA2012PTC066107,Fintech,01/07/2012,https://example.com/logo1.png,https://www.phonepe.com,Leading digital payments platform
+CRED,CRED,INE00CR01015,AABCC1234F,U74999KA2018PTC108912,Fintech,15/03/2018,https://example.com/logo2.png,https://cred.club,Credit card bill payment rewards platform
+Zepto,Zepto,INE143401029,AAICK4821A,U46909MH2020PTC351333,eCommerce,01/07/2020,https://example.com/logo3.png,https://zeptonow.com,Quick commerce delivery platform`;
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename="sample-companies.csv"');
@@ -424,18 +425,58 @@ router.post('/companies/bulk-csv', protect, authorize('admin'), uploadCsv.single
 
         // Parse registration date into ISO if mapped
         if (mappedKey === 'registrationDate' && cell) {
-          // Try common date formats dd/mm/yyyy, yyyy-mm-dd, dd-mm-yyyy
-          const d1 = cell.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
-          if (d1) {
-            const day = d1[1].padStart(2, '0');
-            const month = d1[2].padStart(2, '0');
-            const year = d1[3].length === 2 ? `20${d1[3]}` : d1[3];
-            const iso = `${year}-${month}-${day}`;
-            cell = iso;
-          } else {
-            // Try parse with Date
-            const parsed = new Date(cell);
-            if (!isNaN(parsed)) cell = parsed.toISOString();
+          try {
+            // Remove any quotes or extra spaces
+            cell = cell.trim().replace(/['"]/g, '');
+            
+            // Try common date formats: dd/mm/yyyy, mm/dd/yyyy, yyyy-mm-dd, dd-mm-yyyy
+            const datePattern = /(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/;
+            const match = cell.match(datePattern);
+            
+            if (match) {
+              let day, month, year;
+              const part1 = match[1];
+              const part2 = match[2];
+              const part3 = match[3];
+              
+              // Detect format: if part3 is 4 digits, it's likely yyyy-mm-dd or yyyy-dd-mm
+              if (part3.length === 4) {
+                year = part3;
+                // Check if it's dd/mm/yyyy (day first) - common in India
+                if (parseInt(part1) > 12) {
+                  day = part1.padStart(2, '0');
+                  month = part2.padStart(2, '0');
+                } else if (parseInt(part2) > 12) {
+                  day = part2.padStart(2, '0');
+                  month = part1.padStart(2, '0');
+                } else {
+                  // Assume dd/mm/yyyy format (Indian standard)
+                  day = part1.padStart(2, '0');
+                  month = part2.padStart(2, '0');
+                }
+              } else {
+                // Format is likely dd/mm/yy or mm/dd/yy
+                year = part3.length === 2 ? `20${part3}` : part3;
+                // Assume dd/mm/yyyy format
+                day = part1.padStart(2, '0');
+                month = part2.padStart(2, '0');
+              }
+              
+              // Create ISO date string
+              cell = `${year}-${month}-${day}T00:00:00.000Z`;
+            } else {
+              // Try direct Date parsing as fallback
+              const parsed = new Date(cell);
+              if (!isNaN(parsed.getTime())) {
+                cell = parsed.toISOString();
+              } else {
+                // If all else fails, set to null
+                cell = null;
+              }
+            }
+          } catch (err) {
+            console.error('Date parsing error:', err);
+            cell = null; // Set to null if parsing fails
           }
         }
 
