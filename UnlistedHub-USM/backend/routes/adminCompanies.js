@@ -20,6 +20,26 @@ const upload = multer({
   }
 });
 
+// CSV-specific uploader (used for bulk CSV upload). Allows common CSV MIME types.
+const uploadCsv = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB for CSVs
+  fileFilter: (req, file, cb) => {
+    const allowed = [
+      'text/csv',
+      'application/csv',
+      'text/plain',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+    if (allowed.includes(file.mimetype) || (file.originalname && file.originalname.toLowerCase().endsWith('.csv'))) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only CSV files are allowed for this endpoint'), false);
+    }
+  }
+});
+
 // @route   POST /api/admin/ocr/extract
 // @desc    Extract company data from image using OCR
 // @access  Admin
@@ -357,7 +377,7 @@ CRED,CRED Private Limited,CRED,CRED,https://example.com/logo2.png,https://exampl
 // @route   POST /api/admin/companies/bulk-csv
 // @desc    Bulk upload companies from CSV file
 // @access  Admin
-router.post('/companies/bulk-csv', protect, authorize('admin'), upload.single('csv'), async (req, res, next) => {
+router.post('/companies/bulk-csv', protect, authorize('admin'), uploadCsv.single('csv'), async (req, res, next) => {
   try {
     if (!req.file) {
       return res.status(400).json({
