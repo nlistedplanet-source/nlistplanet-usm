@@ -12,11 +12,23 @@ const ShareModal = ({ listing, onClose }) => {
   if (!listing) return null;
 
   // Build share URL; include referral code only when available
-  const shareURL = (user && user.referralCode)
-    ? generateShareURL(user.referralCode, listing._id)
-    : `${window.location.origin}/marketplace?listing=${listing._id}`;
+  let shareURL = '';
+  try {
+    if (user && user.referralCode) {
+      shareURL = generateShareURL(user.referralCode, listing._id);
+    } else if (typeof window !== 'undefined') {
+      shareURL = `${window.location.origin}/marketplace?listing=${listing._id}`;
+    }
+  } catch (err) {
+    console.error('Failed to build share URL', err);
+    shareURL = '';
+  }
 
   const handleCopy = async () => {
+    if (!shareURL) {
+      toast.error('Share URL is unavailable');
+      return;
+    }
     const success = await copyToClipboard(shareURL);
     if (success) {
       setCopied(true);
