@@ -90,6 +90,7 @@ export const adminAPI = {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
+  bulkDeleteCompanies: (ids) => axios.post('/admin/companies/bulk-delete', { ids }),
 };
 
 export default axios;

@@ -7,6 +7,8 @@ import { BASE_API_URL, adminAPI } from '../../utils/api';
 const CompaniesManagement = () => {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [selectAll, setSelectAll] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingCompany, setEditingCompany] = useState(null);
   const [logoFile, setLogoFile] = useState(null);
@@ -250,6 +252,37 @@ const CompaniesManagement = () => {
             <Building2 size={16} />
             Add Company
           </button>
+
+          <button
+            onClick={async () => {
+              if (selectedIds.size === 0) return;
+              if (!window.confirm(`Delete ${selectedIds.size} selected companies? This cannot be undone.`)) return;
+              try {
+                setLoading(true);
+                const ids = Array.from(selectedIds);
+                const res = await adminAPI.bulkDeleteCompanies(ids);
+                const { results } = res.data;
+                // Show summary toast
+                let msg = `${results.deleted.length} deleted`;
+                if (results.skipped.length) msg += `, ${results.skipped.length} skipped`;
+                if (results.errors.length) msg += `, ${results.errors.length} errors`;
+                toast.success(`Bulk delete: ${msg}`);
+                setSelectedIds(new Set());
+                setSelectAll(false);
+                fetchCompanies();
+              } catch (err) {
+                toast.error(err.response?.data?.message || 'Bulk delete failed');
+                console.error(err);
+              } finally {
+                setLoading(false);
+              }
+            }}
+            disabled={selectedIds.size === 0}
+            className={`px-3 py-1.5 text-sm rounded-md flex items-center gap-1.5 ${selectedIds.size === 0 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-red-500 text-white hover:bg-red-600'}`}
+          >
+            <Trash2 size={14} />
+            Delete Selected
+          </button>
         </div>
       </div>
 
@@ -305,6 +338,22 @@ const CompaniesManagement = () => {
             <table className="text-xs border-collapse" style={{ minWidth: '1400px', tableLayout: 'fixed' }}>
               <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
                 <tr>
+                  <th style={{ width: '40px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={selectAll || (selectedIds.size > 0 && selectedIds.size === filteredCompanies.length)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setSelectAll(checked);
+                        if (checked) {
+                          const allIds = filteredCompanies.map(c => c._id);
+                          setSelectedIds(new Set(allIds));
+                        } else {
+                          setSelectedIds(new Set());
+                        }
+                      }}
+                    />
+                  </th>
                   <th style={{ width: '220px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Company</th>
                   <th style={{ width: '120px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Script</th>
                   <th style={{ width: '140px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">ISIN</th>
@@ -318,7 +367,7 @@ const CompaniesManagement = () => {
               <tbody className="divide-y divide-gray-100">
                 {filteredCompanies.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="px-3 py-8 text-center text-gray-500">
+                    <td colSpan="9" className="px-3 py-8 text-center text-gray-500">
                       <Building2 size={32} className="mx-auto mb-2 text-gray-300" />
                       <p className="text-sm">No companies found</p>
                       <p className="text-xs">{searchTerm || filterSector ? 'Try different search or filter' : 'Add your first company'}</p>
@@ -327,6 +376,19 @@ const CompaniesManagement = () => {
                 ) : (
                   filteredCompanies.map((company) => (
                   <tr key={company._id} className="hover:bg-gray-50">
+                    <td className="px-3 py-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(company._id)}
+                        onChange={(e) => {
+                          const next = new Set(selectedIds);
+                          if (e.target.checked) next.add(company._id);
+                          else next.delete(company._id);
+                          setSelectedIds(next);
+                          if (next.size !== filteredCompanies.length) setSelectAll(false);
+                        }}
+                      />
+                    </td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
                         {company.logo ? (

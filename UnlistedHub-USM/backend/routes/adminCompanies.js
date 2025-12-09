@@ -453,4 +453,48 @@ router.post('/companies/bulk-csv', protect, authorize('admin'), upload.single('c
   }
 });
 
+// @route   POST /api/admin/companies/bulk-delete
+// @desc    Bulk delete companies by IDs (skips companies with active listings)
+// @access  Admin
+router.post('/companies/bulk-delete', protect, authorize('admin'), async (req, res, next) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'Please provide an array of company IDs to delete' });
+    }
+
+    const Listing = (await import('../models/Listing.js')).default;
+    const results = {
+      deleted: [],
+      skipped: [],
+      errors: []
+    };
+
+    for (const id of ids) {
+      try {
+        const company = await Company.findById(id);
+        if (!company) {
+          results.errors.push(`Company ${id} not found`);
+          continue;
+        }
+
+        const activeListings = await Listing.countDocuments({ companyId: id, status: 'active' });
+        if (activeListings > 0) {
+          results.skipped.push({ id, reason: `Has ${activeListings} active listings` });
+          continue;
+        }
+
+        await company.deleteOne();
+        results.deleted.push(id);
+      } catch (err) {
+        results.errors.push(`Error deleting ${id}: ${err.message}`);
+      }
+    }
+
+    res.json({ success: true, message: 'Bulk delete processed', results });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
