@@ -45,10 +45,14 @@ const connectDB = async () => {
   }
 };
 
-// RSS Parser
+// RSS Parser with better error handling
 const parser = new Parser({
   customFields: {
     item: ['media:content', 'media:thumbnail', 'enclosure']
+  },
+  timeout: 10000, // 10 second timeout per feed
+  headers: {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
   }
 });
 
@@ -340,8 +344,19 @@ const detectCategory = (title, summary) => {
 const summarizeContent = (content, maxWords = 60) => {
   if (!content) return '';
   
-  // Remove HTML tags
+  // Remove HTML tags and decode entities
   let text = content.replace(/<[^>]*>/g, '');
+  
+  // Decode HTML entities
+  text = text
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec))
+    .replace(/&#x([a-f0-9]+);/ig, (match, hex) => String.fromCharCode(parseInt(hex, 16)));
   
   // Remove extra whitespace, URLs, and special chars
   text = text.replace(/https?:\/\/[^\s]+/g, ''); // Remove URLs
@@ -439,12 +454,26 @@ const fetchRSSFeed = async (feed) => {
     
     for (const item of result.items.slice(0, 10)) { // Max 10 per feed
       try {
+        // Validate item has required fields
+        if (!item.title || !item.link) continue;
+        
         // Check if already exists
         const exists = await News.findOne({ sourceUrl: item.link });
         if (exists) continue;
         
-        // Check relevance
-        const content = item.contentSnippet || item.content || item.summary || '';
+        // Get content and clean it
+        let content = item.contentSnippet || item.content || item.summary || '';
+        // Decode entities if needed
+        content = content
+          .replace(/&nbsp;/g, ' ')
+          .replace(/&quot;/g, '"')
+          .replace(/&apos;/g, "'")
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec))
+          .replace(/&#x([a-f0-9]+);/ig, (match, hex) => String.fromCharCode(parseInt(hex, 16)));
+        
         if (!isRelevantNews(item.title, content)) continue;
         
         // Create summary
@@ -499,13 +528,15 @@ const fetchRSSFeed = async (feed) => {
         
         newsItems.push(newsItem);
       } catch (itemError) {
-        console.log(`  ⚠️ Skipping item: ${itemError.message}`);
+        console.log(`  ⚠️ Skipping item (${itemError.message})`);
+        continue;
       }
     }
     
     return newsItems;
   } catch (error) {
-    console.error(`❌ Failed to fetch ${feed.name}:`, error.message);
+    console.error(`❌ Failed to fetch ${feed.name}: ${error.message}`);
+    console.log(`   (Feed might have invalid XML/encoding - skipping)\n`);
     return [];
   }
 };
