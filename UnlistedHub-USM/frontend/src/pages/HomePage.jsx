@@ -135,7 +135,21 @@ const HomePage = () => {
                     className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100 cursor-pointer"
                     onClick={() => navigate(`/company/${company._id}`)}
                   >
-                    <div className="h-10 w-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded flex items-center justify-center text-white text-xs font-bold">
+                    {company.logo ? (
+                      <img 
+                        src={company.logo} 
+                        alt={company.name}
+                        className="h-10 w-10 object-contain"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div 
+                      className="h-10 w-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded flex items-center justify-center text-white text-xs font-bold"
+                      style={{ display: company.logo ? 'none' : 'flex' }}
+                    >
                       {company.name?.substring(0, 2).toUpperCase()}
                     </div>
                     <span className="text-sm font-semibold text-gray-700">{company.name}</span>
