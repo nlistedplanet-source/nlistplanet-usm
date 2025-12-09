@@ -418,5 +418,3 @@ router.post('/companies/bulk-csv', protect, authorize('admin'), upload.single('c
 });
 
 export default router;
-
-export default router;
