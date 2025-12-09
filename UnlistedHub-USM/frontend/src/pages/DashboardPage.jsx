@@ -50,6 +50,7 @@ import ReferralTracking from '../components/admin/ReferralTracking';
 import NewsManagement from '../components/admin/NewsManagement';
 import MarketplaceCard from '../components/MarketplaceCard';
 import BidOfferModal from '../components/BidOfferModal';
+import ShareCardGenerator from '../components/ShareCardGenerator';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -75,6 +76,8 @@ const DashboardPage = () => {
   const [marketplaceFilter, setMarketplaceFilter] = useState('all');
   const [selectedListing, setSelectedListing] = useState(null);
   const [showBidModal, setShowBidModal] = useState(false);
+  const [showShareCard, setShowShareCard] = useState(false);
+  const [shareListingData, setShareListingData] = useState(null);
   const [likedListings, setLikedListings] = useState(new Set());
   const [favoritedListings, setFavoritedListings] = useState(new Set());
 
@@ -176,83 +179,9 @@ const DashboardPage = () => {
   };
 
   const handleShare = async (listing) => {
-    const isSell = listing.type === 'sell';
-    const price = formatCurrency(listing.price);
-    const qty = listing.quantity >= 100000 
-      ? (listing.quantity / 100000).toFixed(1) + ' Lakh' 
-      : listing.quantity >= 1000 
-      ? (listing.quantity / 1000).toFixed(1) + 'K' 
-      : listing.quantity?.toLocaleString('en-IN');
-    
-    // Main site referral link for tracking
-    const referralLink = `https://nlistplanet.com/listing/${listing._id}?ref=${user?._id || 'guest'}&source=share`;
-    
-    // Get company sector
-    const sector = listing.companyId?.Sector || listing.companyId?.sector || 'Unlisted Share';
-    const highlights = [
-      `Sector: ${sector}`,
-      'Pre-IPO Investment Opportunity',
-      'Verified on NlistPlanet'
-    ];
-    
-    // Professional Share Caption
-    const caption = `━━━━━━━━━━━━━━━━━━━━━
-   📈 N L I S T P L A N E T
-      Trade Unlisted Shares
-━━━━━━━━━━━━━━━━━━━━━
-
-🏷️ *UNLISTED SHARE*
-
-═══════════════════════════
-
-        ${isSell ? '🟢 *SELLING*' : '🔵 *BUYING*'}
-
-━━━━━━━━━━━━━━━━━━━━━
-
-🏢 *${listing.companyName}*
-    ${sector}
-
-${highlights.map(h => `✦ ${h}`).join('\n')}
-
-━━━━━━━━━━━━━━━━━━━━━
-  💰 PRICE       ${price}/share
-  📦 QUANTITY    ${qty} shares
-━━━━━━━━━━━━━━━━━━━━━
-
-👉 *View & Trade:* ${referralLink}
-
-═══════════════════════════
-
-⚠️ *IMPORTANT DISCLAIMER*
-
-• Unlisted shares are NOT traded on NSE/BSE
-• HIGH RISK investment - Do your research
-• NlistPlanet is a marketplace, not an advisor
-
-━━━━━━━━━━━━━━━━━━━━━
-🔒 Verified • Secure • Trusted
-━━━━━━━━━━━━━━━━━━━━━`;
-
-    // Try native share first, then WhatsApp
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${listing.companyName} - ${isSell ? 'SELL' : 'BUY'} on NlistPlanet`,
-          text: caption,
-          url: referralLink
-        });
-        toast.success('Shared successfully! 🎉');
-        return;
-      } catch (e) {
-        if (e.name === 'AbortError') return;
-        // Fallback to WhatsApp
-      }
-    }
-    
-    // Fallback: Open WhatsApp directly or copy to clipboard
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(caption)}`;
-    window.open(whatsappUrl, '_blank');
-    toast.success('Opening WhatsApp... 📱');
+    // Open ShareCardGenerator modal
+    setShareListingData(listing);
+    setShowShareCard(true);
   };
 
   const fallbackShare = (url, text) => {
@@ -1021,6 +950,17 @@ ${highlights.map(h => `✦ ${h}`).join('\n')}
             setSelectedListing(null);
           }}
           onSuccess={handleBidSuccess}
+        />
+      )}
+
+      {/* Share Card Generator */}
+      {showShareCard && shareListingData && (
+        <ShareCardGenerator
+          listing={shareListingData}
+          onClose={() => {
+            setShowShareCard(false);
+            setShareListingData(null);
+          }}
         />
       )}
     </div>

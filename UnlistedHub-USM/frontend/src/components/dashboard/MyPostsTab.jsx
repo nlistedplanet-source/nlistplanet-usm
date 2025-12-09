@@ -3,7 +3,7 @@ import { Plus, Loader, TrendingUp, Package } from 'lucide-react';
 import { listingsAPI } from '../../utils/api';
 import MyPostCard from './MyPostCard';
 import CreateListingModal from '../CreateListingModal';
-import ShareModal from '../ShareModal';
+import ShareCardGenerator from '../ShareCardGenerator';
 import toast from 'react-hot-toast';
 
 const MyPostsTab = () => {
@@ -138,7 +138,7 @@ const MyPostsTab = () => {
       )}
 
       {showShareModal && selectedListing && (
-        <ShareModal
+        <ShareCardGenerator
           listing={selectedListing}
           onClose={() => {
             setShowShareModal(false);
