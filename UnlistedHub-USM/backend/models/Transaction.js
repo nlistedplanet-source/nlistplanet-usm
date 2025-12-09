@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const transactionSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['platform_fee', 'boost_fee', 'affiliate_commission'],
+    enum: ['platform_fee', 'boost_fee', 'affiliate_commission', 'referral_reward'],
     required: true
   },
   listingId: {
@@ -21,6 +21,18 @@ const transactionSchema = new mongoose.Schema({
   affiliateId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
+  },
+  referralShareId: {
+    type: String,
+    default: null
+  },
+  referralRewardPaid: {
+    type: Boolean,
+    default: false
+  },
+  referralRewardAmount: {
+    type: Number,
+    default: 0
   },
   amount: {
     type: Number,

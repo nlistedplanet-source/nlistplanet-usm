@@ -24,6 +24,7 @@ import adminCompaniesRoutes from './routes/adminCompanies.js';
 import adsRoutes from './routes/ads.js';
 import newsRoutes from './routes/news.js';
 import adminNewsRoutes from './routes/adminNews.js';
+import shareRoutes from './routes/share.js';
 import { startNewsScheduler } from './utils/newsScheduler.js';
 
 // Load environment variables
@@ -215,6 +216,7 @@ app.use('/api/referrals', referralRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/ads', adsRoutes);
 app.use('/api/news', newsRoutes);
+app.use('/api/share', shareRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin', adminCompaniesRoutes);
 app.use('/api/admin/news', adminNewsRoutes);

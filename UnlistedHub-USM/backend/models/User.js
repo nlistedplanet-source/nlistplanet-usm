@@ -86,6 +86,33 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  wallet: {
+    balance: {
+      type: Number,
+      default: 0
+    },
+    totalEarned: {
+      type: Number,
+      default: 0
+    },
+    transactions: [{
+      type: {
+        type: String,
+        enum: ['referral_reward', 'withdrawal', 'bonus'],
+        required: true
+      },
+      amount: Number,
+      description: String,
+      fromTransaction: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Transaction'
+      },
+      date: {
+        type: Date,
+        default: Date.now
+      }
+    }]
+  },
   avatar: {
     type: String,
     default: null
