@@ -1,541 +1,328 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { 
-  Search, 
-  Clock, 
-  ChevronRight,
-  Newspaper,
-  ArrowRight,
-  Calendar,
-  ExternalLink,
-  TrendingUp,
-  Flame,
-  Globe
-} from 'lucide-react';
-import axios from 'axios';
-import TopBar from '../components/TopBar';
-
-// API_BASE should be base URL without /api suffix
-const API_BASE = process.env.REACT_APP_API_URL?.replace(/\/api\/?$/, '') || 'https://nlistplanet-usm-v8dc.onrender.com';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Share2, ExternalLink, ChevronUp, ChevronDown, BookOpen } from 'lucide-react';
+import LandingBottomNav from '../components/common/LandingBottomNav';
 
 const BlogPage = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  
   const [news, setNews] = useState([]);
-  const [featuredNews, setFeaturedNews] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [error, setError] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
-  // Category colors
-  const categoryColors = {
-    'IPO': 'bg-purple-500',
-    'Market': 'bg-blue-500',
-    'Company': 'bg-green-500',
-    'Unlisted': 'bg-amber-500',
-    'Pre-IPO': 'bg-rose-500',
-    'Analysis': 'bg-indigo-500',
-    'General': 'bg-gray-500'
+  // Get base API URL without /api suffix for news endpoint
+  const getBaseUrl = () => {
+    const envUrl = process.env.REACT_APP_API_URL || 'https://api.nlistplanet.com/api';
+    // Remove /api suffix if present to avoid double /api/api
+    return envUrl.replace(/\/api\/?$/, '');
   };
+  const BASE_URL = getBaseUrl();
 
-  // Fetch news
-  const fetchNews = async (page = 1, category = 'all', search = '') => {
+  const categories = ['All', 'IPO', 'Market', 'Unlisted', 'Startup', 'Regulatory'];
+
+  useEffect(() => {
+    fetchNews();
+  }, [activeCategory]);
+
+  const fetchNews = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        page,
-        limit: 12,
-        ...(category !== 'all' && { category }),
-        ...(search && { search })
-      });
-
-      const response = await axios.get(`${API_BASE}/api/news?${params}`);
+      const categoryParam = activeCategory !== 'All' ? `?category=${activeCategory}&limit=50` : '?limit=50';
+      const response = await fetch(`${BASE_URL}/api/news${categoryParam}`);
       
-      if (response.data.success) {
-        setNews(response.data.data);
-        setTotalPages(response.data.pagination.pages);
-      }
-    } catch (error) {
-      console.error('Failed to fetch news:', error);
+      if (!response.ok) throw new Error('Failed to fetch news');
+      
+      const data = await response.json();
+      setNews(data.data || []);
+      setCurrentIndex(0);
+    } catch (err) {
+      console.error('Error fetching news:', err);
+      setError('Unable to load news');
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch featured news
-  const fetchFeatured = async () => {
-    try {
-      const response = await axios.get(`${API_BASE}/api/news/featured?limit=3`);
-      if (response.data.success) {
-        setFeaturedNews(response.data.data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch featured:', error);
+  // Touch handlers for swipe
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientY);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientY);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const minSwipeDistance = 50;
+
+    if (distance > minSwipeDistance) {
+      goToNext();
+    } else if (distance < -minSwipeDistance) {
+      goToPrev();
+    }
+
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
+  const goToNext = () => {
+    if (currentIndex < news.length - 1) {
+      setCurrentIndex(prev => prev + 1);
     }
   };
 
-  // Fetch categories
-  const fetchCategories = async () => {
-    try {
-      const response = await axios.get(`${API_BASE}/api/news/categories`);
-      if (response.data.success) {
-        setCategories(response.data.data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch categories:', error);
+  const goToPrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
     }
   };
 
-  useEffect(() => {
-    fetchFeatured();
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    fetchNews(currentPage, selectedCategory, searchQuery);
-  }, [currentPage, selectedCategory]);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setCurrentPage(1);
-    fetchNews(1, selectedCategory, searchQuery);
-  };
-
-  const handleCategoryChange = (category) => {
-    setSelectedCategory(category);
-    setCurrentPage(1);
-    setSearchParams(category !== 'all' ? { category } : {});
-  };
-
-  const formatDate = (date) => {
-    const d = new Date(date);
-    const day = d.getDate();
-    const month = d.toLocaleDateString('en-IN', { month: 'short' });
-    const year = d.getFullYear();
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.toLocaleDateString('en-IN', { month: 'short' });
+    const year = date.getFullYear();
     return `${day} ${month} ${year}`;
   };
 
-  // Strip labels like "शीर्षक:", "संक्षेप:" from Hindi text
-  const stripLabels = (text) => {
-    if (!text) return '';
-    return text
-      .replace(/^शीर्षक:\s*/i, '')
-      .replace(/^संक्षेप:\s*/i, '')
-      .replace(/^TITLE_HINDI:\s*/i, '')
-      .replace(/^SUMMARY_HINDI:\s*/i, '')
-      .trim();
-  };
-
-  // Get Hindi title - extract from summary if title is empty
-  const getHindiTitle = (item) => {
-    // If hindiTitle exists, use it
-    if (item.hindiTitle && stripLabels(item.hindiTitle)) {
-      return stripLabels(item.hindiTitle);
-    }
-    // If no hindiTitle but hindiSummary exists, extract first sentence as title
-    if (item.hindiSummary) {
-      const summary = stripLabels(item.hindiSummary);
-      // Get first sentence (up to first । or : or first 80 chars)
-      const match = summary.match(/^(.{20,80}?)(?:[।:.]|$)/);
-      if (match) return match[1].trim();
-      // Fallback: first 60 chars
-      return summary.substring(0, 60).trim() + (summary.length > 60 ? '...' : '');
-    }
-    // Fallback to English title
-    return item.title;
-  };
-
-  // Inshorts-style News Card
-  const InshortsCard = ({ item }) => {
-    const categoryColor = categoryColors[item.category] || categoryColors['General'];
-    
-    // Use Hindi title (extracted if needed) and summary
-    const displayTitle = getHindiTitle(item);
-    const displaySummary = stripLabels(item.hindiSummary) || item.summary;
-    
-    // Extract source name from sourceUrl or use default
-    const getSourceName = (url) => {
-      if (!url) return 'NlistPlanet';
-      try {
-        const hostname = new URL(url).hostname;
-        return hostname.replace('www.', '').split('.')[0].charAt(0).toUpperCase() + 
-               hostname.replace('www.', '').split('.')[0].slice(1);
-      } catch {
-        return 'NlistPlanet';
-      }
+  const getCategoryColor = (category) => {
+    const colors = {
+      'IPO': 'from-purple-600 to-purple-800',
+      'Market': 'from-blue-600 to-blue-800',
+      'Unlisted': 'from-emerald-600 to-emerald-800',
+      'Startup': 'from-orange-600 to-orange-800',
+      'Analysis': 'from-cyan-600 to-cyan-800',
+      'Regulatory': 'from-red-600 to-red-800',
+      'Company': 'from-indigo-600 to-indigo-800',
+      'General': 'from-gray-600 to-gray-800'
     };
-    
-    const sourceName = item.source || getSourceName(item.sourceUrl);
+    return colors[category] || colors['General'];
+  };
 
+  const handleShare = async (article) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: article.title,
+          text: article.summary,
+          url: `${window.location.origin}/blog/${article._id}`
+        });
+      } catch (err) {
+        console.log('Share cancelled');
+      }
+    } else {
+      navigator.clipboard.writeText(`${article.title}\n\n${article.summary}`);
+      alert('Copied to clipboard!');
+    }
+  };
+
+  const currentArticle = news[currentIndex];
+
+  if (loading) {
+    return null;
+  }
+
+  if (error || news.length === 0) {
     return (
-      <article className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col">
-        {/* Image Section */}
-        <div 
-          onClick={() => navigate(`/blog/${item._id}`)}
-          className="relative h-48 overflow-hidden cursor-pointer"
-        >
-          {item.thumbnail ? (
-            <img
-              src={item.thumbnail}
-              alt={displayTitle}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-          ) : (
-            <div className={`w-full h-full ${categoryColor} flex items-center justify-center`}>
-              <Newspaper size={48} className="text-white/50" />
-            </div>
-          )}
-          
-          {/* Category Badge */}
-          <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold text-white ${categoryColor}`}>
-            {item.category}
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+            <BookOpen className="w-10 h-10 text-gray-600" />
           </div>
-        </div>
-
-        {/* Content Section */}
-        <div className="p-5 flex-1 flex flex-col">
-          {/* Headline - Hindi */}
-          <h3 
-            onClick={() => navigate(`/blog/${item._id}`)}
-            className="font-bold text-gray-900 text-lg mb-3 cursor-pointer hover:text-emerald-600 transition-colors leading-snug"
+          <p className="text-gray-400 mb-2">{error || 'No news available'}</p>
+          <button
+            onClick={fetchNews}
+            className="px-6 py-2 bg-emerald-500 text-white rounded-xl font-medium mt-4"
           >
-            {displayTitle}
-          </h3>
-          
-          {/* Summary */}
-          <p className="text-gray-600 text-sm leading-relaxed flex-1">
-            {displaySummary}
-          </p>
-        </div>
-
-        {/* Bottom Bar - Date & Source */}
-        <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-gray-500 text-xs">
-            <Calendar size={14} />
-            <span>{formatDate(item.publishedAt)}</span>
-          </div>
-          
-          {item.sourceUrl ? (
-            <a
-              href={item.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-1.5 text-emerald-600 text-xs font-semibold hover:text-emerald-700 transition-colors"
-            >
-              <span>{sourceName}</span>
-              <ExternalLink size={12} />
-            </a>
-          ) : (
-            <span className="text-gray-400 text-xs">NlistPlanet</span>
-          )}
-        </div>
-      </article>
-    );
-  };
-
-  // Featured Card - Large Inshorts style
-  const FeaturedCard = ({ item, index }) => {
-    const categoryColor = categoryColors[item.category] || categoryColors['General'];
-    const displayTitle = getHindiTitle(item);
-    const displaySummary = stripLabels(item.hindiSummary) || item.summary;
-    
-    const getSourceName = (url) => {
-      if (!url) return 'NlistPlanet';
-      try {
-        const hostname = new URL(url).hostname;
-        return hostname.replace('www.', '').split('.')[0].charAt(0).toUpperCase() + 
-               hostname.replace('www.', '').split('.')[0].slice(1);
-      } catch {
-        return 'NlistPlanet';
-      }
-    };
-    
-    const sourceName = item.source || getSourceName(item.sourceUrl);
-
-    return (
-      <article 
-        onClick={() => navigate(`/blog/${item._id}`)}
-        className={`relative rounded-2xl overflow-hidden cursor-pointer group ${
-          index === 0 ? 'md:col-span-2 md:row-span-2' : ''
-        }`}
-      >
-        <div className={`relative ${index === 0 ? 'h-80 md:h-full min-h-[400px]' : 'h-52'}`}>
-          {item.thumbnail ? (
-            <img
-              src={item.thumbnail}
-              alt={displayTitle}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-            />
-          ) : (
-            <div className={`w-full h-full ${categoryColor} flex items-center justify-center`}>
-              <Newspaper size={64} className="text-white/30" />
-            </div>
-          )}
-          
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-          
-          {/* Trending Badge */}
-          <div className="absolute top-4 left-4 flex items-center gap-2">
-            <span className={`px-3 py-1 rounded-full text-xs font-bold text-white ${categoryColor}`}>
-              {item.category}
-            </span>
-            {index === 0 && (
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-orange-500 to-red-500 text-white flex items-center gap-1">
-                <Flame size={12} />
-                Trending
-              </span>
-            )}
-          </div>
-          
-          {/* Content */}
-          <div className="absolute bottom-0 left-0 right-0 p-5">
-            <h3 className={`font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors leading-snug ${
-              index === 0 ? 'text-2xl md:text-3xl' : 'text-lg'
-            }`}>
-              {displayTitle}
-            </h3>
-            
-            <p className={`text-gray-300 mb-3 leading-relaxed ${
-              index === 0 ? 'text-base' : 'text-sm'
-            }`}>
-              {displaySummary}
-            </p>
-            
-            <div className="flex items-center justify-between">
-              <span className="text-gray-400 text-xs flex items-center gap-1.5">
-                <Calendar size={12} />
-                {formatDate(item.publishedAt)}
-              </span>
-              {item.sourceUrl ? (
-                <a
-                  href={item.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="text-emerald-400 text-xs font-semibold hover:text-emerald-300 flex items-center gap-1"
-                >
-                  {sourceName}
-                  <ExternalLink size={12} />
-                </a>
-              ) : (
-                <span className="text-gray-500 text-xs">NlistPlanet</span>
-              )}
-            </div>
-          </div>
-        </div>
-      </article>
-    );
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <TopBar />
-      
-      {/* Compact Hero Section */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            {/* Title */}
-            <div>
-              <div className="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-500/30 rounded-full px-3 py-1 mb-2">
-                <Newspaper size={14} className="text-emerald-400" />
-                <span className="text-emerald-300 text-sm font-medium">NlistPlanet News</span>
-              </div>
-              <h1 className="text-2xl font-bold">Latest Market News</h1>
-            </div>
-
-            {/* Search Bar */}
-            <form onSubmit={handleSearch} className="w-full md:w-96">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="text"
-                  placeholder="Search news..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-20 py-2.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-semibold transition-colors"
-                >
-                  Search
-                </button>
-              </div>
-            </form>
-          </div>
+            Try Again
+          </button>
         </div>
       </div>
+    );
+  }
 
-      {/* Category Filter */}
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-2.5">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            <button
-              onClick={() => handleCategoryChange('all')}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                selectedCategory === 'all'
-                  ? 'bg-emerald-500 text-white shadow-md'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              All News
-            </button>
-            {categories.map((cat) => (
+  return (
+    <div className="h-screen bg-gray-950 overflow-hidden flex flex-col">
+      {/* Header */}
+      <header className="flex-shrink-0 bg-gray-950 border-b border-gray-800 z-50">
+        <div className="flex items-center justify-between px-4 py-2">
+          <button
+            onClick={() => navigate('/')}
+            className="w-9 h-9 bg-gray-800 rounded-lg flex items-center justify-center text-gray-400"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          
+          <div className="flex items-center gap-2">
+            <img 
+              src="/new_logo.png" 
+              alt="NlistPlanet" 
+              className="w-7 h-7 object-contain"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+            <span className="text-white font-bold">News</span>
+          </div>
+
+          <div className="bg-gray-800 px-2 py-1 rounded-lg">
+            <span className="text-emerald-400 text-xs font-bold">{currentIndex + 1}</span>
+            <span className="text-gray-500 text-xs">/{news.length}</span>
+          </div>
+        </div>
+
+        {/* Category Pills */}
+        <div className="px-3 pb-2 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="flex gap-1.5">
+            {categories.map((category) => (
               <button
-                key={cat.name}
-                onClick={() => handleCategoryChange(cat.name)}
-                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                  selectedCategory === cat.name
-                    ? `${categoryColors[cat.name] || 'bg-gray-500'} text-white shadow-md`
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className={`px-3 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap transition-all ${
+                  activeCategory === category
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-gray-800 text-gray-400'
                 }`}
               >
-                {cat.name}
-                <span className="text-xs opacity-70">({cat.count})</span>
+                {category}
               </button>
             ))}
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Featured Section */}
-        {featuredNews.length > 0 && selectedCategory === 'all' && currentPage === 1 && (
-          <section className="mb-10">
-            <div className="flex items-center gap-2 mb-5">
-              <TrendingUp className="text-emerald-500" size={22} />
-              <h2 className="text-xl font-bold text-gray-900">Trending</h2>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {featuredNews.map((item, index) => (
-                <FeaturedCard key={item._id} item={item} index={index} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* News Grid - Inshorts Style */}
-        <section>
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-xl font-bold text-gray-900">
-              {selectedCategory === 'all' ? 'Latest News' : `${selectedCategory} News`}
-            </h2>
-            <span className="text-gray-500 text-sm">
-              Page {currentPage} of {totalPages}
-            </span>
-          </div>
-
-          {loading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 animate-pulse">
-                  <div className="h-48 bg-gray-200" />
-                  <div className="p-5 space-y-3">
-                    <div className="h-5 w-full bg-gray-200 rounded" />
-                    <div className="h-5 w-3/4 bg-gray-200 rounded" />
-                    <div className="space-y-2">
-                      <div className="h-3 w-full bg-gray-100 rounded" />
-                      <div className="h-3 w-5/6 bg-gray-100 rounded" />
-                      <div className="h-3 w-4/6 bg-gray-100 rounded" />
-                    </div>
-                    <div className="flex justify-between pt-3">
-                      <div className="h-3 w-20 bg-gray-200 rounded" />
-                      <div className="h-3 w-16 bg-gray-200 rounded" />
-                    </div>
-                  </div>
+      {/* Inshorts-style Card */}
+      <div
+        className="flex-1 relative"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {currentArticle && (
+          <div className="h-full flex flex-col">
+            {/* Image Section - Top Half */}
+            <div className={`h-[42%] relative bg-gradient-to-br ${getCategoryColor(currentArticle.category)}`}>
+              {currentArticle.thumbnail ? (
+                <img
+                  src={currentArticle.thumbnail}
+                  alt={currentArticle.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { 
+                    e.target.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <BookOpen className="w-20 h-20 text-white/20" />
                 </div>
-              ))}
-            </div>
-          ) : news.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-2xl">
-              <Newspaper size={64} className="mx-auto text-gray-300 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">No news found</h3>
-              <p className="text-gray-500">Try adjusting your search or filters</p>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {news.map((item) => (
-                <InshortsCard key={item._id} item={item} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-10">
-            <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors font-medium text-sm"
-            >
-              Previous
-            </button>
-            
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              let page;
-              if (totalPages <= 5) {
-                page = i + 1;
-              } else if (currentPage <= 3) {
-                page = i + 1;
-              } else if (currentPage >= totalPages - 2) {
-                page = totalPages - 4 + i;
-              } else {
-                page = currentPage - 2 + i;
-              }
+              )}
               
-              return (
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/20 to-transparent"></div>
+              
+              {/* Category Badge */}
+              <div className="absolute top-3 left-3">
+                <span className={`px-3 py-1.5 bg-gradient-to-r ${getCategoryColor(currentArticle.category)} text-white text-xs font-bold rounded-full shadow-lg`}>
+                  {currentArticle.category}
+                </span>
+              </div>
+
+              {/* Source Badge */}
+              <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-lg">
+                <span className="text-white text-[10px] font-medium">{currentArticle.sourceName}</span>
+              </div>
+
+              {/* Navigation Arrows */}
+              <div className="absolute right-3 bottom-3 flex flex-col gap-1">
                 <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-10 h-10 rounded-lg font-medium transition-colors ${
-                    currentPage === page
-                      ? 'bg-emerald-500 text-white'
-                      : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                  onClick={goToPrev}
+                  disabled={currentIndex === 0}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    currentIndex === 0 
+                      ? 'bg-black/30 text-gray-500' 
+                      : 'bg-black/60 text-white'
                   }`}
                 >
-                  {page}
+                  <ChevronUp size={18} />
                 </button>
-              );
-            })}
-            
-            <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors font-medium text-sm"
-            >
-              Next
-            </button>
+                <button
+                  onClick={goToNext}
+                  disabled={currentIndex === news.length - 1}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    currentIndex === news.length - 1 
+                      ? 'bg-black/30 text-gray-500' 
+                      : 'bg-black/60 text-white'
+                  }`}
+                >
+                  <ChevronDown size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Content Section - Bottom Half */}
+            <div className="h-[58%] bg-gray-950 px-5 pt-3 pb-20 flex flex-col">
+              {/* Title */}
+              <h1 className="text-white font-bold text-lg leading-snug mb-3">
+                {currentArticle.title}
+              </h1>
+
+              {/* Summary - scrollable */}
+              <div className="flex-1 overflow-y-auto pr-1">
+                <p className="text-gray-300 text-[15px] leading-relaxed">
+                  {currentArticle.summary}
+                </p>
+              </div>
+
+              {/* Bottom Bar - Date & Source */}
+              <div className="mt-3 pt-3 border-t border-gray-800">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-gray-500 text-sm">
+                    <span>📅</span>
+                    <span>{formatDate(currentArticle.publishedAt)}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleShare(currentArticle)}
+                      className="w-9 h-9 bg-gray-800 rounded-full flex items-center justify-center text-gray-400 active:scale-95 transition-transform"
+                    >
+                      <Share2 size={16} />
+                    </button>
+                    {currentArticle.sourceUrl && (
+                      <a
+                        href={currentArticle.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 text-sm font-medium"
+                      >
+                        {currentArticle.sourceName || 'Source'}
+                        <ExternalLink size={14} />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Swipe Hint - Only show on first article */}
+            {currentIndex === 0 && (
+              <div className="absolute bottom-24 left-1/2 -translate-x-1/2 animate-bounce">
+                <div className="bg-gray-800/90 backdrop-blur-sm px-4 py-2 rounded-full flex items-center gap-2 shadow-lg">
+                  <ChevronUp size={16} className="text-emerald-400" />
+                  <span className="text-gray-300 text-xs font-medium">Swipe up for next</span>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Footer CTA */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-10">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-xl md:text-2xl font-bold mb-3">
-            Ready to Trade Unlisted Shares?
-          </h2>
-          <p className="text-emerald-100 mb-5 text-sm">
-            Join NlistPlanet and access exclusive pre-IPO investment opportunities.
-          </p>
-          <button
-            onClick={() => navigate('/marketplace')}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-white text-emerald-700 rounded-xl font-bold hover:bg-emerald-50 transition-colors shadow-lg text-sm"
-          >
-            Explore Marketplace
-            <ArrowRight size={18} />
-          </button>
-        </div>
-      </div>
+      {/* Bottom Navigation */}
+      <LandingBottomNav activePage="blog" />
     </div>
   );
 };
