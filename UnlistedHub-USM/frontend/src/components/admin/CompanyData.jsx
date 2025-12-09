@@ -89,18 +89,46 @@ const CompanyData = () => {
     }
   };
 
-  const resetForm = () => {
-    setEditingCompany(null);
-    setFormData({
-      Logo: '',
-      CompanyName: '',
-      ScripName: '',
-      ISIN: '',
-      PAN: '',
-      CIN: '',
-      RegistrationDate: '',
-      Sector: ''
-    });
+  const handleDownloadSample = async () => {
+    try {
+      const response = await adminAPI.downloadSampleCsv();
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'companies_sample.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Sample CSV downloaded');
+    } catch (error) {
+      toast.error('Failed to download sample CSV');
+      console.error(error);
+    }
+  };
+
+  const handleBulkUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.csv')) {
+      toast.error('Please select a CSV file');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      await adminAPI.bulkUploadCsv(file);
+      toast.success('Companies uploaded successfully');
+      loadCompanies();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to upload companies');
+      console.error(error);
+    } finally {
+      setUploading(false);
+      // Reset file input
+      event.target.value = '';
+    }
   };
 
   const handleCloseModal = () => {
@@ -126,13 +154,33 @@ const CompanyData = () => {
             </h1>
             <p className="text-dark-600 mt-1">Manage unlisted companies database</p>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-xl font-semibold hover:shadow-lg transition-all"
-          >
-            <Plus size={20} />
-            Add Company
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleDownloadSample}
+              className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-green-700 transition-colors"
+            >
+              <Download size={20} />
+              Sample CSV
+            </button>
+            <label className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-blue-700 transition-colors cursor-pointer">
+              <Upload size={20} />
+              {uploading ? 'Uploading...' : 'Bulk Upload'}
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleBulkUpload}
+                disabled={uploading}
+                className="hidden"
+              />
+            </label>
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-xl font-semibold hover:shadow-lg transition-all"
+            >
+              <Plus size={20} />
+              Add Company
+            </button>
+          </div>
         </div>
 
         {/* Search Bar */}
