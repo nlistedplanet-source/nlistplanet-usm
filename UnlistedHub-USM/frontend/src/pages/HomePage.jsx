@@ -1,14 +1,33 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { companiesAPI } from '../utils/api';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [wordIndex, setWordIndex] = useState(0);
+  const [companies, setCompanies] = useState([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
   const words = useMemo(() => ['Buy', 'Sell'], []);
   const [charIndex, setCharIndex] = useState(0);
+
+  // Fetch companies from database
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const response = await companiesAPI.getAll({ limit: 20 });
+        setCompanies(response.data.data || []);
+      } catch (error) {
+        console.error('Failed to fetch companies:', error);
+        setCompanies([]); // Fallback to empty
+      } finally {
+        setLoadingCompanies(false);
+      }
+    };
+    fetchCompanies();
+  }, []);
 
   useEffect(() => {
     const currentWord = words[wordIndex];
@@ -90,7 +109,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Company Logos Section - Auto-scrolling Marquee */}
+      {/* Company Logos Section - Fetch from Database */}
       <div className="bg-gray-50 py-16 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">Featured Unlisted Companies</h2>
@@ -100,56 +119,42 @@ const HomePage = () => {
             <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-gray-50 to-transparent z-10"></div>
             <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-gray-50 to-transparent z-10"></div>
             
-            <div className="flex gap-6 animate-marquee hover:pause-animation">
-              {/* First set of companies */}
-              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
-                <img src="https://www.nseindia.com/assets/images/nse-logo.svg" alt="NSE" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=NSE&background=0D8ABC&color=fff&size=40'} />
-                <span className="text-sm font-semibold text-gray-700">NSE India</span>
+            {loadingCompanies ? (
+              <div className="flex justify-center items-center h-24">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
               </div>
-              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
-                <img src="https://www.hdfcsec.com/images/hdfc-sec-logo.png" alt="HDFC" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=HDFC&background=004C8F&color=fff&size=40'} />
-                <span className="text-sm font-semibold text-gray-700">HDFC Securities</span>
+            ) : companies.length > 0 ? (
+              <div className="flex gap-6 animate-marquee hover:pause-animation overflow-x-auto pb-4">
+                {/* Render companies from database - repeat for infinite scroll effect */}
+                {[...companies, ...companies].map((company, idx) => (
+                  <div 
+                    key={`${company._id}-${idx}`}
+                    className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100 cursor-pointer"
+                    onClick={() => navigate(`/company/${company._id}`)}
+                  >
+                    {company.logo ? (
+                      <img 
+                        src={company.logo} 
+                        alt={company.name} 
+                        className="h-10 w-10 object-contain rounded" 
+                        onError={(e) => { 
+                          e.target.src = `https://ui-avatars.com/api/?name=${company.name}&background=4F46E5&color=fff&size=40`
+                        }} 
+                      />
+                    ) : (
+                      <div className="h-10 w-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded flex items-center justify-center text-white text-xs font-bold">
+                        {company.name?.substring(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-sm font-semibold text-gray-700">{company.name}</span>
+                  </div>
+                ))}
               </div>
-              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg" alt="IBM" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=IBM&background=0066B3&color=fff&size=40'} />
-                <span className="text-sm font-semibold text-gray-700">IBM India</span>
+            ) : (
+              <div className="text-center text-gray-500 py-8">
+                <p>No companies available yet</p>
               </div>
-              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Amazon&background=FF9900&color=fff&size=40'} />
-                <span className="text-sm font-semibold text-gray-700">Amazon India</span>
-              </div>
-              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Google&background=4285F4&color=fff&size=40'} />
-                <span className="text-sm font-semibold text-gray-700">Google India</span>
-              </div>
-              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
-                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Swiggy_logo.svg/1200px-Swiggy_logo.svg.png" alt="Swiggy" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Swiggy&background=FC8019&color=fff&size=40'} />
-                <span className="text-sm font-semibold text-gray-700">Swiggy</span>
-              </div>
-              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/1/13/Zomato_logo_%282021%29.svg" alt="Zomato" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Zomato&background=E23744&color=fff&size=40'} />
-                <span className="text-sm font-semibold text-gray-700">Zomato</span>
-              </div>
-              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/2/28/PhonePe_Logo.svg" alt="PhonePe" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=PhonePe&background=5F259F&color=fff&size=40'} />
-                <span className="text-sm font-semibold text-gray-700">PhonePe</span>
-              </div>
-              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Razorpay_logo.svg" alt="Razorpay" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Razorpay&background=0C2651&color=fff&size=40'} />
-                <span className="text-sm font-semibold text-gray-700">Razorpay</span>
-              </div>
-              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/OYO_Rooms_%28logo%29.svg" alt="OYO" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=OYO&background=EE2E24&color=fff&size=40'} />
-                <span className="text-sm font-semibold text-gray-700">OYO Rooms</span>
-              </div>
-              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Ola_Cabs_logo.svg" alt="Ola" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Ola&background=43B02A&color=fff&size=40'} />
-                <span className="text-sm font-semibold text-gray-700">Ola Cabs</span>
-              </div>
-              <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/f/f5/Paytm_logo.svg" alt="Paytm" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=Paytm&background=00BAF2&color=fff&size=40'} />
-                <span className="text-sm font-semibold text-gray-700">Paytm</span>
-              </div>
+            )}
               <div className="bg-white px-5 py-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-3 min-w-fit border border-gray-100">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/a/ab/CRED_brand_logo.svg" alt="CRED" className="h-10 w-10 object-contain" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=CRED&background=2D2D2D&color=fff&size=40'} />
                 <span className="text-sm font-semibold text-gray-700">CRED</span>
