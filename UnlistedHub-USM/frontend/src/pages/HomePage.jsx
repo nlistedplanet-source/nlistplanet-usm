@@ -17,14 +17,15 @@ const HomePage = () => {
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        console.log('🔄 [v2.0] Fetching companies from API...');
+        console.log('🔄 [v3.0 - NEW COMPANIES] Fetching companies from API...');
+        console.log('🌐 API URL:', process.env.REACT_APP_API_URL || 'https://nlistplanet-usm-api.onrender.com/api');
         const response = await companiesAPI.getAll({ limit: 20 });
-        console.log('✅ [v2.0] Companies fetched:', response);
-        console.log('📊 [v2.0] First company:', response.data.data?.[0]);
+        console.log('✅ [v3.0] Companies fetched:', response);
+        console.log('📊 [v3.0] First 3 companies:', response.data.data?.slice(0, 3));
         setCompanies(response.data.data || []);
-        console.log('📊 [v2.0] Companies set to state:', response.data.data?.length || 0, 'companies');
+        console.log('📊 [v3.0] Total companies loaded:', response.data.data?.length || 0);
       } catch (error) {
-        console.error('❌ [v2.0] Failed to fetch companies:', error);
+        console.error('❌ [v3.0] Failed to fetch companies:', error);
         setCompanies([]); // Fallback to empty
       } finally {
         setLoadingCompanies(false);
