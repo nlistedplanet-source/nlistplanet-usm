@@ -29,6 +29,7 @@ router.get('/', async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     const companies = await Company.find(query)
+      .select('-logo') // Exclude logo field to reduce response size
       .sort('name')
       .skip(skip)
       .limit(parseInt(limit));
