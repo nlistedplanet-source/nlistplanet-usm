@@ -37,8 +37,12 @@ const addFamousCompanies = async () => {
     }
 
     // Delete old companies first
-    await Company.deleteMany({});
-    console.log('🗑️  Deleted old companies\n');
+    try {
+      await Company.collection.drop();
+      console.log('🗑️  Dropped companies collection\n');
+    } catch (e) {
+      console.log('ℹ️  Collection does not exist or already dropped\n');
+    }
 
     const famousCompanies = [
       {

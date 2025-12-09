@@ -226,7 +226,7 @@ router.post('/companies', protect, authorize('admin'), upload.single('logo'), as
 });
 
 // @route   PUT /api/admin/companies/:id
-// @desc    Update company details (with logo upload)
+// @desc    Update company details (with logo upload or URL)
 // @access  Admin
 router.put('/companies/:id', protect, authorize('admin'), upload.single('logo'), async (req, res, next) => {
   try {
@@ -239,9 +239,11 @@ router.put('/companies/:id', protect, authorize('admin'), upload.single('logo'),
       });
     }
 
-    // Handle logo file upload - convert to base64 data URL
+    // Handle logo - either file upload (base64) or URL from body
     if (req.file) {
       company.logo = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    } else if (req.body.logo) {
+      company.logo = req.body.logo; // For Cloudinary URLs or other links
     }
 
     // Update other fields from body (excluding logo since we handle it separately)
@@ -335,5 +337,86 @@ router.get('/companies', protect, authorize('admin'), async (req, res, next) => 
     next(error);
   }
 });
+
+// @route   GET /api/admin/companies/sample-csv
+// @desc    Download sample CSV format for bulk company upload
+// @access  Admin
+router.get('/companies/sample-csv', protect, authorize('admin'), (req, res) => {
+  const sampleCsv = `name,CompanyName,scriptName,ScripName,logo,Logo,sector,description,isin,cin,website
+PhonePe,PhonePe Private Limited,PhonePe,PhonePe,https://example.com/logo1.png,https://example.com/logo1.png,Fintech,Leading digital payments platform,INE00PP01014,U72900KA2012PTC066107,https://www.phonepe.com
+CRED,CRED Private Limited,CRED,CRED,https://example.com/logo2.png,https://example.com/logo2.png,Fintech,Credit card bill payment rewards platform,INE00CR01015,U74999KA2018PTC108912,https://cred.club`;
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename="sample-companies.csv"');
+  res.send(sampleCsv);
+});
+
+// @route   POST /api/admin/companies/bulk-csv
+// @desc    Bulk upload companies from CSV file
+// @access  Admin
+router.post('/companies/bulk-csv', protect, authorize('admin'), upload.single('csv'), async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please upload a CSV file'
+      });
+    }
+
+    const csvData = req.file.buffer.toString('utf-8');
+    const lines = csvData.split('\n').filter(line => line.trim());
+    
+    if (lines.length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'CSV file must contain at least header and one data row'
+      });
+    }
+
+    const headers = lines[0].split(',').map(h => h.trim());
+    const companies = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+      const company = {};
+      headers.forEach((header, index) => {
+        company[header] = values[index] || '';
+      });
+      companies.push(company);
+    }
+
+    // Validate and save companies
+    const savedCompanies = [];
+    const errors = [];
+    
+    for (const companyData of companies) {
+      try {
+        // Check if company with same name already exists
+        const existing = await Company.findOne({ name: companyData.name });
+        if (existing) {
+          errors.push(`Company ${companyData.name} already exists`);
+          continue;
+        }
+        
+        const company = new Company(companyData);
+        await company.save();
+        savedCompanies.push(company);
+      } catch (error) {
+        errors.push(`Error saving ${companyData.name}: ${error.message}`);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Bulk upload completed. ${savedCompanies.length} companies added.`,
+      added: savedCompanies.length,
+      errors: errors.length > 0 ? errors : undefined
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+export default router;
 
 export default router;
