@@ -17,13 +17,14 @@ const HomePage = () => {
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        console.log('🔄 Fetching companies from API...');
+        console.log('🔄 [v2.0] Fetching companies from API...');
         const response = await companiesAPI.getAll({ limit: 20 });
-        console.log('✅ Companies fetched:', response);
+        console.log('✅ [v2.0] Companies fetched:', response);
+        console.log('📊 [v2.0] First company:', response.data.data?.[0]);
         setCompanies(response.data.data || []);
-        console.log('📊 Companies set to state:', response.data.data?.length || 0, 'companies');
+        console.log('📊 [v2.0] Companies set to state:', response.data.data?.length || 0, 'companies');
       } catch (error) {
-        console.error('❌ Failed to fetch companies:', error);
+        console.error('❌ [v2.0] Failed to fetch companies:', error);
         setCompanies([]); // Fallback to empty
       } finally {
         setLoadingCompanies(false);
