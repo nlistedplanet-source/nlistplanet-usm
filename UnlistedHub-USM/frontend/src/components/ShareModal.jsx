@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Share2, Copy, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { generateShareURL, copyToClipboard } from '../utils/helpers';
@@ -23,6 +23,18 @@ const ShareModal = ({ listing, onClose }) => {
     console.error('Failed to build share URL', err);
     shareURL = '';
   }
+
+  // Debug log to help diagnose issues in browser console
+  useEffect(() => {
+    // Only log in development
+    try {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('ShareModal debug:', { listing, user, shareURL });
+      }
+    } catch (err) {
+      // swallow
+    }
+  }, [listing, user, shareURL]);
 
   const handleCopy = async () => {
     if (!shareURL) {
