@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Upload, X, Loader, Edit2, Trash2, Building2, Image as ImageIcon, Search, Filter } from 'lucide-react';
+import { Upload, X, Loader, Edit2, Trash2, Building2, Image as ImageIcon, Search, Filter, Download } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { BASE_API_URL } from '../../utils/api';
+import { BASE_API_URL, adminAPI } from '../../utils/api';
 
 const CompaniesManagement = () => {
   const [companies, setCompanies] = useState([]);
@@ -40,6 +40,48 @@ const CompaniesManagement = () => {
   React.useEffect(() => {
     fetchCompanies();
   }, []);
+
+  // Download sample CSV template
+  const handleDownloadSample = async () => {
+    try {
+      const response = await adminAPI.downloadSampleCsv();
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'companies_sample.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Sample CSV downloaded');
+    } catch (err) {
+      toast.error('Failed to download sample CSV');
+      console.error(err);
+    }
+  };
+
+  // Bulk upload CSV file
+  const handleBulkUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.name.endsWith('.csv')) {
+      toast.error('Please select a CSV file');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await adminAPI.bulkUploadCsv(file);
+      toast.success('Companies uploaded successfully');
+      fetchCompanies();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to upload companies');
+      console.error(err);
+    } finally {
+      setLoading(false);
+      e.target.value = '';
+    }
+  };
 
   // Get unique sectors for filter dropdown
   const uniqueSectors = useMemo(() => {
@@ -186,13 +228,29 @@ const CompaniesManagement = () => {
           <h1 className="text-xl font-bold text-gray-900">Companies Management</h1>
           <p className="text-xs text-gray-500">Manage companies with logo upload and details</p>
         </div>
-        <button
-          onClick={handleAddNew}
-          className="px-3 py-1.5 text-sm bg-emerald-500 text-white rounded-md hover:bg-emerald-600 flex items-center gap-1.5"
-        >
-          <Building2 size={16} />
-          Add Company
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleDownloadSample}
+            className="px-3 py-1.5 text-sm bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center gap-1.5"
+          >
+            <Download size={14} />
+            Sample CSV
+          </button>
+
+          <label className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 cursor-pointer">
+            <Upload size={14} />
+            Bulk Upload
+            <input type="file" accept=".csv" onChange={handleBulkUpload} className="hidden" />
+          </label>
+
+          <button
+            onClick={handleAddNew}
+            className="px-3 py-1.5 text-sm bg-emerald-500 text-white rounded-md hover:bg-emerald-600 flex items-center gap-1.5"
+          >
+            <Building2 size={16} />
+            Add Company
+          </button>
+        </div>
       </div>
 
       {/* Search & Filter Bar */}
