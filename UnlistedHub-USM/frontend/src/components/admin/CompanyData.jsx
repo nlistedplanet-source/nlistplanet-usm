@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, X, Building2, Save, Image } from 'lucide-react';
-import { companiesAPI } from '../../utils/api';
+import { Plus, Search, Edit2, Trash2, X, Building2, Save, Image, Download, Upload } from 'lucide-react';
+import { companiesAPI, adminAPI } from '../../utils/api';
 import toast from 'react-hot-toast';
 
 const CompanyData = () => {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingCompany, setEditingCompany] = useState(null);

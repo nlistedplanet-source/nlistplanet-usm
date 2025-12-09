@@ -82,6 +82,14 @@ export const adminAPI = {
   getSettings: () => axios.get('/admin/settings'),
   updateSettings: (data) => axios.put('/admin/settings', data),
   createCompany: (data) => axios.post('/admin/companies', data),
+  downloadSampleCsv: () => axios.get('/admin/companies/sample-csv', { responseType: 'blob' }),
+  bulkUploadCsv: (file) => {
+    const formData = new FormData();
+    formData.append('csv', file);
+    return axios.post('/admin/companies/bulk-csv', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
 };
 
 export default axios;
