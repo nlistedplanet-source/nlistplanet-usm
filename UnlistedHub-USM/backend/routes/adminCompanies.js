@@ -273,14 +273,17 @@ router.put('/companies/:id', protect, authorize('admin'), upload.single('logo'),
       bodyLogoPascal: req.body.Logo ? 'present' : 'missing'
     });
 
+    // Helper to validate logo string
+    const isValidLogoString = (str) => str && typeof str === 'string' && str !== 'null' && str !== 'undefined' && str.trim().length > 0;
+
     if (req.file) {
       company.logo = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
-    } else if (req.body.logo) {
-      company.logo = req.body.logo;
-    } else if (req.body.Logo) {
-      company.logo = req.body.Logo;
-    } else if (req.body.logoUrl) {
+    } else if (isValidLogoString(req.body.logoUrl)) {
       company.logo = req.body.logoUrl;
+    } else if (isValidLogoString(req.body.logo)) {
+      company.logo = req.body.logo;
+    } else if (isValidLogoString(req.body.Logo)) {
+      company.logo = req.body.Logo;
     }
 
     // Map frontend PascalCase fields to backend camelCase model fields
