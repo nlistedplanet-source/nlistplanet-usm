@@ -48,8 +48,8 @@ const MarketplaceCard = ({
   const borderAccent = isSell ? 'border-emerald-200' : 'border-yellow-200';
   const iconColor = isSell ? 'text-emerald-600' : 'text-yellow-600';
   
-  // Logo fallback using Google S2 service for company favicon
-  const logoUrl = companyLogo || `https://www.google.com/s2/favicons?domain=${companyName?.toLowerCase().replace(/\s+/g, '')}.com&sz=64`;
+  // Logo fallback using UI Avatars (safer than guessing domains which causes 404s)
+  const logoUrl = companyLogo || `https://ui-avatars.com/api/?name=${companyName}&background=random&size=64`;
   
   return (
     <div className={`bg-white rounded-lg shadow-sm p-3 w-full border ${borderAccent} relative hover:shadow-md transition-shadow overflow-hidden`}>
