@@ -63,14 +63,14 @@ const CompanyData = () => {
   const handleEdit = (company) => {
     setEditingCompany(company);
     setFormData({
-      Logo: company.Logo || '',
-      CompanyName: company.CompanyName || '',
-      ScripName: company.ScripName || '',
-      ISIN: company.ISIN || '',
-      PAN: company.PAN || '',
-      CIN: company.CIN || '',
-      RegistrationDate: company.RegistrationDate || '',
-      Sector: company.Sector || ''
+      Logo: company.Logo || company.logo || '',
+      CompanyName: company.CompanyName || company.name || '',
+      ScripName: company.ScripName || company.scriptName || '',
+      ISIN: company.ISIN || company.isin || '',
+      PAN: company.PAN || company.pan || '',
+      CIN: company.CIN || company.cin || '',
+      RegistrationDate: company.RegistrationDate || company.registrationDate || '',
+      Sector: company.Sector || company.sector || ''
     });
     setShowModal(true);
   };
@@ -137,9 +137,9 @@ const CompanyData = () => {
   };
 
   const filteredCompanies = companies.filter(company =>
-    (company.CompanyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    company.ScripName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    company.Sector?.toLowerCase().includes(searchTerm.toLowerCase()))
+    ((company.CompanyName || company.name)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (company.ScripName || company.scriptName)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (company.Sector || company.sector)?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -244,25 +244,25 @@ const CompanyData = () => {
                 {filteredCompanies.map((company) => (
                   <tr key={company._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3">
-                      {company.Logo ? (
-                        <img src={company.Logo} alt="" className="w-10 h-10 rounded object-contain" />
+                      {(company.Logo || company.logo) ? (
+                        <img src={company.Logo || company.logo} alt="" className="w-10 h-10 rounded object-contain" />
                       ) : (
                         <div className="w-10 h-10 rounded bg-purple-100 flex items-center justify-center">
-                          <span className="text-purple-600 font-bold">{company.CompanyName[0]}</span>
+                          <span className="text-purple-600 font-bold">{(company.CompanyName || company.name || '?')[0]}</span>
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 font-semibold text-dark-900">{company.CompanyName}</td>
-                    <td className="px-4 py-3 text-dark-600">{company.ScripName}</td>
-                    <td className="px-4 py-3 text-xs text-dark-600 font-mono">{company.ISIN}</td>
-                    <td className="px-4 py-3 text-xs text-dark-600 font-mono">{company.PAN}</td>
-                    <td className="px-4 py-3 text-xs text-dark-600 font-mono">{company.CIN}</td>
+                    <td className="px-4 py-3 font-semibold text-dark-900">{company.CompanyName || company.name}</td>
+                    <td className="px-4 py-3 text-dark-600">{company.ScripName || company.scriptName}</td>
+                    <td className="px-4 py-3 text-xs text-dark-600 font-mono">{company.ISIN || company.isin}</td>
+                    <td className="px-4 py-3 text-xs text-dark-600 font-mono">{company.PAN || company.pan}</td>
+                    <td className="px-4 py-3 text-xs text-dark-600 font-mono">{company.CIN || company.cin}</td>
                     <td className="px-4 py-3">
                       <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">
-                        {company.Sector}
+                        {company.Sector || company.sector}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-dark-600">{company.RegistrationDate}</td>
+                    <td className="px-4 py-3 text-sm text-dark-600">{company.RegistrationDate || company.registrationDate}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-center gap-2">
                         <button
