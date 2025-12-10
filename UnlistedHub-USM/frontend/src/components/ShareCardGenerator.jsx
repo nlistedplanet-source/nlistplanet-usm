@@ -144,7 +144,7 @@ const ShareCardGenerator = ({ listing, onClose }) => {
     priceColor: 'text-emerald-600',
     icon: '💰',
     hashtag: '#BuyingShares',
-    description: `Looking to buy shares of ${listing.company?.name || listing.companyName}! Interested sellers can connect on Nlist Planet.`
+    description: `Hi, I want to buy ${listing.company?.name || listing.companyName} shares. Interested sellers can contact me on Nlist Planet. Price negotiable.`
   } : {
     gradient: 'from-orange-50 to-amber-50',
     accentColor: 'text-orange-600',
@@ -155,7 +155,7 @@ const ShareCardGenerator = ({ listing, onClose }) => {
     priceColor: 'text-red-600',
     icon: '🚀',
     hashtag: '#SellingShares',
-    description: `Check out this unlisted share of ${listing.company?.name || listing.companyName} listed on Nlist Planet. Explore more and make your offer now!`
+    description: `Hi, I want to sell ${listing.company?.name || listing.companyName} shares. Interested buyers can contact me on Nlist Planet. Price negotiable.`
   };
 
   return (
