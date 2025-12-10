@@ -265,6 +265,14 @@ router.put('/companies/:id', protect, authorize('admin'), upload.single('logo'),
     }
 
     // Handle logo - either file upload (base64) or URL from body
+    console.log('Update Company Request:', {
+      id: req.params.id,
+      hasFile: !!req.file,
+      bodyLogo: req.body.logo ? 'present' : 'missing',
+      bodyLogoUrl: req.body.logoUrl,
+      bodyLogoPascal: req.body.Logo ? 'present' : 'missing'
+    });
+
     if (req.file) {
       company.logo = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
     } else if (req.body.logo) {
@@ -287,7 +295,7 @@ router.put('/companies/:id', protect, authorize('admin'), upload.single('logo'),
     };
 
     // Update other fields from body
-    const { logo, Logo, ...otherFields } = req.body;
+    const { logo, Logo, logoUrl, ...otherFields } = req.body;
     
     Object.keys(otherFields).forEach(key => {
       // Skip if value is undefined or empty string (optional, based on existing logic)
