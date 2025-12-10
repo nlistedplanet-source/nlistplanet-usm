@@ -36,7 +36,6 @@ import { calculateTotalWithFee } from '../utils/helpers';
 import toast from 'react-hot-toast';
 import MyPostsTab from '../components/dashboard/MyPostsTab';
 import MyBidsOffersTab from '../components/dashboard/MyBidsOffersTab';
-import ReceivedBidsOffersTab from '../components/dashboard/ReceivedBidsOffersTab';
 import NotificationsTab from '../components/dashboard/NotificationsTab';
 import ReferralsTab from '../components/dashboard/ReferralsTab';
 import ProfileTab from '../components/dashboard/ProfileTab';
@@ -553,80 +552,60 @@ const DashboardPage = () => {
           
           {/* Action Center (Replaces Holdings) */}
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100">
-            <div className="p-6 border-b border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">Action Center</h2>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {actionItems.length} pending actions require your attention
-                  </p>
-                </div>
-                <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center">
-                  <Bell className="text-purple-600" size={20} />
-                </div>
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-gray-900">Action Center</h2>
+                <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {actionItems.length} New
+                </span>
               </div>
+              <button onClick={() => handleTabChange('posts')} className="text-sm text-purple-600 font-medium hover:underline">
+                View All
+              </button>
             </div>
             
-            <div className="overflow-x-auto">
+            <div className="p-2 space-y-2">
               {actionItems.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-xl m-4">
-                  <CheckCircle className="mx-auto text-green-500 mb-3" size={48} />
-                  <p className="text-gray-900 font-medium mb-1">All Caught Up!</p>
-                  <p className="text-gray-500 text-sm">No pending bids or offers.</p>
+                <div className="text-center py-8 bg-gray-50 rounded-xl">
+                  <CheckCircle className="mx-auto text-green-500 mb-2" size={32} />
+                  <p className="text-gray-900 font-medium text-sm">All Caught Up!</p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-100">
-                  {actionItems.map((item) => (
-                    <div key={item.id} className="p-4 hover:bg-gray-50 transition-colors flex items-center gap-4">
-                      {/* Icon */}
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        item.type === 'bid_received' ? 'bg-blue-100 text-blue-600' :
-                        item.type === 'offer_received' ? 'bg-green-100 text-green-600' :
-                        'bg-orange-100 text-orange-600'
+                actionItems.map((item) => (
+                  <div key={item.id} className="bg-white border border-gray-100 rounded-xl p-3 hover:bg-gray-50 transition-colors flex items-center justify-between gap-4 shadow-sm">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                        item.type === 'bid_received' ? 'bg-blue-50 text-blue-600' :
+                        item.type === 'offer_received' ? 'bg-green-50 text-green-600' :
+                        'bg-orange-50 text-orange-600'
                       }`}>
-                        {item.type === 'bid_received' ? <TrendingDown size={20} /> :
-                         item.type === 'offer_received' ? <TrendingUp size={20} /> :
-                         <RotateCcw size={20} />}
+                        {item.type === 'bid_received' ? <TrendingDown size={18} /> :
+                         item.type === 'offer_received' ? <TrendingUp size={18} /> :
+                         <RotateCcw size={18} />}
                       </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-semibold text-gray-900 truncate">
-                            {item.type === 'counter_received' ? 'Counter Offer Received' : 
-                             item.type === 'bid_received' ? 'New Bid Received' : 'New Offer Received'}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-gray-900 text-sm truncate">
+                            {item.type === 'counter_received' ? 'Counter Offer' : 
+                             item.type === 'bid_received' ? 'Bid Received' : 'Offer Received'}
                           </h4>
-                          <span className="text-xs text-gray-500">{new Date(item.date).toLocaleDateString()}</span>
+                          <span className="text-xs text-gray-400">• {new Date(item.date).toLocaleDateString()}</span>
                         </div>
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-900">{item.company}</span> • 
-                          {item.quantity} shares @ {formatCurrency(item.price)}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          From: <span className="font-medium">@{item.user}</span>
+                        <p className="text-xs text-gray-500 truncate">
+                          <span className="font-medium text-gray-700">{item.company}</span> • {item.quantity} @ {formatCurrency(item.price)} • From @{item.user}
                         </p>
                       </div>
-
-                      {/* Action Button */}
-                      <button 
-                        onClick={() => handleTabChange(item.type === 'counter_received' ? 'my-bids-offers' : 'received-bids-offers')}
-                        className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all whitespace-nowrap"
-                      >
-                        View Details
-                      </button>
                     </div>
-                  ))}
-                </div>
+
+                    <button 
+                      onClick={() => handleTabChange(item.type === 'counter_received' ? 'my-bids-offers' : 'posts')}
+                      className="px-4 py-1.5 bg-gray-900 text-white text-xs font-semibold rounded-lg hover:bg-gray-800 transition-colors whitespace-nowrap"
+                    >
+                      View
+                    </button>
+                  </div>
+                ))
               )}
-            </div>
-            
-            <div className="p-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
-              <button 
-                onClick={() => handleTabChange('marketplace')}
-                className="w-full text-center text-sm text-purple-600 font-medium hover:underline"
-              >
-                Browse Marketplace for More Opportunities →
-              </button>
             </div>
           </div>
 
@@ -945,11 +924,6 @@ const DashboardPage = () => {
         {activeTab === 'my-bids-offers' && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <MyBidsOffersTab />
-          </div>
-        )}
-        {activeTab === 'received-bids-offers' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <ReceivedBidsOffersTab />
           </div>
         )}
         {activeTab === 'history' && (
