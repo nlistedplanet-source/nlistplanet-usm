@@ -164,36 +164,45 @@ const CompaniesManagement = () => {
     e.preventDefault();
     
     try {
-      const submitData = new FormData();
-      submitData.append('name', formData.name);
-      submitData.append('scriptName', formData.scriptName || '');
-      submitData.append('sector', formData.sector);
-      submitData.append('isin', formData.isin || '');
-      submitData.append('cin', formData.cin || '');
-      submitData.append('pan', formData.pan || '');
-      submitData.append('registrationDate', formData.registrationDate || '');
-      submitData.append('description', formData.description || '');
-      
+      let submitData;
+      let headers = {};
+
       if (logoFile) {
+        // Use FormData when a file is being uploaded
+        submitData = new FormData();
+        submitData.append('name', formData.name);
+        submitData.append('scriptName', formData.scriptName || '');
+        submitData.append('sector', formData.sector);
+        submitData.append('isin', formData.isin || '');
+        submitData.append('cin', formData.cin || '');
+        submitData.append('pan', formData.pan || '');
+        submitData.append('registrationDate', formData.registrationDate || '');
+        submitData.append('description', formData.description || '');
         submitData.append('logo', logoFile);
-      } else if (formData.logoUrl) {
-        // If admin supplied a logo URL, send it in body so backend can use it
-        // Send as both logoUrl (preferred) and logo (fallback)
-        submitData.append('logoUrl', formData.logoUrl);
-        submitData.append('logo', formData.logoUrl);
+        headers['Content-Type'] = 'multipart/form-data';
+      } else {
+        // Use JSON for text-only updates (more reliable for logoUrl)
+        submitData = {
+          name: formData.name,
+          scriptName: formData.scriptName || '',
+          sector: formData.sector,
+          isin: formData.isin || '',
+          cin: formData.cin || '',
+          pan: formData.pan || '',
+          registrationDate: formData.registrationDate || '',
+          description: formData.description || '',
+          logoUrl: formData.logoUrl || '' // Explicitly send logoUrl
+        };
+        headers['Content-Type'] = 'application/json';
       }
 
       if (editingCompany) {
         // Update existing company
-        await axios.put(`${BASE_API_URL}/admin/companies/${editingCompany._id}`, submitData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        await axios.put(`${BASE_API_URL}/admin/companies/${editingCompany._id}`, submitData, { headers });
         toast.success('Company updated successfully!');
       } else {
         // Add new company
-        await axios.post(`${BASE_API_URL}/admin/companies`, submitData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        await axios.post(`${BASE_API_URL}/admin/companies`, submitData, { headers });
         toast.success('Company added successfully!');
       }
 
