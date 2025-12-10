@@ -132,6 +132,32 @@ const ShareCardGenerator = ({ listing, onClose }) => {
     generateShareData();
   }, []);
 
+  // Determine card theme based on listing type
+  const isBuyListing = listing.type === 'buy';
+  const cardTheme = isBuyListing ? {
+    gradient: 'from-emerald-50 to-teal-50',
+    accentColor: 'text-emerald-600',
+    badgeBg: 'bg-emerald-100',
+    badgeText: 'text-emerald-800',
+    priceBoxGradient: 'from-teal-100 to-emerald-100',
+    priceLabel: 'Bid Price',
+    priceColor: 'text-emerald-600',
+    icon: '💰',
+    hashtag: '#BuyingShares',
+    description: `Looking to buy shares of ${listing.company?.name || listing.companyName}! Interested sellers can connect on Nlist Planet.`
+  } : {
+    gradient: 'from-orange-50 to-amber-50',
+    accentColor: 'text-orange-600',
+    badgeBg: 'bg-orange-100',
+    badgeText: 'text-orange-800',
+    priceBoxGradient: 'from-yellow-100 to-orange-100',
+    priceLabel: 'Ask Price',
+    priceColor: 'text-red-600',
+    icon: '🚀',
+    hashtag: '#SellingShares',
+    description: `Check out this unlisted share of ${listing.company?.name || listing.companyName} listed on Nlist Planet. Explore more and make your offer now!`
+  };
+
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 relative my-4">
@@ -145,12 +171,12 @@ const ShareCardGenerator = ({ listing, onClose }) => {
         <h3 className="text-xl font-bold text-white mb-4">Share Listing</h3>
 
         {/* Share Card Preview - Scaled to fit */}
-        <div className="mb-4 overflow-hidden rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 relative" style={{ width: '100%', paddingBottom: '100%' }}>
+        <div className={`mb-4 overflow-hidden rounded-xl bg-gradient-to-br ${cardTheme.gradient} relative`} style={{ width: '100%', paddingBottom: '100%' }}>
           <div className="absolute inset-0 flex items-center justify-center">
             <div style={{ width: '100%', height: '100%', transform: 'scale(1)', transformOrigin: 'center' }}>
               <div 
                 ref={cardRef} 
-                className="w-full h-full bg-gradient-to-br from-orange-50 to-amber-50 overflow-hidden"
+                className={`w-full h-full bg-gradient-to-br ${cardTheme.gradient} overflow-hidden`}
                 style={{ 
                   width: '1080px', 
                   height: '1080px',
@@ -163,8 +189,11 @@ const ShareCardGenerator = ({ listing, onClose }) => {
               >
             {/* Card Header */}
             <div className="p-16 pb-8">
-              <div className="text-sm text-orange-600 mb-4">{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
-              <div className="text-right text-orange-600 font-bold text-2xl">#UnlistedShare</div>
+              <div className={`text-sm ${cardTheme.accentColor} mb-4`}>{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+              <div className={`text-right ${cardTheme.accentColor} font-bold text-2xl flex items-center justify-end gap-2`}>
+                <span className="text-3xl">{cardTheme.icon}</span>
+                <span>{cardTheme.hashtag}</span>
+              </div>
             </div>
 
             {/* Company Info */}
@@ -174,7 +203,7 @@ const ShareCardGenerator = ({ listing, onClose }) => {
               </h1>
 
               {/* Category Badge */}
-              <div className="inline-block bg-orange-100 text-orange-800 px-8 py-3 rounded-full text-2xl font-semibold mb-16">
+              <div className={`inline-block ${cardTheme.badgeBg} ${cardTheme.badgeText} px-8 py-3 rounded-full text-2xl font-semibold mb-16`}>
                 {listing.company?.sector || 'Unlisted Share'}
               </div>
 
@@ -185,11 +214,11 @@ const ShareCardGenerator = ({ listing, onClose }) => {
               </div>
 
               {/* Price Box */}
-              <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-3xl p-12 mb-16">
+              <div className={`bg-gradient-to-r ${cardTheme.priceBoxGradient} rounded-3xl p-12 mb-16`}>
                 <div className="grid grid-cols-2 gap-8">
                   <div>
-                    <div className="text-2xl text-gray-600 mb-2">Ask Price</div>
-                    <div className="text-7xl font-bold text-red-600">₹{listing.price}</div>
+                    <div className="text-2xl text-gray-600 mb-2">{cardTheme.priceLabel}</div>
+                    <div className={`text-7xl font-bold ${cardTheme.priceColor}`}>₹{listing.price}</div>
                   </div>
                   <div className="text-right">
                     <div className="text-2xl text-gray-600 mb-2">Quantity</div>
@@ -206,7 +235,7 @@ const ShareCardGenerator = ({ listing, onClose }) => {
 
               {/* Description */}
               <p className="text-2xl text-gray-700 mb-16 leading-relaxed">
-                Check out this unlisted share of {listing.company?.name || listing.companyName} listed on Nlist Planet. Explore more and make your offer now!
+                {cardTheme.description}
               </p>
             </div>
 
