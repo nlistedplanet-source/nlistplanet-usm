@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
-import { Share2, Download, X } from 'lucide-react';
+import { Share2, Download, X, Copy, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from '../utils/api';
 
@@ -8,6 +8,7 @@ const ShareCardGenerator = ({ listing, onClose }) => {
   const cardRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [shareData, setShareData] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   // Generate share link and caption
   const generateShareData = async () => {
@@ -220,29 +221,43 @@ const ShareCardGenerator = ({ listing, onClose }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <button
             onClick={handleShare}
             disabled={loading}
-            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Share2 size={18} />
-            {loading ? 'Generating...' : 'Share'}
+            <Share2 size={16} />
+            {loading ? 'Loading...' : 'Share'}
           </button>
           <button
             onClick={handleDownload}
             disabled={loading}
-            className="bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Download size={18} />
+            <Download size={16} />
           </button>
         </div>
 
-        {/* Caption Preview */}
+        {/* Caption Preview - Compact */}
         {shareData && (
-          <div className="mt-4 bg-gray-800 rounded-xl p-4">
-            <div className="text-xs text-gray-400 mb-2">Caption (will be copied):</div>
-            <p className="text-sm text-gray-300 whitespace-pre-line">{shareData.caption}</p>
+          <div className="mt-3 bg-gray-800 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs text-gray-400">Caption:</div>
+              <button
+                onClick={async () => {
+                  await navigator.clipboard.writeText(shareData.caption);
+                  setCopied(true);
+                  toast.success('Caption copied!');
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="text-emerald-400 hover:text-emerald-300 flex items-center gap-1 text-xs"
+              >
+                {copied ? <Check size={14} /> : <Copy size={14} />}
+                {copied ? 'Copied' : 'Copy'}
+              </button>
+            </div>
+            <p className="text-xs text-gray-300 line-clamp-3">{shareData.caption}</p>
           </div>
         )}
       </div>
