@@ -18,8 +18,8 @@ router.post('/create', protect, async (req, res) => {
   try {
     const { listingId } = req.body;
 
-    // Fetch listing details
-    const listing = await Listing.findById(listingId).populate('company');
+    // Fetch listing details - populate companyId field
+    const listing = await Listing.findById(listingId).populate('companyId');
     if (!listing) {
       return res.status(404).json({
         success: false,
@@ -31,48 +31,61 @@ router.post('/create', protect, async (req, res) => {
     const timestamp = Date.now();
     const shareId = `${req.user.username}_${listingId}_${timestamp}`;
 
-    // Create share tracking
-    const shareTracking = await ShareTracking.create({
-      shareId,
-      userId: req.user._id,
-      listingId
-    });
-
-    // Generate AI caption using OpenAI
-    let aiInsight = '';
+    // Create share tracking (optional - don't fail if model doesn't exist)
     try {
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a professional investment analyst. Generate concise, positive investment insights for social media.'
-          },
-          {
-            role: 'user',
-            content: `Generate a professional 2-3 line (40-60 words) investment insight for:
-Company: ${listing.company?.name || 'Unlisted Company'}
-Sector: ${listing.company?.sector || 'Various Sectors'}
+      await ShareTracking.create({
+        shareId,
+        userId: req.user._id,
+        listingId
+      });
+    } catch (trackError) {
+      console.log('ShareTracking creation skipped:', trackError.message);
+    }
+
+    // Get company info from populated field or fallback
+    const companyName = listing.companyId?.name || listing.companyId?.CompanyName || listing.companyName || 'Unlisted Company';
+    const companySector = listing.companyId?.sector || listing.companyId?.Sector || 'Growing Sector';
+
+    // Generate AI caption using OpenAI (with fallback)
+    let aiInsight = '';
+    if (process.env.OPENAI_API_KEY) {
+      try {
+        const completion = await openai.chat.completions.create({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a professional investment analyst. Generate concise, positive investment insights for social media.'
+            },
+            {
+              role: 'user',
+              content: `Generate a professional 2-3 line (40-60 words) investment insight for:
+Company: ${companyName}
+Sector: ${companySector}
 Context: Unlisted share investment opportunity
 
 Focus on: growth prospects, market position, sector trends
 Tone: Professional, optimistic, factual
 Do not include price or financial advice disclaimers.`
-          }
-        ],
-        max_tokens: 150,
-        temperature: 0.7
-      });
+            }
+          ],
+          max_tokens: 150,
+          temperature: 0.7
+        });
 
-      aiInsight = completion.choices[0]?.message?.content?.trim() || '';
-    } catch (error) {
-      console.error('OpenAI error:', error);
-      // Fallback insight
-      aiInsight = `${listing.company?.name || 'This company'} operates in ${listing.company?.sector || 'a growing sector'} with strong market fundamentals. An exciting opportunity for investors looking to diversify their portfolio with unlisted shares.`;
+        aiInsight = completion.choices[0]?.message?.content?.trim() || '';
+      } catch (error) {
+        console.error('OpenAI error:', error.message);
+      }
+    }
+    
+    // Fallback insight if OpenAI fails or not configured
+    if (!aiInsight) {
+      aiInsight = `${companyName} operates in ${companySector} with strong market fundamentals. An exciting opportunity for investors looking to diversify their portfolio with unlisted shares.`;
     }
 
     // Generate caption
-    const shareUrl = `${process.env.FRONTEND_URL}/listing/${listingId}?ref=${shareId}`;
+    const shareUrl = `${process.env.FRONTEND_URL || 'https://nlistplanet.com'}/listing/${listingId}?ref=${shareId}`;
     const caption = `🚀 Get Your Share in Fast-Growing Companies!
 
 ${aiInsight}
@@ -89,7 +102,7 @@ ${aiInsight}
         caption,
         listing: {
           _id: listing._id,
-          company: listing.company?.name,
+          company: companyName,
           price: listing.price,
           quantity: listing.quantity,
           type: listing.type
@@ -100,7 +113,8 @@ ${aiInsight}
     console.error('Share creation error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create share link'
+      message: 'Failed to create share link',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
