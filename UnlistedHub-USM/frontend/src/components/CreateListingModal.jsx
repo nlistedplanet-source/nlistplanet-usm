@@ -76,9 +76,9 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
       ...formData,
       companyId: company._id,
       companyName: company.CompanyName || company.name,
-      companyPan: company.PAN || '',
-      companyISIN: company.ISIN || '',
-      companyCIN: company.CIN || ''
+      companyPan: company.PAN || company.pan || '',
+      companyISIN: company.ISIN || company.isin || '',
+      companyCIN: company.CIN || company.cin || ''
     });
     setSearchTerm(company.CompanyName || company.name);
     setShowSuggestions(false);
