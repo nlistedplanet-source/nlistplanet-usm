@@ -19,9 +19,16 @@ const ShareCardGenerator = ({ listing, onClose }) => {
       setShareData(response.data.data);
       return response.data.data;
     } catch (error) {
-      toast.error('Failed to generate share link');
-      console.error(error);
-      return null;
+      console.error('Share API error:', error);
+      // Generate fallback data if API fails
+      const fallbackData = {
+        shareId: `fallback_${listing._id}_${Date.now()}`,
+        shareUrl: `${window.location.origin}/listing/${listing._id}`,
+        caption: `🚀 Investment Opportunity!\n\n${listing.companyName || listing.company?.name || 'Company'} - ${listing.company?.sector || 'Unlisted Share'}\n\n💰 Ask Price: ₹${listing.price}\n📊 Quantity: ${listing.quantity}\n\n👉 Explore now: ${window.location.origin}/listing/${listing._id}\n\n#UnlistedShares #Investment #NlistPlanet`
+      };
+      setShareData(fallbackData);
+      toast.error('Using offline mode for share');
+      return fallbackData;
     } finally {
       setLoading(false);
     }
