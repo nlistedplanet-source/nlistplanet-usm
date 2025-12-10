@@ -133,7 +133,7 @@ const ShareCardGenerator = ({ listing, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 relative my-auto">
+      <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 relative my-4">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center text-gray-400 hover:text-white z-10"
@@ -143,19 +143,23 @@ const ShareCardGenerator = ({ listing, onClose }) => {
 
         <h3 className="text-xl font-bold text-white mb-4">Share Listing</h3>
 
-        {/* Share Card Preview - Hidden actual 1080x1080 for html2canvas */}
-        <div className="mb-4 overflow-hidden rounded-xl">
-          <div className="relative w-full" style={{ paddingBottom: '100%' }}>
-            <div 
-              ref={cardRef} 
-              className="absolute top-0 left-0 bg-gradient-to-br from-orange-50 to-amber-50"
-              style={{ 
-                width: '1080px', 
-                height: '1080px',
-                transform: 'scale(0.36)',
-                transformOrigin: 'top left'
-              }}
-            >
+        {/* Share Card Preview - Scaled to fit */}
+        <div className="mb-4 overflow-hidden rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 relative" style={{ width: '100%', paddingBottom: '100%' }}>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div style={{ width: '100%', height: '100%', transform: 'scale(1)', transformOrigin: 'center' }}>
+              <div 
+                ref={cardRef} 
+                className="w-full h-full bg-gradient-to-br from-orange-50 to-amber-50 overflow-hidden"
+                style={{ 
+                  width: '1080px', 
+                  height: '1080px',
+                  transform: 'scale(0.36)',
+                  transformOrigin: 'top left',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0
+                }}
+              >
             {/* Card Header */}
             <div className="p-16 pb-8">
               <div className="text-sm text-orange-600 mb-4">{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
