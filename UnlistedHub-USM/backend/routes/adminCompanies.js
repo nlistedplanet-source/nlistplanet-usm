@@ -429,6 +429,8 @@ router.post('/companies/bulk-csv', protect, authorize('admin'), uploadCsv.single
             // Remove any quotes or extra spaces
             cell = cell.trim().replace(/['"]/g, '');
             
+            console.log('Parsing date:', cell); // Debug log
+            
             // Try common date formats: dd/mm/yyyy, mm/dd/yyyy, yyyy-mm-dd, dd-mm-yyyy
             const datePattern = /(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/;
             const match = cell.match(datePattern);
@@ -439,7 +441,7 @@ router.post('/companies/bulk-csv', protect, authorize('admin'), uploadCsv.single
               const part2 = match[2];
               const part3 = match[3];
               
-              // Detect format: if part3 is 4 digits, it's likely yyyy-mm-dd or yyyy-dd-mm
+              // Detect format: if part3 is 4 digits, it's likely dd/mm/yyyy
               if (part3.length === 4) {
                 year = part3;
                 // Check if it's dd/mm/yyyy (day first) - common in India
@@ -463,24 +465,32 @@ router.post('/companies/bulk-csv', protect, authorize('admin'), uploadCsv.single
               }
               
               // Create ISO date string
-              cell = `${year}-${month}-${day}T00:00:00.000Z`;
+              const isoDate = `${year}-${month}-${day}T00:00:00.000Z`;
+              console.log('Parsed date to:', isoDate); // Debug log
+              cell = isoDate;
             } else {
               // Try direct Date parsing as fallback
+              console.log('No pattern match, trying Date parse'); // Debug log
               const parsed = new Date(cell);
               if (!isNaN(parsed.getTime())) {
                 cell = parsed.toISOString();
+                console.log('Date parsed to:', cell); // Debug log
               } else {
-                // If all else fails, set to null
-                cell = null;
+                // If all else fails, set to empty string to skip field
+                console.log('Date parsing failed, skipping'); // Debug log
+                cell = '';
               }
             }
           } catch (err) {
-            console.error('Date parsing error:', err);
-            cell = null; // Set to null if parsing fails
+            console.error('Date parsing error:', err, 'for value:', cell);
+            cell = ''; // Set to empty string if parsing fails
           }
         }
 
-        company[mappedKey] = cell;
+        // Only add non-empty values to company object
+        if (cell !== '' && cell !== null && cell !== undefined) {
+          company[mappedKey] = cell;
+        }
       });
       companies.push(company);
     }
@@ -491,6 +501,9 @@ router.post('/companies/bulk-csv', protect, authorize('admin'), uploadCsv.single
     
     for (const companyData of companies) {
       try {
+        // Log company data for debugging
+        console.log('Saving company:', companyData.name, 'with registrationDate:', companyData.registrationDate);
+        
         // Check if company with same name already exists
         const existing = await Company.findOne({ name: companyData.name });
         if (existing) {
@@ -501,7 +514,9 @@ router.post('/companies/bulk-csv', protect, authorize('admin'), uploadCsv.single
         const company = new Company(companyData);
         await company.save();
         savedCompanies.push(company);
+        console.log('Saved company:', company.name, 'with date:', company.registrationDate);
       } catch (error) {
+        console.error('Error saving company:', companyData.name, error);
         errors.push(`Error saving ${companyData.name}: ${error.message}`);
       }
     }

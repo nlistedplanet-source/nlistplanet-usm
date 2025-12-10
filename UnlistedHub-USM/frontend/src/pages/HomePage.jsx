@@ -8,8 +8,18 @@ const HomePage = () => {
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [wordIndex, setWordIndex] = useState(0);
-  const [companies, setCompanies] = useState([]);
-  const [loadingCompanies, setLoadingCompanies] = useState(true);
+  // Default featured companies to show immediately
+  const defaultCompanies = [
+    { _id: 'default-1', name: 'Zepto Private Limited', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Zepto_company_logo.png/800px-Zepto_company_logo.png' },
+    { _id: 'default-2', name: 'Garuda Aerospace', logo: 'https://garudaaerospace.com/wp-content/uploads/2022/06/Garuda-Aerospace-Logo.png' },
+    { _id: 'default-3', name: 'Incred Holdings Limited', logo: 'https://www.incredmoney.com/wp-content/uploads/2023/01/InCred_Logo_R-1.png' },
+    { _id: 'default-4', name: 'Metropolitan Stock Exchange', logo: 'https://www.msei.in/images/msei-logo.png' },
+    { _id: 'default-5', name: 'National Stock Exchange of India', logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/1e/NSE_logo.svg/320px-NSE_logo.svg.png' },
+    { _id: 'default-6', name: 'Oravel Stays Limited (OYO)', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/OYO_Rooms_logo.svg/320px-OYO_Rooms_logo.svg.png' }
+  ];
+
+  const [companies, setCompanies] = useState(defaultCompanies);
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
   const words = useMemo(() => ['Buy', 'Sell'], []);
   const [charIndex, setCharIndex] = useState(0);
 
@@ -22,13 +32,13 @@ const HomePage = () => {
         const response = await companiesAPI.getAll({ limit: 20 });
         console.log('✅ [v4.0] Companies fetched:', response);
         console.log('📊 [v4.0] First 3 companies with logos:', response.data.data?.slice(0, 3).map(c => ({name: c.name, logo: c.logo?.substring(0, 50)})));
-        setCompanies(response.data.data || []);
+        if (response.data.data && response.data.data.length > 0) {
+          setCompanies(response.data.data);
+        }
         console.log('📊 [v4.0] Total companies loaded:', response.data.data?.length || 0);
       } catch (error) {
         console.error('❌ [v4.0] Failed to fetch companies:', error);
-        setCompanies([]); // Fallback to empty
-      } finally {
-        setLoadingCompanies(false);
+        // Keep default companies on error
       }
     };
     fetchCompanies();
