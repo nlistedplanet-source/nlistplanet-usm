@@ -214,6 +214,8 @@ const ShareCardGenerator = ({ listing, onClose }) => {
               <div className="text-xl text-gray-500">nlistplanet.com/share/{listing._id?.substring(0, 6)}</div>
               <div className="text-xl text-gray-400 mt-2">{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
             </div>
+              </div>
+            </div>
           </div>
         </div>
 
