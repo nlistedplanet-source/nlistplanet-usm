@@ -360,6 +360,7 @@ const CompaniesManagement = () => {
                       }}
                     />
                   </th>
+                  <th style={{ width: '60px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Logo</th>
                   <th style={{ width: '220px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Company</th>
                   <th style={{ width: '120px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Script</th>
                   <th style={{ width: '140px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">ISIN</th>
@@ -396,16 +397,16 @@ const CompaniesManagement = () => {
                       />
                     </td>
                     <td className="px-3 py-2">
-                      <div className="flex items-center gap-2">
-                        {company.logo ? (
-                          <img src={company.logo} alt={company.name} className="w-7 h-7 rounded object-cover flex-shrink-0" />
-                        ) : (
-                          <div className="w-7 h-7 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
-                            <Building2 size={14} className="text-gray-400" />
-                          </div>
-                        )}
-                        <span className="font-medium text-gray-900 text-xs truncate max-w-[180px]" title={company.name}>{company.name}</span>
-                      </div>
+                      {company.logo ? (
+                        <img src={company.logo} alt={company.name} className="w-8 h-8 rounded object-cover border border-gray-200" />
+                      ) : (
+                        <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center border border-gray-200">
+                          <Building2 size={16} className="text-gray-400" />
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className="font-medium text-gray-900 text-xs truncate block max-w-[200px]" title={company.name}>{company.name}</span>
                     </td>
                     <td className="px-3 py-2 text-gray-600 text-xs whitespace-nowrap">{company.scriptName || '-'}</td>
                     <td className="px-3 py-2 text-gray-600 font-mono text-[10px] whitespace-nowrap">{company.isin || '-'}</td>
