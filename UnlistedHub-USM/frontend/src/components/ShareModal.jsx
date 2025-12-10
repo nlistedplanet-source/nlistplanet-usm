@@ -7,32 +7,30 @@ import toast from 'react-hot-toast';
 const ShareModal = ({ listing, onClose }) => {
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
+  const [shareURL, setShareURL] = useState('');
 
   // Guard: don't render if listing is missing
   if (!listing) return null;
 
   // Build share URL; include referral code only when available
-  let shareURL = '';
-  try {
-    if (user && user.referralCode) {
-      shareURL = generateShareURL(user.referralCode, listing._id);
-    } else if (typeof window !== 'undefined') {
-      shareURL = `${window.location.origin}/marketplace?listing=${listing._id}`;
-    }
-  } catch (err) {
-    console.error('Failed to build share URL', err);
-    shareURL = '';
-  }
-
   useEffect(() => {
     try {
+      let url = '';
+      if (user?.referralCode && listing?._id) {
+        url = generateShareURL(user.referralCode, listing._id);
+      } else if (typeof window !== 'undefined' && listing?._id) {
+        url = `${window.location.origin}/marketplace?listing=${listing._id}`;
+      }
+      setShareURL(url);
+      
       if (process.env.NODE_ENV === 'development') {
-        console.log('ShareModal debug:', { listing, user, shareURL });
+        console.log('ShareModal debug:', { listing, user, url });
       }
     } catch (err) {
-      // ignore
+      console.error('Failed to build share URL', err);
+      setShareURL('');
     }
-  }, [listing, user, shareURL]);
+  }, [user, listing]);
 
   const handleCopy = async () => {
     if (!shareURL) {
@@ -50,15 +48,25 @@ const ShareModal = ({ listing, onClose }) => {
   };
 
   const handleShare = async () => {
+    if (!shareURL) {
+      toast.error('Share URL is not ready. Please try again.');
+      return;
+    }
+    
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
+        const companyName = listing.companyName || listing.company?.name || listing.company?.CompanyName || 'Company';
         await navigator.share({
-          title: `${listing.companyName || 'Listing'} - ${listing.type === 'sell' ? 'Sell Post' : 'Buy Request'}`,
-          text: `Check out this ${listing.type === 'sell' ? 'sell post' : 'buy request'} for ${listing.companyName || 'the company'} shares on UnlistedHub USM`,
+          title: `${companyName} - ${listing.type === 'sell' ? 'Sell Post' : 'Buy Request'}`,
+          text: `Check out this ${listing.type === 'sell' ? 'sell post' : 'buy request'} for ${companyName} shares on UnlistedHub USM`,
           url: shareURL
         });
       } catch (error) {
-        if (error.name !== 'AbortError') console.error('Share failed:', error);
+        if (error.name !== 'AbortError') {
+          console.error('Share failed:', error);
+          toast.error('Share failed. Link copied instead.');
+          handleCopy();
+        }
       }
     } else {
       handleCopy();
@@ -81,10 +89,14 @@ const ShareModal = ({ listing, onClose }) => {
         <div className="bg-dark-50 rounded-xl p-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center">
-              <span className="text-primary-700 font-bold text-lg">{listing.companyName ? listing.companyName[0] : '?'}</span>
+              <span className="text-primary-700 font-bold text-lg">
+                {listing.companyName ? listing.companyName[0].toUpperCase() : listing.company?.name?.[0]?.toUpperCase() || '?'}
+              </span>
             </div>
             <div className="flex-1">
-              <h4 className="font-semibold text-dark-900">{listing.companyName || 'Listing'}</h4>
+              <h4 className="font-semibold text-dark-900">
+                {listing.companyName || listing.company?.name || listing.company?.CompanyName || 'Unknown Company'}
+              </h4>
               <p className="text-sm text-dark-600">{listing.type === 'sell' ? 'Sell Post' : 'Buy Request'}</p>
             </div>
             <div

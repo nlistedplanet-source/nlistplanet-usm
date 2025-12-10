@@ -17,129 +17,62 @@ P2P marketplace for unlisted shares with admin-mediated transactions. Two active
 ├── models/            # Mongoose schemas (User, Listing, Company, Transaction...)
 ├── routes/            # API endpoints (/api/auth, /api/listings, /api/admin...)
 ├── middleware/        # auth.js (JWT), validation.js, securityLogger.js
-└── utils/             # emailService.js, smsService.js
+# Copilot Instructions — NListPlanet / UnlistedHub
 
-{project}/frontend/src/
-├── context/           # AuthContext.jsx (login state, axios interceptor)
-├── pages/             # Route components
-├── components/        # Reusable UI (ListingCard, etc.)
-└── utils/             # api.js (axios wrappers), helpers.js (price calculations)
-```
+Purpose: Help AI coding agents become productive quickly in this monorepo (desktop + mobile forks).
 
-## Developer Workflows
-```bash
-# Backend
-cd {project}/backend && npm install
-npm run dev          # nodemon hot-reload
-npm start            # production
-GET /api/health      # health check
+Quick summary
+- Monorepo with two active projects: `UnlistedHub-USM/` (desktop) and `nlistplanet-mobile/` (mobile PWA).
+- Each project follows the same pattern: `backend/` (Express + Mongoose) and `frontend/` (React + Tailwind).
 
-# Frontend
-cd {project}/frontend && npm install
-npm start            # dev server (localhost:3000)
-npm run build        # production build
-```
-**Environment:** Copy `.env.example` → `.env`, never commit secrets. Restart server after changes.
+Core files to inspect first
+- Backend entry: `backend/server.js` (also `server-fast.js`) — CORS, Helmet, rate limiting, route registration.
+- Auth middleware: `backend/middleware/auth.js` (protect/optionalAuth/authorize).
+- Validation: `backend/middleware/validation.js` (validateListing, validateBid, validateObjectId).
+- Listing model: `backend/models/Listing.js` (fields: `buyerOfferedPrice`, `sellerReceivesPrice`, `platformFee`, counterHistory).
+- Frontend helpers: `frontend/src/utils/helpers.js` (calculateBuyerPays, calculateSellerGets — platform fee logic).
+- Frontend API wrapper: `frontend/src/utils/api.js` (listingsAPI, companiesAPI, adminAPI).
 
-## Critical Business Logic: Platform Fee (2%)
-The platform fee is the core pricing mechanism but is **HIDDEN from users**. See `PLATFORM_FEE_MODEL.md` for complete documentation.
+Immediate dev/runtime commands
+- Backend (project folder):
+  - `cd <project>/backend; npm install` then `npm run dev` (nodemon) or `npm start`.
+- Frontend (project folder):
+  - `cd <project>/frontend; npm install` then `npm start` (localhost:3000) or `npm run build`.
+- Env: copy `.env.example` → `.env`. Required vars: `MONGODB_URI`, `JWT_SECRET`, `FRONTEND_URL`, `CORS_ORIGINS`.
 
-**Core Principle:**
-- **SELLER always sees:** What they will RECEIVE (price × 0.98)
-- **BUYER always sees:** What they will PAY (price × 1.02)
-- **Fee is NEVER shown** to users - only adjusted prices
+Project-specific conventions (do not break these)
+- Platform fee: Always apply 2% adjustment in helpers — fee is NEVER shown to users. Follow `calculateBuyerPays` / `calculateSellerGets` (frontend) and mirror logic in backend models/handlers.
+- Auth: Backend uses JWT; follow `authorize('admin')` for admin-only routes. Frontend sets `Authorization: Bearer <token>` in AuthContext.
+- ES modules: Backends set `"type": "module"` — use `import/export` not `require`.
+- Company model naming: legacy mixed-casing exists — code must handle `company.CompanyName || company.name` (see `models/Company.js`).
+- Anonymous trading: System-generated usernames (e.g., `@trader_xyz`). Real identity only visible to admin.
 
-Use helper functions from `utils/helpers.js`:
+Where to implement common changes
+- Add API routes: create files under `backend/routes/` and register in `server.js`.
+- Add server utilities: `backend/utils/` (emailService, smsService, etc.).
+- Update pricing/platform fee: change `frontend/src/utils/helpers.js` and ensure backend `models/Listing.js` and any bid-handling code mirror the change.
 
-```javascript
-// frontend/src/utils/helpers.js
-calculateBuyerPays(price)  // → price * 1.02 (buyer pays +2%)
-calculateSellerGets(price) // → price * 0.98 (seller gets -2%)
-```
+Testing & scripts
+- There are no automated test suites by default. Use Postman or the frontend to validate changes.
+- Useful backend scripts: `node scripts/seedCompanies.js` (seed data), `node scripts/fetchNews.js` (cron-style importer).
 
-**Price Display Rules:**
-| Context | Seller Sees | Buyer Sees |
-|---------|-------------|------------|
-| SELL listing (₹238) | ₹238 (own price) | ₹242.76 (pays) |
-| BUY listing (₹500) | ₹490 (receives) | ₹500 (own budget) |
-| Bid ₹230 on SELL | ₹225.49 (receives) | ₹230 (pays) |
-| Offer ₹520 on BUY | ₹520 (receives) | ₹530.61 (pays) |
+Deployment/CI hints
+- Backend auto-deploy: Render (look for `render.yaml`, `RENDER_AUTODEPLOY.md`).
+- Frontend: Vercel (see `vercel.json`).
 
-Backend mirrors this in `models/Listing.js` with `buyerOfferedPrice`, `sellerReceivesPrice`, `platformFee` fields on bids.
+Security & production notes
+- Rate limiting and Helmet are enabled in `server.js` — keep these when adding endpoints.
+- Passwords use Argon2 in the codebase; do not replace with weaker hashing.
+- Never commit secrets — `.env` must remain local.
 
-## Auth Pattern
-- **Backend:** JWT via `middleware/auth.js` - `protect` (required), `optionalAuth` (guest allowed), `authorize(...roles)`
-- **Frontend:** `AuthContext.jsx` - `useAuth()` hook provides `{ user, login, logout, isAuthenticated }`
-- **Header:** `Authorization: Bearer <token>` (axios default set in AuthContext)
-- **30-min inactivity logout** in frontend
+Search tips for agents (quick grep targets)
+- `calculateBuyerPays|calculateSellerGets` → platform fee helpers
+- `sellerReceivesPrice|buyerOfferedPrice|platformFee` → DB fields and bid math
+- `authorize('admin')` → admin-only flows
+- `validateListing|validateBid` → request validation rules
 
-## API Structure
-All endpoints prefixed with `/api`. See `frontend/src/utils/api.js` for axios wrappers:
-```javascript
-listingsAPI.getAll(), listingsAPI.create(), listingsAPI.placeBid()
-companiesAPI.getAll(), companiesAPI.search()
-adminAPI.getStats(), adminAPI.banUser()
-```
+PR guidance for agents
+- Keep changes scoped to a single logical area (backend or frontend). Update both sides when touching pricing/auth.
+- Preserve existing endpoint contracts (route names and JSON shapes) unless updating clients together.
 
-## Key Patterns & Conventions
-1. **Anonymous Trading:** System-generated usernames (`@trader_xyz`), real identity only visible to admin
-2. **Validation:** Use `middleware/validation.js` - `validateListing`, `validateBid`, `validateObjectId`
-3. **CORS:** Whitelist in `server.js` + `CORS_ORIGINS` env var; auto-allows `*.vercel.app` previews
-4. **Security:** Helmet, rate limiting (300/15min global, 20/15min auth), Argon2 passwords, mongo-sanitize
-5. **No automated tests:** Validate manually via Postman/browser after changes
-6. **ES Modules:** Backend uses `"type": "module"` - use `import/export`, not `require`
-
-## Data Flow: Bid Lifecycle
-```
-Buyer places Bid → status: 'pending'
-  ↓
-Seller: Accept/Reject/Counter → status: 'accepted'/'rejected'/'countered'
-  ↓
-Counter rounds (max 4) with counterHistory array
-  ↓
-Both accept → Transaction created → Admin manual closure
-```
-
-## Deployment
-- **Backend:** Render.com auto-deploy on push to main (see `RENDER_AUTODEPLOY.md`)
-- **Frontend:** Vercel auto-deploy with preview URLs
-- **Required env vars:** `MONGODB_URI`, `JWT_SECRET` (32+ chars), `FRONTEND_URL`, `CORS_ORIGINS`
-
-## Scripts & Automation
-```bash
-# Backend scripts (run from backend/)
-node scripts/fetchNews.js      # Fetch news from RSS feeds (cron: every 6 hours)
-node scripts/seedCompanies.js  # Seed company data
-```
-
-## Admin Routes
-Admin-only endpoints require `authorize('admin')` middleware:
-- `GET /api/admin/stats` - Dashboard stats
-- `GET /api/admin/users` - User management
-- `PUT /api/admin/users/:id/ban` - Ban/unban users
-- `POST /api/admin/companies` - Create companies
-- `GET /api/admin/transactions` - All transactions
-
-## Model Field Naming Quirk
-Company model has mixed casing due to legacy data. Access both patterns:
-```javascript
-// In populate or queries, handle both:
-company.CompanyName || company.name
-company.Logo || company.logo
-company.Sector || company.sector
-```
-
-## Mobile-Specific Utilities
-`nlistplanet-mobile/frontend/src/utils/helpers.js` has additional mobile helpers:
-```javascript
-haptic.light()    // Vibration feedback
-haptic.success()  // Success pattern [10, 50, 10]ms
-triggerHaptic('medium')
-formatShortNumber(1500000)  // → "15 L"
-```
-
-## Reference Docs
-- `NlistPlanet_System_Architecture_FULL.md` - Full system design
-- `PROJECT_DOCUMENTATION.md` - Database models, API specs, admin flows
-- `SECURITY_FEATURES.md` - Security implementation details
-- `PASSWORD_POLICY_GUIDE.md` - Password requirements
+If anything here is unclear or you want me to expand an example (e.g., patching a specific route or updating fee logic), tell me which file to edit next.

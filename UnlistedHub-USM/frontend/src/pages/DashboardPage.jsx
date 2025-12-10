@@ -179,7 +179,7 @@ const DashboardPage = () => {
   };
 
   const handleShare = async (listing) => {
-    // Open ShareCardGenerator modal
+    // Open ShareCardGenerator modal for advanced image + caption share
     setShareListingData(listing);
     setShowShareCard(true);
   };
