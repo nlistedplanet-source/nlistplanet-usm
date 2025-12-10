@@ -26,6 +26,8 @@ const MarketplaceCard = ({
   companyPan,
   companyIsin,
   companyCin,
+  companyRegistrationDate,
+  companySegmentation,
   price,
   shares,
   user,
@@ -91,7 +93,9 @@ const MarketplaceCard = ({
                 <div className="mb-0.5"><b>Company:</b> {companyName || 'N/A'}</div>
                 <div className="mb-0.5"><b>PAN:</b> {companyPan || 'N/A'}</div>
                 <div className="mb-0.5"><b>ISIN:</b> {companyIsin || 'N/A'}</div>
-                <div><b>CIN:</b> {companyCin || 'N/A'}</div>
+                <div className="mb-0.5"><b>CIN:</b> {companyCin || 'N/A'}</div>
+                {companyRegistrationDate && <div className="mb-0.5"><b>Reg. Date:</b> {new Date(companyRegistrationDate).toLocaleDateString('en-GB')}</div>}
+                {companySegmentation && <div><b>Segment:</b> {companySegmentation}</div>}
               </div>
             </span>
           </div>
