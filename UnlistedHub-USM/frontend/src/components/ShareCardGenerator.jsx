@@ -2,9 +2,7 @@ import React, { useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import { Share2, Download, X } from 'lucide-react';
 import toast from 'react-hot-toast';
-import axios from 'axios';
-
-const BASE_API_URL = process.env.REACT_APP_API_URL || 'https://api.nlistplanet.com/api';
+import api from '../utils/api';
 
 const ShareCardGenerator = ({ listing, onClose }) => {
   const cardRef = useRef(null);
@@ -15,7 +13,7 @@ const ShareCardGenerator = ({ listing, onClose }) => {
   const generateShareData = async () => {
     try {
       setLoading(true);
-      const response = await axios.post(`${BASE_API_URL}/share/create`, {
+      const response = await api.post('/share/create', {
         listingId: listing._id
       });
       setShareData(response.data.data);
