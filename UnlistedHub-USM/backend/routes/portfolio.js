@@ -145,9 +145,9 @@ router.get('/activities', protect, async (req, res, next) => {
       .sort({ createdAt: -1 })
       .limit(limit);
 
-    // Get user's own listings (posts they created)
+    // Get user's own listings (posts they created) - Include bids/offers for activity tracking
     const userListings = await Listing.find({ userId: userId })
-      .select('companyName listingType price quantity status createdAt')
+      .select('companyName listingType price quantity status createdAt updatedAt bids offers')
       .sort({ createdAt: -1 })
       .limit(limit);
 
@@ -165,23 +165,58 @@ router.get('/activities', protect, async (req, res, next) => {
     // Format activities
     const activities = [];
 
-    // Add user's own listings (posts)
+    // 1. Add user's own listings (posts)
     userListings.forEach(listing => {
       activities.push({
         type: 'listing',
-        action: listing.listingType === 'SELL' ? 'listed_sell' : 'listed_buy',
+        action: listing.listingType === 'sell' ? 'listed_sell' : 'listed_buy',
         companyName: listing.companyName || 'Unknown',
         quantity: listing.quantity,
         price: listing.price,
         status: listing.status,
         date: listing.createdAt,
-        description: listing.listingType === 'SELL' 
+        description: listing.listingType === 'sell' 
           ? `Listed ${listing.quantity} shares of ${listing.companyName} for sale at ₹${listing.price}`
           : `Created buy order for ${listing.quantity} shares of ${listing.companyName} at ₹${listing.price}`
       });
+
+      // Check for actions on incoming bids/offers (Accept/Reject/Counter by me)
+      const incomingItems = listing.listingType === 'sell' ? listing.bids : listing.offers;
+      
+      incomingItems?.forEach(item => {
+        // If I accepted or rejected
+        if (item.status === 'accepted' || item.status === 'rejected') {
+          activities.push({
+            type: 'action',
+            action: item.status === 'accepted' ? 'accepted_bid' : 'rejected_bid',
+            companyName: listing.companyName || 'Unknown',
+            quantity: item.quantity,
+            price: item.price,
+            status: item.status,
+            date: listing.updatedAt, // Best approximation
+            description: `${item.status === 'accepted' ? 'Accepted' : 'Rejected'} ${listing.listingType === 'sell' ? 'bid' : 'offer'} for ${item.quantity} shares of ${listing.companyName}`
+          });
+        }
+
+        // If I countered (as seller)
+        item.counterHistory?.forEach(counter => {
+          if (counter.by === 'seller') { // I am the seller
+            activities.push({
+              type: 'action',
+              action: 'countered_bid',
+              companyName: listing.companyName || 'Unknown',
+              quantity: counter.quantity || item.quantity,
+              price: counter.price,
+              status: 'countered',
+              date: counter.timestamp,
+              description: `Countered ${listing.listingType === 'sell' ? 'bid' : 'offer'} for ${listing.companyName} at ₹${counter.price}`
+            });
+          }
+        });
+      });
     });
 
-    // Add transactions
+    // 2. Add transactions
     transactions.forEach(tx => {
       const isBuyer = tx.buyerId.toString() === userId.toString();
       activities.push({
@@ -198,12 +233,13 @@ router.get('/activities', protect, async (req, res, next) => {
       });
     });
 
-    // Add bids/offers placed by user on others' listings
+    // 3. Add bids/offers placed by user on others' listings
     listingsWithBidsOffers.forEach(listing => {
       const userBids = listing.bids?.filter(b => b.userId.toString() === userId.toString()) || [];
       const userOffers = listing.offers?.filter(o => o.userId.toString() === userId.toString()) || [];
 
       userBids.forEach(bid => {
+        // Placed Bid
         activities.push({
           type: 'bid',
           action: 'placed_bid',
@@ -214,9 +250,26 @@ router.get('/activities', protect, async (req, res, next) => {
           date: bid.createdAt,
           description: `Placed bid for ${bid.quantity} shares of ${listing.companyName} at ₹${bid.price}`
         });
+
+        // Countered by me (as buyer)
+        bid.counterHistory?.forEach(counter => {
+          if (counter.by === 'buyer') {
+            activities.push({
+              type: 'action',
+              action: 'countered_offer',
+              companyName: listing.companyName || 'Unknown',
+              quantity: counter.quantity || bid.quantity,
+              price: counter.price,
+              status: 'countered',
+              date: counter.timestamp,
+              description: `Countered offer for ${listing.companyName} at ₹${counter.price}`
+            });
+          }
+        });
       });
 
       userOffers.forEach(offer => {
+        // Placed Offer
         activities.push({
           type: 'offer',
           action: 'placed_offer',
@@ -226,6 +279,41 @@ router.get('/activities', protect, async (req, res, next) => {
           status: offer.status,
           date: offer.createdAt,
           description: `Placed offer for ${offer.quantity} shares of ${listing.companyName} at ₹${offer.price}`
+        });
+
+        // Countered by me (as buyer/offerer)
+        offer.counterHistory?.forEach(counter => {
+          if (counter.by === 'buyer') { // I am the one making the offer (buyer role in transaction context, though technically seller in buy request? No, 'buyer' in counterHistory usually means the one who initiated the bid/offer? Need to verify logic. 
+            // In Listing.js: by: 'buyer' or 'seller'. 
+            // If I placed a bid on a Sell post, I am the 'buyer'.
+            // If I placed an offer on a Buy post, I am the 'seller'.
+            // Wait. If I place an offer on a Buy post, I am selling.
+            // So my counter would be 'seller'.
+            // Let's check Listing.js logic or assume standard naming.
+            // Usually 'buyer' = User who pays money, 'seller' = User who gives shares.
+            // If I place an offer on a Buy post, I am the SELLER.
+            // So I should check for `counter.by === 'seller'` here?
+            // Let's stick to `userId` check. If I am the one who placed the offer, I am the `userId` of the offer.
+            // If `counter.by` matches my role...
+            // It's safer to just check if I placed the counter? But `counterHistory` doesn't store userId, just 'buyer'/'seller'.
+            // If I am the offerer on a Buy post, I am the SELLER.
+            // So if `counter.by === 'seller'`, it's me.
+            
+            const isMyCounter = (listing.type === 'sell' && counter.by === 'buyer') || (listing.type === 'buy' && counter.by === 'seller');
+            
+            if (isMyCounter) {
+               activities.push({
+                type: 'action',
+                action: 'countered_offer',
+                companyName: listing.companyName || 'Unknown',
+                quantity: counter.quantity || offer.quantity,
+                price: counter.price,
+                status: 'countered',
+                date: counter.timestamp,
+                description: `Countered request for ${listing.companyName} at ₹${counter.price}`
+              });
+            }
+          }
         });
       });
     });

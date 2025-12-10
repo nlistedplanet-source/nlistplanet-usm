@@ -28,7 +28,8 @@ import {
   Shield,
   Newspaper,
   CheckCircle,
-  RotateCcw
+  RotateCcw,
+  XCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { portfolioAPI, listingsAPI } from '../utils/api';
@@ -618,30 +619,54 @@ const DashboardPage = () => {
             
             <div className="p-6">
               <div className="space-y-4">
-                {recentActivities.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      activity.type === 'buy' 
-                        ? 'bg-green-100 text-green-600' 
-                        : activity.type === 'sell'
-                        ? 'bg-red-100 text-red-600'
-                        : 'bg-blue-100 text-blue-600'
-                    }`}>
-                      {activity.type === 'buy' ? <TrendingUp size={20} /> : 
-                       activity.type === 'sell' ? <TrendingDown size={20} /> : 
-                       <Eye size={20} />}
+                {recentActivities.slice(0, 5).map((activity, index) => {
+                  let icon = <Activity size={20} />;
+                  let colorClass = 'bg-gray-100 text-gray-600';
+                  let title = 'Activity';
+                  
+                  // Determine Icon and Color based on action/type
+                  if (activity.action === 'buy' || activity.action === 'placed_bid' || activity.action === 'placed_offer' || activity.action === 'listed_buy') {
+                    icon = <TrendingUp size={20} />;
+                    colorClass = 'bg-green-100 text-green-600';
+                    title = activity.action === 'buy' ? 'Bought Shares' : 
+                            activity.action === 'listed_buy' ? 'Created Buy Request' : 'Placed Order';
+                  } else if (activity.action === 'sell' || activity.action === 'listed_sell') {
+                    icon = <TrendingDown size={20} />;
+                    colorClass = 'bg-red-100 text-red-600';
+                    title = activity.action === 'sell' ? 'Sold Shares' : 'Listed for Sale';
+                  } else if (activity.action === 'accepted_bid') {
+                    icon = <CheckCircle size={20} />;
+                    colorClass = 'bg-emerald-100 text-emerald-600';
+                    title = 'Accepted Bid';
+                  } else if (activity.action === 'rejected_bid') {
+                    icon = <XCircle size={20} />;
+                    colorClass = 'bg-red-50 text-red-500';
+                    title = 'Rejected Bid';
+                  } else if (activity.action?.includes('counter')) {
+                    icon = <RotateCcw size={20} />;
+                    colorClass = 'bg-orange-100 text-orange-600';
+                    title = 'Countered Offer';
+                  }
+
+                  return (
+                    <div key={index} className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
+                        {icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 text-sm truncate">
+                          {title}
+                        </p>
+                        <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                          {activity.description || `${activity.quantity} shares of ${activity.companyName}`}
+                        </p>
+                        <p className="text-[10px] text-gray-400 mt-1">
+                          {new Date(activity.date).toLocaleDateString()} • {new Date(activity.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900 text-sm">
-                        {activity.type === 'buy' ? 'Bought' : activity.type === 'sell' ? 'Sold' : 'Bid on'} {activity.company}
-                      </p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        {activity.shares} shares • {formatCurrency(activity.amount)}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">{activity.date}</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               
               <button className="w-full mt-4 text-purple-600 font-medium text-sm hover:bg-purple-50 py-2 rounded-lg transition-colors">
