@@ -222,6 +222,8 @@ router.post('/companies', protect, authorize('admin'), upload.single('logo'), as
     } else if (req.body.logo) {
       // Allow passing a logo URL in the request body (Cloudinary/remote URL)
       logoUrl = req.body.logo;
+    } else if (req.body.logoUrl) {
+      logoUrl = req.body.logoUrl;
     }
 
     // Create company
@@ -269,6 +271,8 @@ router.put('/companies/:id', protect, authorize('admin'), upload.single('logo'),
       company.logo = req.body.logo;
     } else if (req.body.Logo) {
       company.logo = req.body.Logo;
+    } else if (req.body.logoUrl) {
+      company.logo = req.body.logoUrl;
     }
 
     // Map frontend PascalCase fields to backend camelCase model fields

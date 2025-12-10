@@ -178,7 +178,7 @@ const CompaniesManagement = () => {
         submitData.append('logo', logoFile);
       } else if (formData.logoUrl) {
         // If admin supplied a logo URL, send it in body so backend can use it
-        submitData.append('logo', formData.logoUrl);
+        submitData.append('logoUrl', formData.logoUrl);
       }
 
       if (editingCompany) {
