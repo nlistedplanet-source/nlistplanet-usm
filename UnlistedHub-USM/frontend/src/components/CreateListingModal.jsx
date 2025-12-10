@@ -25,6 +25,14 @@ const numberToWords = (num) => {
   return convertLessThanThousand(Math.floor(num / 10000000)) + ' Crore' + (num % 10000000 !== 0 ? ' ' + numberToWords(num % 10000000) : '');
 };
 
+// Helper to safely get property value regardless of case (e.g., PAN, pan, Pan)
+const getCaseInsensitive = (obj, key) => {
+  if (!obj) return undefined;
+  const lowerKey = key.toLowerCase();
+  const foundKey = Object.keys(obj).find(k => k.toLowerCase() === lowerKey);
+  return foundKey ? obj[foundKey] : undefined;
+};
+
 const CreateListingModal = ({ onClose, onSuccess }) => {
   const [step, setStep] = useState(1);
   const [type, setType] = useState('sell');
@@ -72,15 +80,21 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
   }, [searchTerm]);
 
   const handleCompanySelect = (company) => {
+    // Use helper to find fields regardless of casing (PAN, pan, Pan, etc.)
+    const name = getCaseInsensitive(company, 'companyName') || getCaseInsensitive(company, 'name');
+    const pan = getCaseInsensitive(company, 'pan');
+    const isin = getCaseInsensitive(company, 'isin');
+    const cin = getCaseInsensitive(company, 'cin');
+
     setFormData({
       ...formData,
       companyId: company._id,
-      companyName: company.CompanyName || company.name,
-      companyPan: company.PAN || company.pan || '',
-      companyISIN: company.ISIN || company.isin || '',
-      companyCIN: company.CIN || company.cin || ''
+      companyName: name || '',
+      companyPan: pan ? pan.toUpperCase() : '',
+      companyISIN: isin ? isin.toUpperCase() : '',
+      companyCIN: cin ? cin.toUpperCase() : ''
     });
-    setSearchTerm(company.CompanyName || company.name);
+    setSearchTerm(name || '');
     setShowSuggestions(false);
     setManualEntry(false);
     setStep(2);
