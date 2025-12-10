@@ -266,13 +266,38 @@ router.put('/companies/:id', protect, authorize('admin'), upload.single('logo'),
     if (req.file) {
       company.logo = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
     } else if (req.body.logo) {
-      company.logo = req.body.logo; // For Cloudinary URLs or other links
+      company.logo = req.body.logo;
+    } else if (req.body.Logo) {
+      company.logo = req.body.Logo;
     }
 
-    // Update other fields from body (excluding logo since we handle it separately)
-    const { logo, ...otherFields } = req.body;
+    // Map frontend PascalCase fields to backend camelCase model fields
+    const fieldMapping = {
+      'CompanyName': 'name',
+      'ScripName': 'scriptName',
+      'ISIN': 'isin',
+      'PAN': 'pan',
+      'CIN': 'cin',
+      'RegistrationDate': 'registrationDate',
+      'Sector': 'sector'
+    };
+
+    // Update other fields from body
+    const { logo, Logo, ...otherFields } = req.body;
+    
     Object.keys(otherFields).forEach(key => {
-      if (otherFields[key] !== undefined && otherFields[key] !== '') {
+      // Skip if value is undefined or empty string (optional, based on existing logic)
+      if (otherFields[key] === undefined || otherFields[key] === '') return;
+
+      // Check if this key needs mapping
+      if (fieldMapping[key]) {
+        company[fieldMapping[key]] = otherFields[key];
+      } else if (Object.values(fieldMapping).includes(key)) {
+        // If the key is already a valid model field name (e.g. 'name'), use it directly
+        company[key] = otherFields[key];
+      } else {
+        // Legacy support: try to set the field directly if it's not mapped
+        // This handles any other fields that might match the schema directly
         company[key] = otherFields[key];
       }
     });
