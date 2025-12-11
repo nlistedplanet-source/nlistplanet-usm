@@ -83,6 +83,7 @@ const DashboardPage = () => {
   const [likedListings, setLikedListings] = useState(new Set());
   const [favoritedListings, setFavoritedListings] = useState(new Set());
   const [actionItems, setActionItems] = useState([]);
+  const [viewMode, setViewMode] = useState('user'); // 'user' or 'admin'
 
   // Fetch Action Items (Incoming Bids/Offers & Counter Offers)
   useEffect(() => {
@@ -393,30 +394,62 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Navigation Menu - Scrollable */}
-        <nav className="flex-1 overflow-y-auto p-2 pb-16">
-          <div className="space-y-1">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
-                    isActive
-                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <Icon size={18} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-
-            {/* Admin Section */}
+        {/* View Mode Toggle - Admin Only */}
+        {user?.role === 'admin' && (
+          <div className="p-3 border-b border-gray-100 flex-shrink-0">
+            </* Show User Tabs or Admin Tabs based on viewMode */}
+            {viewMode === 'user' ? (
+              // User Dashboard Tabs
+              tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+                      isActive
+                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Icon size={18} />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })
+            ) : (
+              // Admin Dashboard Tabs
+              user?.role === 'admin' && (
+                <>
+                  <div className="pb-2">
+                    <p className="px-3 text-[10px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
+                      <Shield size={12} />
+                      Admin Panel
+                    </p>
+                  </div>
+                  {adminTabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => handleTabChange(tab.id)}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+                          isActive
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
+                            : 'text-gray-700 hover:bg-blue-50'
+                        }`}
+                      >
+                        <Icon size={18} />
+                        <span>{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </>
+              )dmin Section */}
             {user?.role === 'admin' && (
               <>
                 <div className="pt-3 pb-1 mt-2 border-t border-gray-200">
