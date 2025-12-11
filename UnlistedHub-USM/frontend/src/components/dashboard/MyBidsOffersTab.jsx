@@ -249,7 +249,7 @@ const MyBidsOffersTab = () => {
                     </p>
                     {!isListingDeleted && (
                       <p className="text-xs text-gray-500">
-                        Listed Price: {formatCurrency(listingPrice)} x {activity.listing?.listingQuantity || 0} shares
+                        Listed Price: {formatCurrency(activity.listing?.displayPrice || listingPrice)} x {activity.listing?.listingQuantity || 0} shares
                       </p>
                     )}
                   </div>
@@ -285,98 +285,99 @@ const MyBidsOffersTab = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {(() => {
-                          // Construct Rounds Data
-                          const rounds = [];
-                          const maxRound = counterHistory.reduce((max, c) => Math.max(max, c.round || 1), 1);
+                        {/* Round 1: Your Initial Bid */}
+                        <tr className="bg-green-50 hover:bg-green-100">
+                          <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-purple-700">Round 1</td>
+                          <td className="border border-gray-300 px-3 py-2 text-xs font-semibold text-green-700">Your {isBid ? 'Bid' : 'Offer'}</td>
+                          <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-gray-900 text-right">
+                            {formatCurrency(activity.originalPrice || activity.price)}
+                          </td>
+                          <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-gray-900 text-right">{activity.quantity} shares</td>
+                          <td className="border border-gray-300 px-3 py-2 text-center">
+                            {activity.status === 'pending' && !hasCounterHistory && (
+                              <span className="text-xs text-yellow-600 font-medium">⏳ Waiting...</span>
+                            )}
+                          </td>
+                        </tr>
+                        
+                        {/* Counter History Rows */}
+                        {counterHistory.map((counter, idx) => {
+                          const isSellerCounter = counter.by === 'seller';
+                          const roundNum = Math.floor(idx / 2) + 1 + (idx % 2 === 0 ? 0 : 0);
+                          const isLatestRow = idx === counterHistory.length - 1;
+                          const canTakeAction = isLatestRow && showActions && isSellerCounter;
                           
-                          // Round 1 (Initial)
-                          const r1MyPrice = activity.originalPrice || activity.price; // Use originalPrice if available
-                          const r1TheirCounter = counterHistory.find(c => c.round === 1 && c.by === (isBid ? 'seller' : 'buyer'));
-                          
-                          rounds.push({
-                            round: 1,
-                            myPrice: r1MyPrice,
-                            theirPrice: r1TheirCounter ? r1TheirCounter.price : null,
-                            quantity: r1TheirCounter ? r1TheirCounter.quantity : activity.quantity,
-                            isLatest: maxRound === 1
-                          });
-
-                          // Subsequent Rounds
-                          for (let i = 2; i <= maxRound; i++) {
-                            const myCounter = counterHistory.find(c => c.round === i && c.by === (isBid ? 'buyer' : 'seller'));
-                            const theirCounter = counterHistory.find(c => c.round === i && c.by === (isBid ? 'seller' : 'buyer'));
-                            
-                            rounds.push({
-                              round: i,
-                              myPrice: myCounter ? myCounter.price : null,
-                              theirPrice: theirCounter ? theirCounter.price : null,
-                              quantity: (theirCounter || myCounter)?.quantity || 0,
-                              isLatest: i === maxRound
-                            });
+                          // Viewer perspective:
+                          // - If isBid (buyer viewing their bids on SELL listings):
+                          //   - Seller's counter: buyer sees ×1.02 (what they'll pay)
+                          //   - Buyer's counter: shows as-is (their own entered price)
+                          // - If !isBid (seller viewing their offers on BUY listings):
+                          //   - Buyer's counter: seller sees ×0.98 (what they'll receive)
+                          //   - Seller's counter: shows as-is (their own entered price)
+                          let displayPrice;
+                          if (isBid) {
+                            // Buyer viewing - seller's counter needs ×1.02
+                            displayPrice = isSellerCounter ? calculateBuyerPays(counter.price) : counter.price;
+                          } else {
+                            // Seller viewing - buyer's counter needs ×0.98
+                            displayPrice = !isSellerCounter ? calculateSellerGets(counter.price) : counter.price;
                           }
-
-                          return rounds.map((round, idx) => {
-                            const displayMyPrice = round.myPrice;
-                            const displayTheirPrice = round.theirPrice 
-                              ? (isBid ? calculateBuyerPays(round.theirPrice) : calculateSellerGets(round.theirPrice))
-                              : null;
-
-                            const isLastRow = idx === rounds.length - 1;
-                            const canRespond = isLastRow && round.theirPrice && activity.status === 'countered';
-
-                            return (
-                              <tr key={round.round} className="hover:bg-gray-50">
-                                <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-purple-700">
-                                  Round {round.round}
-                                </td>
-                                <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-blue-700 text-right">
-                                  {displayMyPrice ? formatCurrency(displayMyPrice) : '-'}
-                                </td>
-                                <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-orange-700 text-right">
-                                  {displayTheirPrice ? formatCurrency(displayTheirPrice) : '-'}
-                                </td>
-                                <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-gray-900 text-right">
-                                  {round.quantity} shares
-                                </td>
-                                <td className="border border-gray-300 px-3 py-2 text-center">
-                                  {canRespond ? (
-                                    <div className="flex items-center justify-center gap-1">
-                                      <button 
-                                        onClick={() => handleAccept(activity)} 
-                                        disabled={actionLoading === activity._id}
-                                        className="px-2 py-1 bg-green-600 text-white rounded text-xs font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-1"
-                                      >
-                                        <CheckCircle size={12} />
-                                        Accept
-                                      </button>
-                                      <button 
-                                        onClick={() => handleReject(activity)} 
-                                        disabled={actionLoading === activity._id}
-                                        className="px-2 py-1 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-1"
-                                      >
-                                        <XCircle size={12} />
-                                        Reject
-                                      </button>
-                                      <button 
-                                        onClick={() => handleCounterClick(activity)} 
-                                        disabled={actionLoading === activity._id}
-                                        className="px-2 py-1 bg-purple-600 text-white rounded text-xs font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-1"
-                                      >
-                                        <RotateCcw size={12} />
-                                        Counter
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <span className="text-xs text-gray-400 font-medium">
-                                      {round.theirPrice ? 'Response Pending' : 'Waiting...'}
-                                    </span>
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          });
-                        })()}
+                          
+                          return (
+                            <tr key={idx} className={`${isSellerCounter ? 'bg-orange-50 hover:bg-orange-100' : 'bg-blue-50 hover:bg-blue-100'}`}>
+                              <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-purple-700">
+                                {counter.round ? `Round ${counter.round}` : `#${idx + 1}`}
+                              </td>
+                              <td className="border border-gray-300 px-3 py-2 text-xs font-semibold">
+                                <span className={isSellerCounter ? 'text-orange-700' : 'text-blue-700'}>
+                                  {isSellerCounter 
+                                    ? `${isBid ? 'Seller' : 'Buyer'} (@${activity.listing.owner?.username}) Counter` 
+                                    : 'Your Counter'
+                                  }
+                                </span>
+                              </td>
+                              <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-gray-900 text-right">
+                                {formatCurrency(displayPrice)}
+                              </td>
+                              <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-gray-900 text-right">
+                                {counter.quantity} shares
+                              </td>
+                              <td className="border border-gray-300 px-3 py-2 text-center">
+                                {canTakeAction && (
+                                  <div className="flex items-center justify-center gap-1">
+                                    <button 
+                                      onClick={() => handleAccept(activity)} 
+                                      disabled={actionLoading === activity._id}
+                                      className="px-2 py-1 bg-green-600 text-white rounded text-xs font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-1"
+                                    >
+                                      <CheckCircle size={12} />
+                                      Accept
+                                    </button>
+                                    <button 
+                                      onClick={() => handleReject(activity)} 
+                                      disabled={actionLoading === activity._id}
+                                      className="px-2 py-1 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-1"
+                                    >
+                                      <XCircle size={12} />
+                                      Reject
+                                    </button>
+                                    <button 
+                                      onClick={() => handleCounterClick(activity)} 
+                                      disabled={actionLoading === activity._id}
+                                      className="px-2 py-1 bg-purple-600 text-white rounded text-xs font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-1"
+                                    >
+                                      <RotateCcw size={12} />
+                                      Counter
+                                    </button>
+                                  </div>
+                                )}
+                                {!canTakeAction && isLatestRow && !isSellerCounter && activity.status === 'countered' && (
+                                  <span className="text-xs text-blue-600 font-medium">⏳ Waiting for response...</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
