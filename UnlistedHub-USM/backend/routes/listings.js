@@ -140,6 +140,7 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
                 owner: listing.userId
               },
               price: bid.price,
+              originalPrice: bid.originalPrice || bid.price, // Include original price
               quantity: bid.quantity,
               message: bid.message,
               status: bid.status,
@@ -167,6 +168,7 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
                 owner: listing.userId
               },
               price: offer.price,
+              originalPrice: offer.originalPrice || offer.price, // Include original price
               quantity: offer.quantity,
               message: offer.message,
               status: offer.status,
