@@ -303,7 +303,6 @@ const MyBidsOffersTab = () => {
                         {/* Counter History Rows */}
                         {counterHistory.map((counter, idx) => {
                           const isSellerCounter = counter.by === 'seller';
-                          const roundNum = Math.floor(idx / 2) + 1 + (idx % 2 === 0 ? 0 : 0);
                           const isLatestRow = idx === counterHistory.length - 1;
                           const canTakeAction = isLatestRow && showActions && isSellerCounter;
                           
@@ -326,7 +325,7 @@ const MyBidsOffersTab = () => {
                           return (
                             <tr key={idx} className={`${isSellerCounter ? 'bg-orange-50 hover:bg-orange-100' : 'bg-blue-50 hover:bg-blue-100'}`}>
                               <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-purple-700">
-                                {counter.round ? `Round ${counter.round}` : `#${idx + 1}`}
+                                Round {counter.round || (idx + 1)}
                               </td>
                               <td className="border border-gray-300 px-3 py-2 text-xs font-semibold">
                                 <span className={isSellerCounter ? 'text-orange-700' : 'text-blue-700'}>
