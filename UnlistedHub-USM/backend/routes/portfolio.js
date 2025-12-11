@@ -151,7 +151,7 @@ router.get('/activities', protect, async (req, res, next) => {
       .sort({ createdAt: -1 })
       .limit(limit);
 
-    // Get listings where user placed bids/offers
+    // Get listings where user placed bids/offers - Remove limit to ensure we find all relevant listings regardless of creation date
     const listingsWithBidsOffers = await Listing.find({
       $or: [
         { 'bids.userId': userId },
@@ -159,8 +159,8 @@ router.get('/activities', protect, async (req, res, next) => {
       ]
     })
       .select('companyName listingType bids offers createdAt')
-      .sort({ createdAt: -1 })
-      .limit(limit);
+      .sort({ createdAt: -1 });
+      // .limit(limit); // Removed limit to ensure we catch recent bids on older listings
 
     // Format activities
     const activities = [];
