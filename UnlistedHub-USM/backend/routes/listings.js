@@ -136,7 +136,9 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
                 companyName: listing.companyName,
                 companyId: listing.companyId,
                 listingPrice: listing.price,
+                displayPrice: listing.displayPrice || (listing.type === 'sell' ? listing.price * 1.02 : listing.price * 0.98),
                 listingQuantity: listing.quantity,
+                isActive: listing.status === 'active',
                 owner: listing.userId
               },
               price: bid.price,
@@ -164,7 +166,9 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
                 companyName: listing.companyName,
                 companyId: listing.companyId,
                 listingPrice: listing.price,
+                displayPrice: listing.displayPrice || (listing.type === 'sell' ? listing.price * 1.02 : listing.price * 0.98),
                 listingQuantity: listing.quantity,
+                isActive: listing.status === 'active',
                 owner: listing.userId
               },
               price: offer.price,
