@@ -56,7 +56,7 @@ import ShareCardGenerator from '../components/ShareCardGenerator';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
   const [loading, setLoading] = useState(true);
@@ -85,21 +85,40 @@ const DashboardPage = () => {
   const [actionItems, setActionItems] = useState([]);
   const [viewMode, setViewMode] = useState('user'); // 'user' or 'admin'
 
-  // Fetch Action Items (Incoming Bids/Offers & Counter Offers)
+  // Unified Dashboard Data Fetching
   useEffect(() => {
-    const fetchActionItems = async () => {
+    const fetchDashboardData = async () => {
+      // 1. Check Auth Readiness
+      if (authLoading) {
+        console.log('⏳ Dashboard: Waiting for auth loading...');
+        return;
+      }
+
+      if (!user) {
+        console.log('⚠️ Dashboard: No user found');
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.warn('⚠️ Dashboard: No token found in localStorage');
+        return;
+      }
+
+      console.log('🚀 Dashboard: Fetching data for tab:', activeTab);
+
+      // 2. Fetch Action Items (Always fetch on mount/tab change to keep badge updated)
       try {
-        const [sellRes, buyRes, myBidsRes] = await Promise.all([
-          listingsAPI.getMy({ type: 'sell' }),
-          listingsAPI.getMy({ type: 'buy' }),
-          listingsAPI.getMyPlacedBids()
-        ]);
+        // Sequential fetch to avoid race conditions
+        const sellRes = await listingsAPI.getMy({ type: 'sell' });
+        const buyRes = await listingsAPI.getMy({ type: 'buy' });
+        const myBidsRes = await listingsAPI.getMyPlacedBids();
 
         const actions = [];
 
         // 1. Incoming Bids on my Sell Posts
-        sellRes.data.data.forEach(listing => {
-          listing.bids?.forEach(bid => {
+        (sellRes.data.data || []).forEach(listing => {
+          (listing.bids || []).forEach(bid => {
             if (bid.status === 'pending') {
               actions.push({
                 type: 'bid_received',
@@ -107,8 +126,8 @@ const DashboardPage = () => {
                 listingId: listing._id,
                 company: listing.companyName,
                 logo: listing.companyId?.logo || listing.companyId?.Logo,
-                yourPrice: listing.price, // Seller's original listing price
-                counterPrice: bid.price, // Buyer's bid price
+                yourPrice: listing.price,
+                counterPrice: bid.price,
                 quantity: bid.quantity,
                 user: bid.userId?.username,
                 date: bid.createdAt,
@@ -119,8 +138,8 @@ const DashboardPage = () => {
         });
 
         // 2. Incoming Offers on my Buy Posts
-        buyRes.data.data.forEach(listing => {
-          listing.offers?.forEach(offer => {
+        (buyRes.data.data || []).forEach(listing => {
+          (listing.offers || []).forEach(offer => {
             if (offer.status === 'pending') {
               actions.push({
                 type: 'offer_received',
@@ -128,8 +147,8 @@ const DashboardPage = () => {
                 listingId: listing._id,
                 company: listing.companyName,
                 logo: listing.companyId?.logo || listing.companyId?.Logo,
-                yourPrice: listing.price * 1.02, // Buyer sees marketplace price (price + 2%)
-                counterPrice: offer.price, // Seller's offer price
+                yourPrice: listing.price * 1.02,
+                counterPrice: offer.price,
                 quantity: offer.quantity,
                 user: offer.userId?.username,
                 date: offer.createdAt,
@@ -140,7 +159,7 @@ const DashboardPage = () => {
         });
 
         // 3. Counter Offers on my Bids/Offers
-        myBidsRes.data.data.forEach(activity => {
+        (myBidsRes.data.data || []).forEach(activity => {
           if (activity.status === 'countered') {
             const counterHistory = activity.counterHistory || [];
             const latestCounter = counterHistory[counterHistory.length - 1];
@@ -151,8 +170,8 @@ const DashboardPage = () => {
               listingId: activity.listing._id,
               company: activity.listing.companyName,
               logo: activity.listing.companyId?.logo || activity.listing.companyId?.Logo,
-              yourPrice: activity.originalPrice || activity.price, // Your original bid/offer
-              counterPrice: latestCounter?.price || activity.price, // Counter price
+              yourPrice: activity.originalPrice || activity.price,
+              counterPrice: latestCounter?.price || activity.price,
               quantity: activity.quantity,
               user: activity.listing.userId?.username || 'Seller',
               date: activity.updatedAt,
@@ -161,49 +180,53 @@ const DashboardPage = () => {
           }
         });
 
-        // Sort by date (newest first)
         setActionItems(actions.sort((a, b) => new Date(b.date) - new Date(a.date)));
       } catch (error) {
-        console.error('Failed to fetch action items:', error);
+        console.error('❌ Failed to fetch action items:', error);
       }
-    };
 
-    fetchActionItems();
-  }, [activeTab]); // Fetch whenever activeTab changes including initial mount
-
-  // Fetch portfolio data
-  useEffect(() => {
-    const fetchPortfolioData = async () => {
-      try {
+      // 3. Fetch Portfolio Data (Only for Overview/Portfolio tabs)
+      if (activeTab === 'overview' || activeTab === 'portfolio') {
         setLoading(true);
-        const [statsRes, holdingsRes, activitiesRes] = await Promise.all([
-          portfolioAPI.getStats(),
-          portfolioAPI.getHoldings(),
-          portfolioAPI.getActivities({ limit: 10 })
-        ]);
-        const s = statsRes.data.data || {};
-        setPortfolioStats({
-          totalValue: Number(s.totalValue) || 0,
-          totalInvested: Number(s.totalInvested) || 0,
-          totalGain: Number(s.totalGain) || 0,
-          gainPercentage: Number(s.gainPercentage) || 0,
-          activeListings: Number(s.activeListings) || 0,
-          completedTrades: Number(s.completedTrades) || 0,
-        });
-        setHoldings(holdingsRes.data.data);
-        setRecentActivities(activitiesRes.data.data);
-      } catch (error) {
-        console.error('Failed to fetch portfolio data:', error);
-        // Silent fail - don't show error toast on login
-      } finally {
-        setLoading(false);
+        try {
+          // Fetch Stats
+          try {
+            const statsRes = await portfolioAPI.getStats();
+            const s = statsRes.data.data || {};
+            setPortfolioStats({
+              totalValue: Number(s.totalValue) || 0,
+              totalInvested: Number(s.totalInvested) || 0,
+              totalGain: Number(s.totalGain) || 0,
+              gainPercentage: Number(s.gainPercentage) || 0,
+              activeListings: Number(s.activeListings) || 0,
+              completedTrades: Number(s.completedTrades) || 0,
+            });
+          } catch (e) { console.error('Failed stats:', e); }
+
+          // Fetch Holdings
+          try {
+            const holdingsRes = await portfolioAPI.getHoldings();
+            setHoldings(holdingsRes.data.data || []);
+          } catch (e) { console.error('Failed holdings:', e); }
+
+          // Fetch Activities
+          try {
+            const activitiesRes = await portfolioAPI.getActivities({ limit: 10 });
+            setRecentActivities(activitiesRes.data.data || []);
+          } catch (e) { console.error('Failed activities:', e); }
+
+        } catch (error) {
+          console.error('❌ Failed to fetch portfolio data:', error);
+        } finally {
+          setLoading(false);
+        }
       }
     };
 
-    if (activeTab === 'overview' || activeTab === 'portfolio') {
-      fetchPortfolioData();
-    }
-  }, [activeTab]);
+    fetchDashboardData();
+  }, [activeTab, authLoading, user]);
+
+
 
   // Fetch marketplace listings
   useEffect(() => {
