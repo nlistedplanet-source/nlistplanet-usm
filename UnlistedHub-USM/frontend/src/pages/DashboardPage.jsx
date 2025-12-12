@@ -403,7 +403,7 @@ const DashboardPage = () => {
         {/* View Mode Toggle - Admin Only */}
         {user?.role === 'admin' && (
           <div className="p-3 border-b border-gray-100 flex-shrink-0">
-            </* Show User Tabs or Admin Tabs based on viewMode */}
+            {/* Show User Tabs or Admin Tabs based on viewMode */}
             {viewMode === 'user' ? (
               // User Dashboard Tabs
               tabs.map((tab) => {
