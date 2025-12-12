@@ -66,7 +66,10 @@ const DashboardPage = () => {
     totalGain: 0,
     gainPercentage: 0,
     activeListings: 0,
-    completedTrades: 0
+    completedTrades: 0,
+    myPostsCount: 0,
+    myBidsCount: 0,
+    pendingActionsCount: 0
   });
   const [holdings, setHoldings] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
@@ -183,7 +186,22 @@ const DashboardPage = () => {
           }
         });
 
-        setActionItems(actions.sort((a, b) => new Date(b.date) - new Date(a.date)));
+        const actionsList = actions.sort((a, b) => new Date(b.date) - new Date(a.date));
+        setActionItems(actionsList);
+
+        // Calculate Counts
+        const postsCount = (sellRes.data.data || []).length + (buyRes.data.data || []).length;
+        const bidsCount = (myBidsRes.data.data || []).length;
+        const pendingCount = actionsList.length;
+
+        // Update stats with counts immediately
+        setPortfolioStats(prev => ({
+          ...prev,
+          myPostsCount: postsCount,
+          myBidsCount: bidsCount,
+          pendingActionsCount: pendingCount
+        }));
+
       } catch (error) {
         console.error('❌ Failed to fetch action items:', error);
       }
@@ -558,74 +576,91 @@ const DashboardPage = () => {
         ) : (
           <>
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
           {/* Total Portfolio Value */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                <IndianRupee className="text-white" size={24} />
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <IndianRupee className="text-white" size={20} />
               </div>
-              <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Total</span>
+              <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Total</span>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">
+            <h3 className="text-xl font-bold text-gray-900 mb-0.5">
               {formatCurrency(portfolioStats.totalValue)}
             </h3>
-            <p className="text-sm text-gray-600">Portfolio Value</p>
-            <div className="flex items-center gap-1 mt-2">
-              <ArrowUpRight size={16} className="text-green-600" />
-              <span className="text-sm font-semibold text-green-600">+{portfolioStats.gainPercentage}%</span>
-              <span className="text-xs text-gray-500">this month</span>
+            <p className="text-xs text-gray-600">Portfolio Value</p>
+            <div className="flex items-center gap-1 mt-1.5">
+              <ArrowUpRight size={14} className="text-green-600" />
+              <span className="text-xs font-semibold text-green-600">+{portfolioStats.gainPercentage}%</span>
+              <span className="text-[10px] text-gray-500">this month</span>
             </div>
           </div>
 
           {/* Total Gain */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                <TrendingUp className="text-white" size={24} />
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                <TrendingUp className="text-white" size={20} />
               </div>
-              <span className="text-xs font-medium text-gray-500 bg-green-50 px-2 py-1 rounded-full text-green-600">Profit</span>
+              <span className="text-[10px] font-medium text-gray-500 bg-green-50 px-2 py-0.5 rounded-full text-green-600">Profit</span>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">
+            <h3 className="text-xl font-bold text-gray-900 mb-0.5">
               {formatCurrency(portfolioStats.totalGain)}
             </h3>
-            <p className="text-sm text-gray-600">Total Gain</p>
-            <div className="flex items-center gap-1 mt-2">
-              <span className="text-sm text-gray-500">from {formatCurrency(portfolioStats.totalInvested)}</span>
+            <p className="text-xs text-gray-600">Total Gain</p>
+            <div className="flex items-center gap-1 mt-1.5">
+              <span className="text-[10px] text-gray-500">from {formatCurrency(portfolioStats.totalInvested)}</span>
             </div>
           </div>
 
-          {/* Active Listings */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
-                <Package className="text-white" size={24} />
+          {/* My Posts Count */}
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleTabChange('posts')}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
+                <FileText className="text-white" size={20} />
               </div>
-              <span className="text-xs font-medium text-gray-500 bg-orange-50 px-2 py-1 rounded-full text-orange-600">Active</span>
+              <span className="text-[10px] font-medium text-gray-500 bg-blue-50 px-2 py-0.5 rounded-full text-blue-600">Posts</span>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">
-              {portfolioStats.activeListings}
+            <h3 className="text-xl font-bold text-gray-900 mb-0.5">
+              {portfolioStats.myPostsCount || 0}
             </h3>
-            <p className="text-sm text-gray-600">Active Listings</p>
-            <div className="flex items-center gap-1 mt-2">
-              <button onClick={() => handleTabChange('posts')} className="text-sm text-purple-600 font-medium hover:underline">View all →</button>
+            <p className="text-xs text-gray-600">My Posts</p>
+            <div className="flex items-center gap-1 mt-1.5">
+              <span className="text-[10px] text-purple-600 font-medium">View all →</span>
             </div>
           </div>
 
-          {/* Completed Trades */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center">
-                <Activity className="text-white" size={24} />
+          {/* My Bids Count */}
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleTabChange('my-bids-offers')}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
+                <TrendingUp className="text-white" size={20} />
               </div>
-              <span className="text-xs font-medium text-gray-500 bg-blue-50 px-2 py-1 rounded-full text-blue-600">Done</span>
+              <span className="text-[10px] font-medium text-gray-500 bg-orange-50 px-2 py-0.5 rounded-full text-orange-600">Bids</span>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">
-              {portfolioStats.completedTrades}
+            <h3 className="text-xl font-bold text-gray-900 mb-0.5">
+              {portfolioStats.myBidsCount || 0}
             </h3>
-            <p className="text-sm text-gray-600">Completed Trades</p>
-            <div className="flex items-center gap-1 mt-2">
-              <span className="text-sm text-gray-500">this year</span>
+            <p className="text-xs text-gray-600">My Bids</p>
+            <div className="flex items-center gap-1 mt-1.5">
+              <span className="text-[10px] text-purple-600 font-medium">View all →</span>
+            </div>
+          </div>
+
+          {/* Pending Actions */}
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-pink-600 rounded-lg flex items-center justify-center">
+                <Bell className="text-white" size={20} />
+              </div>
+              <span className="text-[10px] font-medium text-gray-500 bg-rose-50 px-2 py-0.5 rounded-full text-rose-600">Action</span>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-0.5">
+              {portfolioStats.pendingActionsCount || 0}
+            </h3>
+            <p className="text-xs text-gray-600">Pending Actions</p>
+            <div className="flex items-center gap-1 mt-1.5">
+              <span className="text-[10px] text-gray-500">Requires attention</span>
             </div>
           </div>
         </div>
