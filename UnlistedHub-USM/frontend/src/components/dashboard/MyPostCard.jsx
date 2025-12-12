@@ -773,9 +773,6 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                               </td>
                               <td className="px-2 py-2 text-center">
                                 <div className="flex items-center justify-center gap-1">
-                                  <button onClick={() => handleAccept(bid)} disabled={actionLoading === bid._id} className="p-1.5 bg-green-100 hover:bg-green-200 rounded-lg transition-colors border border-green-400" title="Accept">
-                                    <CheckCircle size={16} className="text-green-700" />
-                                  </button>
                                   <button onClick={() => handleReject(bid)} disabled={actionLoading === bid._id} className="p-1.5 bg-red-100 hover:bg-red-200 rounded-lg transition-colors border border-red-400" title="Reject">
                                     <XCircle size={16} className="text-red-700" />
                                   </button>
