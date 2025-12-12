@@ -378,7 +378,6 @@ const DashboardPage = () => {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Left Sidebar Navigation - Compact */}
       <aside className="w-56 bg-white border-r border-gray-200 fixed left-0 top-0 h-full flex flex-col z-30">
-        <div className="flex-1 overflow-y-auto">
         {/* User Profile */}
         <div className="p-3 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -401,6 +400,7 @@ const DashboardPage = () => {
           </div>
         </div>
 
+        <div className="flex-1 overflow-y-auto">
         {/* Sidebar Tabs */}
         {user?.role === 'admin' ? (
           <div className="p-3 border-b border-gray-100 flex-shrink-0">
