@@ -621,137 +621,122 @@ const DashboardPage = () => {
               </button>
             </div>
             
-            <div className="overflow-x-auto">
+            <div className="p-4">
               {actionItems.length === 0 ? (
-                <div className="text-center py-8 bg-gray-50 rounded-xl m-4">
+                <div className="text-center py-8 bg-gray-50 rounded-xl">
                   <CheckCircle className="mx-auto text-green-500 mb-2" size={32} />
                   <p className="text-gray-900 font-medium text-sm">All Caught Up!</p>
                 </div>
               ) : (
-                <table className="w-full">
-                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                        Type
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                        Company
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                        Your Price
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                        Offer Price
-                      </th>
-                      <th className="px-4 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {actionItems.map((item) => (
-                      <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                        {/* Type Badge */}
-                        <td className="px-4 py-4">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                              item.type === 'bid_received' ? 'bg-blue-100 text-blue-600' :
-                              item.type === 'offer_received' ? 'bg-green-100 text-green-600' :
-                              'bg-orange-100 text-orange-600'
-                            }`}>
-                              {item.type === 'bid_received' ? <TrendingDown size={16} /> :
-                               item.type === 'offer_received' ? <TrendingUp size={16} /> :
-                               <RotateCcw size={16} />}
-                            </div>
-                            <div>
-                              <p className="text-xs font-semibold text-gray-900">
-                                {item.type === 'counter_received' ? 'Counter' : 
-                                 item.type === 'bid_received' ? 'Bid In' : 'Offer In'}
-                              </p>
-                              <p className="text-[10px] text-gray-400">
-                                {new Date(item.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-                              </p>
-                            </div>
+                <div className="space-y-3">
+                  {actionItems.map((item) => (
+                    <div key={item.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                      {/* Table Header */}
+                      <div className="grid grid-cols-5 gap-4 bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-2.5 border-b border-gray-200">
+                        <div className="text-xs font-bold text-gray-700 uppercase">Type</div>
+                        <div className="text-xs font-bold text-gray-700 uppercase">Company</div>
+                        <div className="text-xs font-bold text-gray-700 uppercase">Your Price</div>
+                        <div className="text-xs font-bold text-gray-700 uppercase">Offer Price</div>
+                        <div className="text-xs font-bold text-gray-700 uppercase text-right">Actions</div>
+                      </div>
+                      
+                      {/* Table Data Row */}
+                      <div className="grid grid-cols-5 gap-4 px-4 py-4 items-center hover:bg-gray-50 transition-colors">
+                        {/* Type Column */}
+                        <div className="flex items-center gap-2">
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            item.type === 'bid_received' ? 'bg-blue-100 text-blue-600' :
+                            item.type === 'offer_received' ? 'bg-green-100 text-green-600' :
+                            'bg-orange-100 text-orange-600'
+                          }`}>
+                            {item.type === 'bid_received' ? <TrendingDown size={18} /> :
+                             item.type === 'offer_received' ? <TrendingUp size={18} /> :
+                             <RotateCcw size={18} />}
                           </div>
-                        </td>
-
-                        {/* Company Info */}
-                        <td className="px-4 py-4">
-                          <div className="flex items-center gap-2">
-                            {item.logo && (
-                              <img 
-                                src={item.logo} 
-                                alt={item.company}
-                                className="w-8 h-8 rounded-lg object-cover border border-gray-200"
-                              />
-                            )}
-                            <div>
-                              <p className="font-semibold text-gray-900 text-sm">
-                                {item.company}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Qty: {item.quantity}
-                              </p>
-                            </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">
+                              {item.type === 'counter_received' ? 'Counter' : 
+                               item.type === 'bid_received' ? 'Bid In' : 'Offer In'}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(item.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                            </p>
                           </div>
-                        </td>
+                        </div>
 
-                        {/* Your Price */}
-                        <td className="px-4 py-4">
+                        {/* Company Column */}
+                        <div className="flex items-center gap-2.5">
+                          {item.logo && (
+                            <img 
+                              src={item.logo} 
+                              alt={item.company}
+                              className="w-9 h-9 rounded-lg object-cover border border-gray-200"
+                            />
+                          )}
+                          <div className="min-w-0">
+                            <p className="font-semibold text-gray-900 text-sm truncate">
+                              {item.company}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Qty: {item.quantity?.toLocaleString('en-IN')}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Your Price Column */}
+                        <div>
                           <div className="bg-purple-50 border border-purple-200 rounded-lg px-3 py-2 inline-block">
-                            <p className="text-xs text-purple-600 font-medium">Your Price</p>
+                            <p className="text-xs text-purple-600 font-medium mb-0.5">Your Price</p>
                             <p className="text-sm font-bold text-purple-900">
                               {formatCurrency(item.yourPrice)}
                             </p>
                           </div>
-                        </td>
+                        </div>
 
-                        {/* Counter/Seller Price */}
-                        <td className="px-4 py-4">
+                        {/* Offer Price Column */}
+                        <div>
                           <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 inline-block">
-                            <p className="text-xs text-blue-600 font-medium">
+                            <p className="text-xs text-blue-600 font-medium mb-0.5">
                               {item.type === 'counter_received' ? 'Counter' : 
-                               item.type === 'bid_received' ? 'Bid' : 'Offer'} @ @{item.user}
+                               item.type === 'bid_received' ? 'Bid' : 'Offer'} @ @
                             </p>
                             <p className="text-sm font-bold text-blue-900">
                               {formatCurrency(item.counterPrice)}
                             </p>
                           </div>
-                        </td>
+                        </div>
 
-                        {/* Action Buttons */}
-                        <td className="px-4 py-4">
-                          <div className="flex items-center justify-end gap-2">
-                            <button 
-                              onClick={() => handleTabChange('posts')}
-                              className="px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors"
-                            >
-                              Accept
-                            </button>
-                            <button 
-                              onClick={() => handleTabChange('posts')}
-                              className="px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition-colors"
-                            >
-                              Reject
-                            </button>
-                            <button 
-                              onClick={() => handleTabChange('posts')}
-                              className="px-3 py-1.5 bg-orange-600 text-white text-xs font-semibold rounded-lg hover:bg-orange-700 transition-colors"
-                            >
-                              Counter
-                            </button>
-                            <button 
-                              onClick={() => handleTabChange(item.type === 'counter_received' ? 'my-bids-offers' : 'posts')}
-                              className="px-3 py-1.5 bg-gray-900 text-white text-xs font-semibold rounded-lg hover:bg-gray-800 transition-colors"
-                            >
-                              View
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        {/* Action Buttons Column */}
+                        <div className="flex items-center justify-end gap-2">
+                          <button 
+                            onClick={() => handleTabChange('posts')}
+                            className="px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                          >
+                            Accept
+                          </button>
+                          <button 
+                            onClick={() => handleTabChange('posts')}
+                            className="px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition-colors"
+                          >
+                            Reject
+                          </button>
+                          <button 
+                            onClick={() => handleTabChange('posts')}
+                            className="px-3 py-1.5 bg-orange-600 text-white text-xs font-semibold rounded-lg hover:bg-orange-700 transition-colors"
+                          >
+                            Counter
+                          </button>
+                          <button 
+                            onClick={() => handleTabChange(item.type === 'counter_received' ? 'my-bids-offers' : 'posts')}
+                            className="px-3 py-1.5 bg-gray-900 text-white text-xs font-semibold rounded-lg hover:bg-gray-800 transition-colors"
+                          >
+                            View
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>
