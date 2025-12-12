@@ -125,28 +125,31 @@ const HomePage = () => {
       </div>
 
       {/* Company Logos Section - Fetch from Database */}
-      <div className="bg-gray-50 py-16">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">Featured Unlisted Companies</h2>
+      <div className="bg-gray-50 py-16 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 mb-12">
+          <h2 className="text-3xl font-bold text-center text-gray-800">Featured Unlisted Companies</h2>
+        </div>
           
-          <div>
-            {loadingCompanies ? (
-              <div className="flex justify-center items-center h-24">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
-              </div>
-            ) : companies.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {companies.map((company) => (
+        <div>
+          {loadingCompanies ? (
+            <div className="flex justify-center items-center h-24">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+            </div>
+          ) : companies.length > 0 ? (
+            <div className="marquee-container">
+              <div className="marquee-track flex gap-6 py-4 px-4">
+                {/* Duplicate list for seamless scrolling */}
+                {[...companies, ...companies].map((company, index) => (
                   <div 
-                    key={company._id}
-                    className="bg-white px-4 py-4 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col items-center gap-3 border border-gray-100 cursor-pointer"
+                    key={`${company._id}-${index}`}
+                    className="flex-shrink-0 w-48 bg-white px-4 py-6 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col items-center gap-3 border border-gray-100 cursor-pointer"
                     onClick={() => navigate(`/company/${company._id}`)}
                   >
                     {company.logo ? (
                       <img 
                         src={company.logo} 
                         alt={company.name}
-                        className="h-12 w-12 object-contain"
+                        className="h-16 w-16 object-contain"
                         onError={(e) => {
                           e.target.style.display = 'none';
                           e.target.nextSibling.style.display = 'flex';
@@ -154,24 +157,42 @@ const HomePage = () => {
                       />
                     ) : null}
                     <div 
-                      className="h-12 w-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded flex items-center justify-center text-white text-sm font-bold"
+                      className="h-16 w-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded flex items-center justify-center text-white text-lg font-bold"
                       style={{ display: company.logo ? 'none' : 'flex' }}
                     >
                       {company.name?.substring(0, 2).toUpperCase()}
                     </div>
-                    <span className="text-sm font-semibold text-gray-700 text-center line-clamp-2">{company.name}</span>
+                    <span className="text-sm font-semibold text-gray-700 text-center line-clamp-2 h-10 flex items-center justify-center">{company.name}</span>
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="text-center text-gray-500 py-8">
-                <p>No companies available yet</p>
-              </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 py-8">
+              <p>No companies available yet</p>
+            </div>
+          )}
         </div>
         
         <style>{`
+          .marquee-container {
+            width: 100%;
+            overflow: hidden;
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+          }
+          .marquee-track {
+            display: flex;
+            width: max-content;
+            animation: scroll 40s linear infinite;
+          }
+          .marquee-track:hover {
+            animation-play-state: paused;
+          }
+          @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
         `}</style>
       </div>
 
