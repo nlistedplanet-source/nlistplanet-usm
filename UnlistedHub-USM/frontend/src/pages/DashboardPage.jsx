@@ -378,6 +378,7 @@ const DashboardPage = () => {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Left Sidebar Navigation - Compact */}
       <aside className="w-56 bg-white border-r border-gray-200 fixed left-0 top-0 h-full flex flex-col z-30">
+        <div className="flex-1 overflow-y-auto">
         {/* User Profile */}
         <div className="p-3 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -459,17 +460,16 @@ const DashboardPage = () => {
         )}
 
         {/* Logout inside scroll */}
-            <div className="pt-3 mt-2 border-t border-gray-100">
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition-all text-red-600 hover:bg-red-50"
-              >
-                <LogOut size={18} />
-                <span>Logout</span>
-              </button>
-            </div>
-          </div>
-        </nav>
+        <div className="pt-3 mt-2 border-t border-gray-100">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition-all text-red-600 hover:bg-red-50"
+          >
+            <LogOut size={18} />
+            <span>Logout</span>
+          </button>
+        </div>
+        </div>
       </aside>
 
       {/* Main Content Area */}
