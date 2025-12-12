@@ -400,6 +400,34 @@ const DashboardPage = () => {
           </div>
         </div>
 
+        {/* Admin View Mode Toggle */}
+        {user?.role === 'admin' && (
+          <div className="p-3 border-b border-gray-100 flex-shrink-0">
+            <div className="bg-blue-50 rounded-lg p-2 flex items-center justify-between">
+              <button
+                onClick={() => setViewMode('user')}
+                className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                  viewMode === 'user'
+                    ? 'bg-white text-purple-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                👤 User
+              </button>
+              <button
+                onClick={() => setViewMode('admin')}
+                className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                  viewMode === 'admin'
+                    ? 'bg-white text-blue-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                🛡️ Admin
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex-1 overflow-y-auto">
         {/* Sidebar Tabs */}
         {user?.role === 'admin' ? (
