@@ -995,7 +995,7 @@ const DashboardPage = () => {
                         price={displayPrice}
                         shares={listing.quantity}
                         user={listing.username}
-                        isBoosted={listing.isBoosted || (listing.boostedUntil && new Date(listing.boostedUntil) > new Date())}
+                        isBoosted={listing.isBoosted || (listing.boostExpiresAt && new Date(listing.boostExpiresAt) > new Date())}
                         onPrimary={() => handlePlaceBid(listing)}
                         onAccept={() => handleAccept(listing)}
                         onShare={() => handleShare(listing)}
