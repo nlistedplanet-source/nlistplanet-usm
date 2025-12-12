@@ -427,39 +427,8 @@ const DashboardPage = () => {
               })
             ) : (
               // Admin Dashboard Tabs
-              user?.role === 'admin' && (
-                <>
-                  <div className="pb-2">
-                    <p className="px-3 text-[10px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
-                      <Shield size={12} />
-                      Admin Panel
-                    </p>
-                  </div>
-                  {adminTabs.map((tab) => {
-                    const Icon = tab.icon;
-                    const isActive = activeTab === tab.id;
-                    
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => handleTabChange(tab.id)}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
-                          isActive
-                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
-                            : 'text-gray-700 hover:bg-blue-50'
-                        }`}
-                      >
-                        <Icon size={18} />
-                        <span>{tab.label}</span>
-                      </button>
-                    );
-                  })}
-                </>
-              )}
-            {/* Admin Section */}
-            {user?.role === 'admin' && (
               <>
-                <div className="pt-3 pb-1 mt-2 border-t border-gray-200">
+                <div className="pb-2">
                   <p className="px-3 text-[10px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
                     <Shield size={12} />
                     Admin Panel
@@ -486,8 +455,10 @@ const DashboardPage = () => {
                 })}
               </>
             )}
+          </div>
+        )}
 
-            {/* Logout inside scroll */}
+        {/* Logout inside scroll */}
             <div className="pt-3 mt-2 border-t border-gray-100">
               <button
                 onClick={handleLogout}
