@@ -125,6 +125,7 @@ const DashboardPage = () => {
                 id: bid._id,
                 listingId: listing._id,
                 company: listing.companyName,
+                companySymbol: listing.companyId?.scriptName || listing.companyId?.ScripName || listing.companyId?.symbol || listing.companyName,
                 logo: listing.companyId?.logo || listing.companyId?.Logo,
                 yourPrice: listing.price,
                 counterPrice: bid.price,
@@ -146,6 +147,7 @@ const DashboardPage = () => {
                 id: offer._id,
                 listingId: listing._id,
                 company: listing.companyName,
+                companySymbol: listing.companyId?.scriptName || listing.companyId?.ScripName || listing.companyId?.symbol || listing.companyName,
                 logo: listing.companyId?.logo || listing.companyId?.Logo,
                 yourPrice: listing.price * 1.02,
                 counterPrice: offer.price,
@@ -169,6 +171,7 @@ const DashboardPage = () => {
               id: activity._id,
               listingId: activity.listing._id,
               company: activity.listing.companyName,
+              companySymbol: activity.listing.companyId?.scriptName || activity.listing.companyId?.ScripName || activity.listing.companyId?.symbol || activity.listing.companyName,
               logo: activity.listing.companyId?.logo || activity.listing.companyId?.Logo,
               yourPrice: activity.originalPrice || activity.price,
               counterPrice: latestCounter?.price || activity.price,
@@ -655,106 +658,83 @@ const DashboardPage = () => {
                   {actionItems.map((item) => (
                     <div key={item.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                       {/* Table Header */}
-                      <div className="grid grid-cols-5 gap-4 bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-2.5 border-b border-gray-200">
-                        <div className="text-xs font-bold text-gray-700 uppercase">Type</div>
-                        <div className="text-xs font-bold text-gray-700 uppercase">Company</div>
-                        <div className="text-xs font-bold text-gray-700 uppercase">Your Price</div>
-                        <div className="text-xs font-bold text-gray-700 uppercase">Offer Price</div>
-                        <div className="text-xs font-bold text-gray-700 uppercase text-right">Actions</div>
+                      <div className="grid grid-cols-5 bg-gray-50 border-b border-gray-200">
+                        <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Type</div>
+                        <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Script</div>
+                        <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Your Price</div>
+                        <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Offer Price</div>
+                        <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center">Actions</div>
                       </div>
                       
                       {/* Table Data Row */}
-                      <div className="grid grid-cols-5 gap-4 px-4 py-4 items-center hover:bg-gray-50 transition-colors">
+                      <div className="grid grid-cols-5 items-stretch hover:bg-gray-50 transition-colors">
                         {/* Type Column */}
-                        <div className="flex items-center gap-2">
-                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            item.type === 'bid_received' ? 'bg-blue-100 text-blue-600' :
-                            item.type === 'offer_received' ? 'bg-green-100 text-green-600' :
-                            'bg-orange-100 text-orange-600'
-                          }`}>
-                            {item.type === 'bid_received' ? <TrendingDown size={18} /> :
-                             item.type === 'offer_received' ? <TrendingUp size={18} /> :
-                             <RotateCcw size={18} />}
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold text-gray-900">
-                              {item.type === 'counter_received' ? 'Counter' : 
-                               item.type === 'bid_received' ? 'Bid In' : 'Offer In'}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {new Date(item.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-                            </p>
-                          </div>
+                        <div className="p-2 border-r border-gray-200 flex flex-col justify-center items-center text-center">
+                          <p className="text-xs font-bold text-gray-900">
+                            {item.type === 'counter_received' ? 'Counter' : 
+                             item.type === 'bid_received' ? 'Bid In' : 'Offer In'}
+                          </p>
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            {new Date(item.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                          </p>
                         </div>
 
-                        {/* Company Column */}
-                        <div className="flex items-center gap-2.5">
-                          {item.logo && (
-                            <img 
-                              src={item.logo} 
-                              alt={item.company}
-                              className="w-9 h-9 rounded-lg object-cover border border-gray-200"
-                            />
-                          )}
-                          <div className="min-w-0">
-                            <p className="font-semibold text-gray-900 text-sm truncate">
-                              {item.company}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              Qty: {item.quantity?.toLocaleString('en-IN')}
-                            </p>
-                          </div>
+                        {/* Script Column (No Logo) */}
+                        <div className="p-2 border-r border-gray-200 flex flex-col justify-center items-center text-center min-w-0">
+                          <p className="font-bold text-gray-900 text-xs truncate w-full" title={item.companySymbol}>
+                            {item.companySymbol}
+                          </p>
+                          <p className="text-[10px] text-gray-500 mt-0.5">
+                            Qty: {item.quantity?.toLocaleString('en-IN')}
+                          </p>
                         </div>
 
                         {/* Your Price Column */}
-                        <div>
-                          <div className="bg-purple-50 border border-purple-200 rounded-lg px-3 py-2 inline-block">
-                            <p className="text-xs text-purple-600 font-medium mb-0.5">Your Price</p>
-                            <p className="text-sm font-bold text-purple-900">
-                              {formatCurrency(item.yourPrice)}
-                            </p>
-                          </div>
+                        <div className="p-2 border-r border-gray-200 flex items-center justify-center">
+                          <p className="text-sm font-bold text-purple-700">
+                            {formatCurrency(item.yourPrice)}
+                          </p>
                         </div>
 
                         {/* Offer Price Column */}
-                        <div>
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 inline-block">
-                            <p className="text-xs text-blue-600 font-medium mb-0.5">
-                              {item.type === 'counter_received' ? 'Counter' : 
-                               item.type === 'bid_received' ? 'Bid' : 'Offer'} @ @
-                            </p>
-                            <p className="text-sm font-bold text-blue-900">
-                              {formatCurrency(item.counterPrice)}
-                            </p>
-                          </div>
+                        <div className="p-2 border-r border-gray-200 flex items-center justify-center">
+                          <p className="text-sm font-bold text-blue-700">
+                            {formatCurrency(item.counterPrice)}
+                          </p>
                         </div>
 
-                        {/* Action Buttons Column */}
-                        <div className="flex items-center justify-end gap-2">
-                          <button 
-                            onClick={() => handleTabChange('posts')}
-                            className="px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors"
-                          >
-                            Accept
-                          </button>
-                          <button 
-                            onClick={() => handleTabChange('posts')}
-                            className="px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition-colors"
-                          >
-                            Reject
-                          </button>
-                          <button 
-                            onClick={() => handleTabChange('posts')}
-                            className="px-3 py-1.5 bg-orange-600 text-white text-xs font-semibold rounded-lg hover:bg-orange-700 transition-colors"
-                          >
-                            Counter
-                          </button>
-                          <button 
-                            onClick={() => handleTabChange(item.type === 'counter_received' ? 'my-bids-offers' : 'posts')}
-                            className="px-3 py-1.5 bg-gray-900 text-white text-xs font-semibold rounded-lg hover:bg-gray-800 transition-colors"
-                          >
-                            View
-                          </button>
+                        {/* Action Buttons Column (2x2 Grid) */}
+                        <div className="p-1.5 flex items-center justify-center">
+                          <div className="grid grid-cols-2 gap-1.5 w-full max-w-[80px]">
+                            <button 
+                              onClick={() => handleTabChange('posts')}
+                              className="bg-green-100 text-green-700 p-1.5 rounded-md hover:bg-green-200 flex items-center justify-center transition-colors"
+                              title="Accept"
+                            >
+                              <CheckCircle size={14} strokeWidth={2.5} />
+                            </button>
+                            <button 
+                              onClick={() => handleTabChange('posts')}
+                              className="bg-red-100 text-red-700 p-1.5 rounded-md hover:bg-red-200 flex items-center justify-center transition-colors"
+                              title="Reject"
+                            >
+                              <XCircle size={14} strokeWidth={2.5} />
+                            </button>
+                            <button 
+                              onClick={() => handleTabChange('posts')}
+                              className="bg-orange-100 text-orange-700 p-1.5 rounded-md hover:bg-orange-200 flex items-center justify-center transition-colors"
+                              title="Counter"
+                            >
+                              <RotateCcw size={14} strokeWidth={2.5} />
+                            </button>
+                            <button 
+                              onClick={() => handleTabChange(item.type === 'counter_received' ? 'my-bids-offers' : 'posts')}
+                              className="bg-gray-100 text-gray-700 p-1.5 rounded-md hover:bg-gray-200 flex items-center justify-center transition-colors"
+                              title="View"
+                            >
+                              <Eye size={14} strokeWidth={2.5} />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
