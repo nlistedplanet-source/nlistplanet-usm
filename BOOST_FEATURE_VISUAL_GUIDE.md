@@ -39,19 +39,19 @@ Boosted listings get premium visual styling to stand out in the marketplace and 
 
 ### Props Required
 ```jsx
-isBoosted={listing.isBoosted || (listing.boostedUntil && new Date(listing.boostedUntil) > new Date())}
+isBoosted={listing.isBoosted || (listing.boostExpiresAt && new Date(listing.boostExpiresAt) > new Date())}
 ```
 
 **Logic:**
 - Check `listing.isBoosted` flag (boolean)
-- OR check if `listing.boostedUntil` date is in the future
+- OR check if `listing.boostExpiresAt` date is in the future
 - Returns `true` if either condition is met
 
 ### Database Fields (Backend)
 From `backend/models/Listing.js`:
 ```javascript
 isBoosted: { type: Boolean, default: false },
-boostedUntil: { type: Date },
+boostExpiresAt: { type: Date, default: null },
 boostHistory: [{
   boostedAt: Date,
   expiresAt: Date,
