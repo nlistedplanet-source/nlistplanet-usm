@@ -455,7 +455,8 @@ const DashboardPage = () => {
                     );
                   })}
                 </>
-              )dmin Section */}
+              )}
+            {/* Admin Section */}
             {user?.role === 'admin' && (
               <>
                 <div className="pt-3 pb-1 mt-2 border-t border-gray-200">
