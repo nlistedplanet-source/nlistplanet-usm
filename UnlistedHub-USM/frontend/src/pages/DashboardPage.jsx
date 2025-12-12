@@ -168,10 +168,8 @@ const DashboardPage = () => {
       }
     };
 
-    if (activeTab === 'overview') {
-      fetchActionItems();
-    }
-  }, [activeTab]);
+    fetchActionItems();
+  }, [activeTab]); // Fetch whenever activeTab changes including initial mount
 
   // Fetch portfolio data
   useEffect(() => {
