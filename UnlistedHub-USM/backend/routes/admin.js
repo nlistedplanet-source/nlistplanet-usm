@@ -1575,4 +1575,167 @@ router.get('/companies/stats', async (req, res, next) => {
   }
 });
 
+// @route   GET /api/admin/deals
+// @desc    Get all completed deals with verification codes
+// @access  Admin
+router.get('/deals', async (req, res, next) => {
+  try {
+    const { status, page = 1, limit = 20 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const query = {};
+    if (status) {
+      query.status = status;
+    }
+
+    const deals = await CompletedDeal.find(query)
+      .populate('sellerId', 'username fullName email phone')
+      .populate('buyerId', 'username fullName email phone')
+      .populate('companyId', 'name scriptName logo')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await CompletedDeal.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: {
+        deals,
+        pagination: {
+          total,
+          page: parseInt(page),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   GET /api/admin/deals/:id
+// @desc    Get single deal with full details
+// @access  Admin
+router.get('/deals/:id', async (req, res, next) => {
+  try {
+    const deal = await CompletedDeal.findById(req.params.id)
+      .populate('sellerId', 'username fullName email phone')
+      .populate('buyerId', 'username fullName email phone')
+      .populate('companyId', 'name scriptName logo sector')
+      .populate('listingId');
+
+    if (!deal) {
+      return res.status(404).json({
+        success: false,
+        message: 'Deal not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: deal
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   PUT /api/admin/deals/:id/mark-sold
+// @desc    Mark deal as SOLD after RM verification and transfer completion
+// @access  Admin
+router.put('/deals/:id/mark-sold', async (req, res, next) => {
+  try {
+    const { adminNotes } = req.body;
+    const deal = await CompletedDeal.findById(req.params.id);
+
+    if (!deal) {
+      return res.status(404).json({
+        success: false,
+        message: 'Deal not found'
+      });
+    }
+
+    // Update deal status to sold
+    deal.status = 'sold';
+    deal.completedAt = new Date();
+    deal.assignedRM = req.user._id;
+    deal.rmName = req.user.fullName || req.user.username;
+    if (adminNotes) {
+      deal.adminNotes = adminNotes;
+    }
+    await deal.save();
+
+    // Notify both buyer and seller
+    await Notification.create({
+      userId: deal.buyerId,
+      type: 'deal_completed',
+      title: '🎊 Transaction Completed!',
+      message: `Your purchase of ${deal.quantity} shares of ${deal.companyName} is now complete!`,
+      data: {
+        dealId: deal._id,
+        companyName: deal.companyName,
+        quantity: deal.quantity
+      }
+    });
+
+    await Notification.create({
+      userId: deal.sellerId,
+      type: 'deal_completed',
+      title: '✅ Sale Completed!',
+      message: `Your sale of ${deal.quantity} shares of ${deal.companyName} is now complete!`,
+      data: {
+        dealId: deal._id,
+        companyName: deal.companyName,
+        quantity: deal.quantity
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Deal marked as SOLD successfully',
+      data: deal
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   PUT /api/admin/deals/:id/update-status
+// @desc    Update deal status (rm_contacted, payment_pending, etc.)
+// @access  Admin
+router.put('/deals/:id/update-status', async (req, res, next) => {
+  try {
+    const { status, notes } = req.body;
+    const deal = await CompletedDeal.findById(req.params.id);
+
+    if (!deal) {
+      return res.status(404).json({
+        success: false,
+        message: 'Deal not found'
+      });
+    }
+
+    deal.status = status;
+    if (notes) {
+      deal.adminNotes = notes;
+    }
+    if (status === 'rm_contacted') {
+      deal.rmContactedAt = new Date();
+      deal.assignedRM = req.user._id;
+      deal.rmName = req.user.fullName || req.user.username;
+    }
+    await deal.save();
+
+    res.json({
+      success: true,
+      message: 'Deal status updated successfully',
+      data: deal
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
+

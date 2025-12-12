@@ -31,6 +31,7 @@ const MarketplaceCard = ({
   price,
   shares,
   user,
+  isBoosted = false, // NEW: Premium boosted listing flag
   onPrimary,      // Place Bid / Make Offer
   onAccept,       // Accept price
   onShare,        // Share listing
@@ -40,6 +41,18 @@ const MarketplaceCard = ({
   isFavorited = false,
 }) => {
   const isSell = type === 'sell';
+  
+  // Premium boosted styling
+  const boostedGradient = isBoosted 
+    ? 'bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50' 
+    : 'bg-white';
+  const boostedBorder = isBoosted 
+    ? 'border-2 border-amber-400 shadow-lg shadow-amber-200/50' 
+    : 'border';
+  const boostedTopBar = isBoosted 
+    ? 'bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500' 
+    : (isSell ? 'bg-emerald-500' : 'bg-yellow-400');
+  
   // Accent color and background based on type
   // Sell post = green (buy opportunity for others)
   // Buy post = yellow (sell opportunity for others)
@@ -54,9 +67,19 @@ const MarketplaceCard = ({
   const logoUrl = companyLogo || `https://ui-avatars.com/api/?name=${companyName}&background=random&size=64`;
   
   return (
-    <div className={`bg-white rounded-lg shadow-sm p-3 w-full border ${borderAccent} relative hover:shadow-md transition-shadow overflow-hidden`}>
+    <div className={`${boostedGradient} rounded-lg shadow-sm p-3 w-full ${boostedBorder} ${!isBoosted && borderAccent} relative hover:shadow-md transition-all overflow-hidden ${isBoosted && 'transform hover:scale-[1.02]'}`}>
       {/* Full-width Colored Line at Top */}
-      <div className={`h-1 rounded-t-lg absolute left-0 top-0 right-0 ${accentColor}`}></div>
+      <div className={`h-1 rounded-t-lg absolute left-0 top-0 right-0 ${boostedTopBar}`}></div>
+      
+      {/* Premium Badge for Boosted Listings */}
+      {isBoosted && (
+        <div className="absolute top-2 right-2 z-10">
+          <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 shadow-lg">
+            <Star size={10} className="fill-current" />
+            PREMIUM
+          </div>
+        </div>
+      )}
       
       {/* Top Row with Badges (Flipped for marketplace: SELL post = BUY opportunity for others) */}
       <div className="flex items-center justify-between mb-1.5 mt-1">

@@ -471,11 +471,11 @@ router.put('/:id/boost', protect, async (req, res, next) => {
 });
 
 // @route   PUT /api/listings/:listingId/bids/:bidId/accept
-// @desc    Accept a bid/offer or accept a counter offer
-// @access  Private (listing owner OR bidder if status is 'countered')
+// @desc    STEP 1: Buyer accepts bid (creates pending deal waiting for seller confirmation)
+// @access  Private (bidder only - buyer accepting the listing price)
 router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => {
   try {
-    const listing = await Listing.findById(req.params.listingId);
+    const listing = await Listing.findById(req.params.listingId).populate('userId', 'username fullName email');
 
     if (!listing) {
       return res.status(404).json({
@@ -495,40 +495,50 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
       });
     }
 
-    const isOwner = listing.userId.toString() === req.user._id.toString();
     const isBidder = bid.userId.toString() === req.user._id.toString();
     
-    // Authorization check:
-    // - Owner can always accept bids
-    // - Bidder can accept ONLY when status is 'countered' (seller has countered)
-    if (!isOwner && !(isBidder && bid.status === 'countered')) {
+    // Only bidder can accept (buyer accepting seller's listing)
+    if (!isBidder) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to accept this bid'
+        message: 'Only the bidder can accept this listing'
       });
     }
 
-    // Update bid status
-    bid.status = 'accepted';
-    
-    // Mark listing as sold/completed when bid is accepted
-    listing.status = 'sold';
+    // Check if already accepted
+    if (bid.status === 'accepted') {
+      return res.status(400).json({
+        success: false,
+        message: 'This bid has already been accepted'
+      });
+    }
+
+    // Update bid status to pending_seller_confirmation
+    bid.status = 'pending_seller_confirmation';
+    bid.buyerAcceptedAt = new Date();
     
     await listing.save();
 
-    // ============ CREATE COMPLETED DEAL WITH RM VERIFICATION CODES ============
+    // ============ CREATE PENDING DEAL (WAITING FOR SELLER CONFIRMATION) ============
     try {
-      const bidderInfo = await User.findById(bid.userId).select('username');
-      const ownerInfo = await User.findById(listing.userId).select('username');
+      const bidderInfo = await User.findById(bid.userId).select('username fullName email');
+      const ownerInfo = listing.userId; // Already populated
       
       // Determine buyer and seller based on listing type
       const isSellListing = listing.type === 'sell';
-      const sellerId = isSellListing ? listing.userId : bid.userId;
-      const buyerId = isSellListing ? bid.userId : listing.userId;
-      const sellerUsername = isSellListing ? ownerInfo?.username : bidderInfo?.username;
-      const buyerUsername = isSellListing ? bidderInfo?.username : ownerInfo?.username;
+      const sellerId = isSellListing ? listing.userId._id : bid.userId;
+      const buyerId = isSellListing ? bid.userId : listing.userId._id;
+      const sellerUsername = isSellListing ? ownerInfo.username : bidderInfo.username;
+      const buyerUsername = isSellListing ? bidderInfo.username : ownerInfo.username;
+      const sellerName = isSellListing ? ownerInfo.fullName : bidderInfo.fullName;
+      const buyerName = isSellListing ? bidderInfo.fullName : ownerInfo.fullName;
       
-      await CompletedDeal.create({
+      // Calculate prices with platform fee
+      const buyerPaysPerShare = isSellListing ? bid.price * 1.02 : bid.price / 0.98;
+      const sellerReceivesPerShare = isSellListing ? bid.price * 0.98 : bid.price;
+      const platformFeePerShare = buyerPaysPerShare - sellerReceivesPerShare;
+      
+      const deal = await CompletedDeal.create({
         listingId: listing._id,
         bidId: bid._id,
         dealType: listing.type,
@@ -536,118 +546,226 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
         companyId: listing.companyId,
         sellerId,
         sellerUsername,
+        sellerName,
         buyerId,
         buyerUsername,
+        buyerName,
         agreedPrice: bid.price,
         quantity: bid.quantity,
-        totalAmount: bid.price * bid.quantity,
-        platformFee: (bid.price * bid.quantity * 0.02), // 2% platform fee
-        dealAcceptedAt: new Date()
+        totalAmount: buyerPaysPerShare * bid.quantity,
+        platformFee: platformFeePerShare * bid.quantity,
+        buyerPaysPerShare,
+        sellerReceivesPerShare,
+        status: 'pending_seller_confirmation',
+        buyerAcceptedAt: new Date(),
+        buyerAcceptedPrice: buyerPaysPerShare
       });
       
-      console.log('✅ CompletedDeal created with RM verification codes');
+      console.log('✅ Pending deal created, waiting for seller confirmation');
+      
+      // Notify seller about buyer's acceptance
+      await Notification.create({
+        userId: sellerId,
+        type: 'buyer_accepted',
+        title: '🔔 Buyer Accepted Your Listing!',
+        message: `@${buyerUsername} wants to buy ${bid.quantity} shares of ${listing.companyName} at ₹${sellerReceivesPerShare.toFixed(2)}/share`,
+        data: {
+          listingId: listing._id,
+          bidId: bid._id,
+          dealId: deal._id,
+          amount: sellerReceivesPerShare * bid.quantity,
+          quantity: bid.quantity,
+          companyName: listing.companyName
+        }
+      });
+      
+      // Notify buyer about successful acceptance
+      await Notification.create({
+        userId: buyerId,
+        type: 'acceptance_sent',
+        title: '✅ Acceptance Sent!',
+        message: `Waiting for @${sellerUsername} to confirm your acceptance for ${listing.companyName}`,
+        data: {
+          listingId: listing._id,
+          bidId: bid._id,
+          dealId: deal._id,
+          amount: buyerPaysPerShare * bid.quantity,
+          quantity: bid.quantity,
+          companyName: listing.companyName
+        }
+      });
+      
     } catch (dealError) {
-      console.error('❌ Failed to create CompletedDeal:', dealError.message);
-      // Don't fail the main operation, just log the error
+      console.error('❌ Failed to create pending deal:', dealError.message);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create deal. Please try again.'
+      });
     }
 
-    // Create notification for bidder
+    res.json({
+      success: true,
+      message: 'Acceptance sent to seller. Waiting for confirmation.'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   PUT /api/listings/:listingId/deals/:dealId/confirm
+// @desc    STEP 2: Seller confirms buyer's acceptance (generates verification codes)
+// @access  Private (listing owner/seller only)
+router.put('/:listingId/deals/:dealId/confirm', protect, async (req, res, next) => {
+  try {
+    const listing = await Listing.findById(req.params.listingId).populate('userId', 'username fullName email');
+    const deal = await CompletedDeal.findById(req.params.dealId);
+
+    if (!listing) {
+      return res.status(404).json({
+        success: false,
+        message: 'Listing not found'
+      });
+    }
+
+    if (!deal) {
+      return res.status(404).json({
+        success: false,
+        message: 'Deal not found'
+      });
+    }
+
+    // Check if user is the seller
+    if (deal.sellerId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only the seller can confirm this deal'
+      });
+    }
+
+    // Check if already confirmed
+    if (deal.sellerConfirmed) {
+      return res.status(400).json({
+        success: false,
+        message: 'Deal already confirmed'
+      });
+    }
+
+    // Update deal status to confirmed and generate codes (already done by model defaults)
+    deal.status = 'confirmed';
+    deal.sellerConfirmed = true;
+    deal.sellerConfirmedAt = new Date();
+    await deal.save();
+
+    // Update listing status
+    listing.status = 'sold';
+    
+    // Reject all other pending bids
+    const bidArray = listing.type === 'sell' ? listing.bids : listing.offers;
+    bidArray.forEach(b => {
+      if (b._id.toString() !== deal.bidId.toString() && b.status === 'pending') {
+        b.status = 'rejected';
+      }
+    });
+    
+    await listing.save();
+
+    // Notify buyer about seller confirmation
     await Notification.create({
-      userId: bid.userId,
-      type: 'bid_accepted',
-      title: 'Bid Accepted! 🎉',
-      message: `Your ${listing.type === 'sell' ? 'bid' : 'offer'} of ₹${bid.price} for ${bid.quantity} shares of ${listing.companyName} has been accepted!`,
+      userId: deal.buyerId,
+      type: 'seller_confirmed',
+      title: '🎉 Congratulations!',
+      message: `Seller accepted your bid for ${listing.companyName}. Check your codes!`,
       data: {
         listingId: listing._id,
-        bidId: bid._id,
-        amount: bid.price,
-        quantity: bid.quantity,
+        dealId: deal._id,
         companyName: listing.companyName
       }
     });
 
-    // ============ AUTOMATIC REFERRAL TRACKING ============
-    try {
-      // Get bidder's details to check for referral
-      const bidder = await User.findById(bid.userId).select('referredBy username fullName');
-      
-      if (bidder && bidder.referredBy) {
-        // Find the referrer
-        const referrer = await User.findOne({ 
-          $or: [
-            { username: bidder.referredBy },
-            { referralCode: bidder.referredBy }
-          ]
-        }).select('_id username referralCode fullName');
-
-        if (referrer) {
-          // Get platform settings for fee calculation
-          let settings = await Settings.findOne();
-          if (!settings) {
-            settings = await Settings.create({});
-          }
-
-          const platformFeePercentage = settings.platformFeePercentage || 2;
-          const referralCommissionPercentage = settings.referralCommissionPercentage || 10;
-
-          // Calculate amounts
-          const dealAmount = bid.price * bid.quantity;
-          const platformRevenue = (dealAmount * platformFeePercentage) / 100;
-          const referralAmount = (platformRevenue * referralCommissionPercentage) / 100;
-
-          // Create referral tracking entry
-          await ReferralTracking.create({
-            referrer: referrer._id,
-            referrerName: referrer.fullName || referrer.username,
-            referrerCode: referrer.referralCode,
-            referee: bidder._id,
-            refereeName: bidder.fullName || bidder.username,
-            listing: listing._id,
-            company: listing.companyId,
-            companyName: listing.companyName,
-            dealAmount,
-            quantity: bid.quantity,
-            pricePerShare: bid.price,
-            platformFeePercentage,
-            platformRevenue,
-            referralCommissionPercentage,
-            referralAmount,
-            dealType: listing.type,
-            status: 'pending'
-          });
-
-          // Update referrer's stats
-          await User.findByIdAndUpdate(referrer._id, {
-            $inc: { 
-              totalReferrals: 1,
-              totalEarnings: referralAmount 
-            }
-          });
-
-          // Notify referrer about earning
-          await Notification.create({
-            userId: referrer._id,
-            type: 'referral_earning',
-            title: '💰 Referral Earning!',
-            message: `You earned ₹${referralAmount.toFixed(2)} from ${bidder.fullName || bidder.username}'s deal of ${bid.quantity} ${listing.companyName} shares!`,
-            data: {
-              dealAmount,
-              referralAmount,
-              refereeName: bidder.fullName || bidder.username,
-              companyName: listing.companyName
-            }
-          });
-        }
+    // Notify seller about confirmation
+    await Notification.create({
+      userId: deal.sellerId,
+      type: 'confirmation_success',
+      title: '✅ Deal Confirmed!',
+      message: `You confirmed the sale of ${listing.companyName}. Check your codes!`,
+      data: {
+        listingId: listing._id,
+        dealId: deal._id,
+        companyName: listing.companyName
       }
-    } catch (referralError) {
-      // Log error but don't fail the bid acceptance
-      console.error('Error creating referral tracking:', referralError);
-    }
-    // ============ END REFERRAL TRACKING ============
+    });
 
     res.json({
       success: true,
-      message: 'Bid accepted successfully'
+      message: 'Deal confirmed successfully! Verification codes generated.',
+      deal: {
+        id: deal._id,
+        status: deal.status,
+        buyerCode: deal.buyerVerificationCode,
+        sellerCode: deal.sellerVerificationCode,
+        rmCode: deal.rmVerificationCode
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   PUT /api/listings/:listingId/deals/:dealId/reject
+// @desc    Seller rejects buyer's acceptance
+// @access  Private (listing owner/seller only)
+router.put('/:listingId/deals/:dealId/reject', protect, async (req, res, next) => {
+  try {
+    const { reason } = req.body;
+    const deal = await CompletedDeal.findById(req.params.dealId);
+
+    if (!deal) {
+      return res.status(404).json({
+        success: false,
+        message: 'Deal not found'
+      });
+    }
+
+    // Check if user is the seller
+    if (deal.sellerId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only the seller can reject this deal'
+      });
+    }
+
+    // Update deal status
+    deal.status = 'rejected_by_seller';
+    deal.cancelReason = reason || 'Rejected by seller';
+    deal.cancelledAt = new Date();
+    await deal.save();
+
+    // Update bid status in listing
+    const listing = await Listing.findById(req.params.listingId);
+    const bidArray = listing.type === 'sell' ? listing.bids : listing.offers;
+    const bid = bidArray.id(deal.bidId);
+    if (bid) {
+      bid.status = 'rejected';
+    }
+    await listing.save();
+
+    // Notify buyer about rejection
+    await Notification.create({
+      userId: deal.buyerId,
+      type: 'seller_rejected',
+      title: '❌ Seller Rejected',
+      message: `Seller declined your acceptance for ${deal.companyName}. ${reason || ''}`,
+      data: {
+        listingId: listing._id,
+        dealId: deal._id,
+        companyName: deal.companyName,
+        reason
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Deal rejected successfully'
     });
   } catch (error) {
     next(error);

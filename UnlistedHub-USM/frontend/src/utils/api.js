@@ -22,6 +22,8 @@ export const listingsAPI = {
   acceptBid: (listingId, bidId) => axios.put(`/listings/${listingId}/bids/${bidId}/accept`),
   rejectBid: (listingId, bidId) => axios.put(`/listings/${listingId}/bids/${bidId}/reject`),
   counterBid: (listingId, bidId, data) => axios.put(`/listings/${listingId}/bids/${bidId}/counter`, data),
+  confirmDeal: (listingId, dealId) => axios.put(`/listings/${listingId}/deals/${dealId}/confirm`),
+  rejectDeal: (listingId, dealId, reason) => axios.put(`/listings/${listingId}/deals/${dealId}/reject`, { reason }),
   delete: (id) => axios.delete(`/listings/${id}`),
 };
 
@@ -91,6 +93,11 @@ export const adminAPI = {
     });
   },
   bulkDeleteCompanies: (ids) => axios.post('/admin/companies/bulk-delete', { ids }),
+  // Deal management
+  getDeals: (params) => axios.get('/admin/deals', { params }),
+  getDeal: (id) => axios.get(`/admin/deals/${id}`),
+  markDealAsSold: (id, notes) => axios.put(`/admin/deals/${id}/mark-sold`, { adminNotes: notes }),
+  updateDealStatus: (id, status, notes) => axios.put(`/admin/deals/${id}/update-status`, { status, notes }),
 };
 
 export default axios;

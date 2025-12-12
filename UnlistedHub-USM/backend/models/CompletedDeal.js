@@ -48,6 +48,7 @@ const completedDealSchema = new mongoose.Schema({
     required: true
   },
   sellerUsername: String,
+  sellerName: String,  // Original name of seller
   sellerVerificationCode: {
     type: String,
     default: generateCode
@@ -60,6 +61,7 @@ const completedDealSchema = new mongoose.Schema({
     required: true
   },
   buyerUsername: String,
+  buyerName: String,  // Original name of buyer
   buyerVerificationCode: {
     type: String,
     default: generateCode
@@ -88,12 +90,42 @@ const completedDealSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  sttAmount: {  // Securities Transaction Tax
+    type: Number,
+    default: 0
+  },
+  
+  // Price breakdown
+  buyerPaysPerShare: Number,      // What buyer pays (includes platform fee)
+  sellerReceivesPerShare: Number, // What seller gets (after platform fee)
   
   // Status tracking
   status: {
     type: String,
-    enum: ['pending_rm_contact', 'rm_contacted', 'documents_pending', 'payment_pending', 'completed', 'cancelled'],
-    default: 'pending_rm_contact'
+    enum: [
+      'pending_seller_confirmation',  // Buyer accepted, waiting for seller
+      'confirmed',                     // Seller confirmed, codes generated
+      'pending_rm_contact',            // Waiting for RM to call
+      'rm_contacted',                  // RM called both parties
+      'documents_pending',             // Documents verification
+      'payment_pending',               // Payment in progress
+      'sold',                          // Transaction completed
+      'completed',                     // Legacy status
+      'cancelled',                     // Cancelled by admin/user
+      'rejected_by_seller'             // Seller rejected buyer's acceptance
+    ],
+    default: 'pending_seller_confirmation'
+  },
+  
+  // Buyer acceptance tracking
+  buyerAcceptedAt: Date,
+  buyerAcceptedPrice: Number,
+  
+  // Seller confirmation tracking
+  sellerConfirmedAt: Date,
+  sellerConfirmed: {
+    type: Boolean,
+    default: false
   },
   
   // RM assignment
