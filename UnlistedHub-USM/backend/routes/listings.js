@@ -513,9 +513,10 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
       });
     }
 
-    // Update bid status to pending_seller_confirmation
+    // Update bid status to pending_seller_confirmation and store dealId
     bid.status = 'pending_seller_confirmation';
     bid.buyerAcceptedAt = new Date();
+    bid.dealId = null; // Will be set after creating deal
     
     await listing.save();
 
@@ -562,6 +563,10 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
       });
       
       console.log('✅ Pending deal created, waiting for seller confirmation');
+      
+      // Update bid with dealId
+      bid.dealId = deal._id;
+      await listing.save();
       
       // Notify seller about buyer's acceptance
       await Notification.create({

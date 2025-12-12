@@ -14,10 +14,11 @@ const MyBidsOffersTab = () => {
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [counterPrice, setCounterPrice] = useState('');
   const [counterQuantity, setCounterQuantity] = useState('');
+  const [dealDetails, setDealDetails] = useState({}); // Store deal details by dealId
 
   // Define which statuses are "active" vs "expired"
-  const activeStatuses = ['pending', 'countered'];
-  const expiredStatuses = ['accepted', 'rejected', 'expired', 'completed', 'cancelled'];
+  const activeStatuses = ['pending', 'countered', 'pending_seller_confirmation']; // Added new status
+  const expiredStatuses = ['accepted', 'rejected', 'expired', 'completed', 'cancelled', 'confirmed', 'sold', 'rejected_by_seller'];
 
   useEffect(() => {
     fetchMyActivity();
@@ -27,7 +28,27 @@ const MyBidsOffersTab = () => {
     try {
       setLoading(true);
       const response = await listingsAPI.getMyPlacedBids();
-      setActivities(response.data.data);
+      const activitiesData = response.data.data;
+      setActivities(activitiesData);
+      
+      // Fetch deal details for confirmed/sold bids
+      const confirmedActivities = activitiesData.filter(a => 
+        a.dealId && (a.status === 'confirmed' || a.status === 'sold' || a.status === 'pending_seller_confirmation')
+      );
+      
+      for (const activity of confirmedActivities) {
+        if (activity.dealId) {
+          try {
+            const dealResponse = await listingsAPI.getDeal(activity.dealId);
+            setDealDetails(prev => ({
+              ...prev,
+              [activity.dealId]: dealResponse.data.data
+            }));
+          } catch (error) {
+            console.error(`Failed to fetch deal ${activity.dealId}:`, error);
+          }
+        }
+      }
     } catch (error) {
       toast.error('Failed to fetch your activity');
     } finally {
@@ -255,14 +276,22 @@ const MyBidsOffersTab = () => {
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                     activity.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                    activity.status === 'pending_seller_confirmation' ? 'bg-blue-100 text-blue-700' :
+                    activity.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700' :
+                    activity.status === 'sold' ? 'bg-green-100 text-green-700' :
                     activity.status === 'accepted' ? 'bg-green-100 text-green-700' :
                     activity.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                    activity.status === 'rejected_by_seller' ? 'bg-red-100 text-red-700' :
                     activity.status === 'countered' ? 'bg-purple-100 text-purple-700' :
                     activity.status === 'expired' ? 'bg-gray-100 text-gray-600' :
                     activity.status === 'completed' ? 'bg-green-100 text-green-700' :
                     'bg-gray-100 text-gray-700'
                   }`}>
-                    {activity.status}
+                    {activity.status === 'pending_seller_confirmation' ? 'Waiting Seller' :
+                     activity.status === 'confirmed' ? 'Confirmed' :
+                     activity.status === 'sold' ? 'Sold' :
+                     activity.status === 'rejected_by_seller' ? 'Rejected by Seller' :
+                     activity.status}
                   </span>
                 </div>
 
@@ -380,6 +409,49 @@ const MyBidsOffersTab = () => {
                       </tbody>
                     </table>
                   </div>
+                  
+                  {/* Verification Codes (for confirmed deals) */}
+                  {(activity.status === 'confirmed' || activity.status === 'sold') && activity.dealId && dealDetails[activity.dealId] && (
+                    <div className="mt-4 bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-400 rounded-xl p-4">
+                      <h5 className="text-sm font-bold text-emerald-800 flex items-center gap-2 mb-3">
+                        <CheckCircle size={16} className="text-emerald-600" />
+                        🎉 Deal Confirmed! Verification Codes
+                      </h5>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                        <div className="bg-white rounded-lg p-3 border-2 border-blue-300">
+                          <div className="text-xs text-gray-600 font-medium mb-1">Your Verification Code</div>
+                          <div className="text-lg font-bold text-blue-700 font-mono tracking-wider">
+                            BUY-{dealDetails[activity.dealId].buyerVerificationCode}
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white rounded-lg p-3 border-2 border-orange-300">
+                          <div className="text-xs text-gray-600 font-medium mb-1">Seller's Code</div>
+                          <div className="text-lg font-bold text-orange-700 font-mono tracking-wider">
+                            SEL-{dealDetails[activity.dealId].sellerVerificationCode}
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white rounded-lg p-3 border-2 border-purple-300">
+                          <div className="text-xs text-gray-600 font-medium mb-1">RM's Code</div>
+                          <div className="text-lg font-bold text-purple-700 font-mono tracking-wider">
+                            ADM-{dealDetails[activity.dealId].rmVerificationCode}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-emerald-100 rounded-lg p-3 border border-emerald-300">
+                        <p className="text-xs text-emerald-900 font-medium mb-1">📞 Next Steps:</p>
+                        <ol className="text-xs text-emerald-800 space-y-1 ml-4 list-decimal">
+                          <li>Our Relationship Manager will call you and the seller</li>
+                          <li>Verify your code (BUY-{dealDetails[activity.dealId].buyerVerificationCode}) with the RM</li>
+                          <li>RM will confirm seller's code and verify all three codes match</li>
+                          <li>Complete the transaction as per RM guidance</li>
+                        </ol>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Footer */}

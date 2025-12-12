@@ -54,6 +54,11 @@ const bidSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
+  dealId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CompletedDeal'
+  },
+  buyerAcceptedAt: Date,
   createdAt: {
     type: Date,
     default: Date.now
