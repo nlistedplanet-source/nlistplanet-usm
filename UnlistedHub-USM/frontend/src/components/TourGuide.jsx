@@ -12,21 +12,39 @@ export const useDashboardTour = () => {
         animate: true,
         steps: [
           { 
-            element: '#dashboard-sidebar', 
+            element: '#sidebar-tab-marketplace', 
             popover: { 
-              title: 'Navigation Menu', 
-              description: 'Access Marketplace, Portfolio, History and more from here.',
+              title: 'Marketplace', 
+              description: 'You can place bids and offers on other users\' posts.',
               side: 'right', 
-              align: 'start' 
+              align: 'center' 
             } 
           },
           { 
-            element: '#dashboard-stats-grid', 
+            element: '#sidebar-tab-portfolio', 
             popover: { 
-              title: 'Portfolio Overview', 
-              description: 'Track your total investment value, gains, and active listings at a glance.',
-              side: 'bottom', 
-              align: 'start' 
+              title: 'Portfolio', 
+              description: 'You can keep your existing unlisted share records here.',
+              side: 'right', 
+              align: 'center' 
+            } 
+          },
+          { 
+            element: '#sidebar-tab-posts', 
+            popover: { 
+              title: 'My Posts', 
+              description: 'You can check and manage your posts here.',
+              side: 'right', 
+              align: 'center' 
+            } 
+          },
+          { 
+            element: '#sidebar-tab-my-bids-offers', 
+            popover: { 
+              title: 'My Bids', 
+              description: 'You can check your bids and offers placed on other users\' posts.',
+              side: 'right', 
+              align: 'center' 
             } 
           },
           { 
@@ -36,15 +54,6 @@ export const useDashboardTour = () => {
               description: 'Important updates like received bids and counter-offers will appear here.',
               side: 'left', 
               align: 'start' 
-            } 
-          },
-          { 
-            element: '#sidebar-tab-marketplace', 
-            popover: { 
-              title: 'Marketplace', 
-              description: 'Click here to browse and buy unlisted shares from other users.',
-              side: 'right', 
-              align: 'center' 
             } 
           }
         ],

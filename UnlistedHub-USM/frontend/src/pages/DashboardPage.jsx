@@ -29,7 +29,8 @@ import {
   Newspaper,
   CheckCircle,
   RotateCcw,
-  XCircle
+  XCircle,
+  Plus
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { portfolioAPI, listingsAPI } from '../utils/api';
@@ -54,6 +55,7 @@ import MarketplaceCard from '../components/MarketplaceCard';
 import BidOfferModal from '../components/BidOfferModal';
 import ShareCardGenerator from '../components/ShareCardGenerator';
 import VerificationCodesModal from '../components/VerificationCodesModal';
+import CreateListingModal from '../components/CreateListingModal';
 import { useDashboardTour } from '../components/TourGuide';
 
 const DashboardPage = () => {
@@ -92,6 +94,8 @@ const DashboardPage = () => {
   const [favoritedListings, setFavoritedListings] = useState(new Set());
   const [actionItems, setActionItems] = useState([]);
   const [viewMode, setViewMode] = useState('user'); // 'user' or 'admin'
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Unified Dashboard Data Fetching
   useEffect(() => {
@@ -290,7 +294,7 @@ const DashboardPage = () => {
     };
 
     fetchDashboardData();
-  }, [activeTab, authLoading, user]);
+  }, [activeTab, authLoading, user, refreshTrigger]);
 
 
 
@@ -611,7 +615,7 @@ const DashboardPage = () => {
               return (
                 <button
                   key={tab.id}
-                  id={tab.id === 'marketplace' ? 'sidebar-tab-marketplace' : undefined}
+                  id={`sidebar-tab-${tab.id}`}
                   onClick={() => handleTabChange(tab.id)}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
                     isActive
@@ -776,6 +780,68 @@ const DashboardPage = () => {
             </div>
           </div>
         )}
+
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Create Post */}
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="bg-gradient-to-br from-purple-600 to-indigo-600 text-white p-4 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-4 group"
+            >
+              <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Plus size={24} />
+              </div>
+              <div className="text-left">
+                <h3 className="font-bold">Create Post</h3>
+                <p className="text-xs text-purple-100">Sell your shares</p>
+              </div>
+            </button>
+
+            {/* Browse Market */}
+            <button
+              onClick={() => handleTabChange('marketplace')}
+              className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all flex items-center gap-4 group"
+            >
+              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <ShoppingCart size={24} />
+              </div>
+              <div className="text-left">
+                <h3 className="font-bold text-gray-900">Browse Market</h3>
+                <p className="text-xs text-gray-500">Buy unlisted shares</p>
+              </div>
+            </button>
+
+            {/* My Portfolio */}
+            <button
+              onClick={() => handleTabChange('portfolio')}
+              className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all flex items-center gap-4 group"
+            >
+              <div className="w-12 h-12 bg-green-50 text-green-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Briefcase size={24} />
+              </div>
+              <div className="text-left">
+                <h3 className="font-bold text-gray-900">My Portfolio</h3>
+                <p className="text-xs text-gray-500">Track investments</p>
+              </div>
+            </button>
+
+            {/* Refer & Earn */}
+            <button
+              onClick={() => handleTabChange('referrals')}
+              className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all flex items-center gap-4 group"
+            >
+              <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Gift size={24} />
+              </div>
+              <div className="text-left">
+                <h3 className="font-bold text-gray-900">Refer & Earn</h3>
+                <p className="text-xs text-gray-500">Invite friends</p>
+              </div>
+            </button>
+          </div>
+        </div>
 
         {/* Action Center & Recent Activity Grid */}
         <div className="grid lg:grid-cols-3 gap-6">
@@ -1321,6 +1387,18 @@ const DashboardPage = () => {
             setShowVerificationModal(false);
             setVerificationDeal(null);
             window.location.reload(); // Refresh to update UI state
+          }}
+        />
+      )}
+
+      {/* Create Listing Modal */}
+      {showCreateModal && (
+        <CreateListingModal
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => {
+            setShowCreateModal(false);
+            setRefreshTrigger(prev => prev + 1);
+            toast.success('Listing created successfully!');
           }}
         />
       )}
