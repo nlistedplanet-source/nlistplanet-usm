@@ -136,7 +136,8 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
                 companyName: listing.companyName,
                 companyId: listing.companyId,
                 listingPrice: listing.price,
-                displayPrice: listing.displayPrice || (listing.type === 'sell' ? listing.price * 1.02 : listing.price * 0.98),
+                // Bidder is BUYER on SELL listing, so they pay +2%
+                displayPrice: listing.type === 'sell' ? listing.price * 1.02 : listing.price * 0.98,
                 listingQuantity: listing.quantity,
                 isActive: listing.status === 'active',
                 owner: listing.userId
@@ -166,7 +167,8 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
                 companyName: listing.companyName,
                 companyId: listing.companyId,
                 listingPrice: listing.price,
-                displayPrice: listing.displayPrice || (listing.type === 'sell' ? listing.price * 1.02 : listing.price * 0.98),
+                // Offerer is SELLER on BUY listing, so they receive -2%
+                displayPrice: listing.type === 'buy' ? listing.price * 0.98 : listing.price * 1.02,
                 listingQuantity: listing.quantity,
                 isActive: listing.status === 'active',
                 owner: listing.userId
