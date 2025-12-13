@@ -179,20 +179,24 @@ const DashboardPage = () => {
           if (activity.status === 'countered') {
             const counterHistory = activity.counterHistory || [];
             const latestCounter = counterHistory[counterHistory.length - 1];
-            const isBuyer = activity.listing.type === 'sell'; // I am bidding on a sell post -> I am Buyer
+            
+            // Determine if I am Buyer or Seller based on:
+            // - activity.type: 'bid' means I bid on a SELL listing (I am Buyer)
+            // - activity.type: 'offer' means I offered on a BUY listing (I am Seller)
+            // - OR use listingType: if listing is 'sell', bidder is buyer
+            const isBuyer = activity.type === 'bid' || activity.listingType === 'sell';
             
             // Calculate List Price (Match MyBids logic)
-            // Backend /my-placed-bids returns 'listingPrice' (raw) and 'displayPrice' (adjusted)
-            // Ensure we always use displayPrice which is correctly calculated with fees
+            // Backend /my-placed-bids returns 'displayPrice' which is already fee-adjusted
             let listPrice = activity.listing.displayPrice;
             if (!listPrice) {
-              // Fallback: Calculate based on listing type
+              // Fallback: Calculate based on whether I'm buyer or seller
               const rawPrice = activity.listing.listingPrice || activity.listing.price;
               listPrice = isBuyer ? calculateBuyerPays(rawPrice) : calculateSellerGets(rawPrice);
             }
 
             // Calculate Other Party's Price (The Counter)
-            // CRITICAL: latestCounter contains the BASE price without fees
+            // CRITICAL: latestCounter.price is the BASE price without fees
             // We need to apply fees based on who is viewing
             let otherPrice = activity.price; // Fallback to my bid price
             
