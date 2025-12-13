@@ -763,8 +763,10 @@ const DashboardPage = () => {
           </div>
         )}
 
-        {/* Action Center */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6">
+        {/* Action Center & Recent Activity Grid */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Action Center */}
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-gray-900">Action Center</h2>
@@ -891,10 +893,10 @@ const DashboardPage = () => {
                 </div>
               )}
             </div>
-        </div>
+          </div>
 
-        {/* Recent Activity */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+          {/* Recent Activity Sidebar */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
             <div className="p-6 border-b border-gray-100">
               <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
               <p className="text-sm text-gray-600 mt-1">Your latest transactions</p>
@@ -956,6 +958,7 @@ const DashboardPage = () => {
                 View All Activity →
               </button>
             </div>
+          </div>
         </div>
           </>
         )}
