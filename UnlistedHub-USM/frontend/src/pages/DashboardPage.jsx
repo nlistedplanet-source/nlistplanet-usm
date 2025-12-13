@@ -784,21 +784,42 @@ const DashboardPage = () => {
                         <div className="p-1.5 flex items-center justify-center">
                           <div className="grid grid-cols-2 gap-1.5 w-full max-w-[80px]">
                             <button 
-                              onClick={() => handleTabChange('posts')}
+                              onClick={() => {
+                                // Navigate to the relevant tab based on action type
+                                if (item.type === 'counter_received') {
+                                  handleTabChange('my-bids-offers');
+                                } else {
+                                  handleTabChange('posts');
+                                }
+                              }}
                               className="bg-green-100 text-green-700 p-1.5 rounded-md hover:bg-green-200 flex items-center justify-center transition-colors"
                               title="Accept"
                             >
                               <CheckCircle size={14} strokeWidth={2.5} />
                             </button>
                             <button 
-                              onClick={() => handleTabChange('posts')}
+                              onClick={() => {
+                                // Navigate to the relevant tab based on action type
+                                if (item.type === 'counter_received') {
+                                  handleTabChange('my-bids-offers');
+                                } else {
+                                  handleTabChange('posts');
+                                }
+                              }}
                               className="bg-red-100 text-red-700 p-1.5 rounded-md hover:bg-red-200 flex items-center justify-center transition-colors"
                               title="Reject"
                             >
                               <XCircle size={14} strokeWidth={2.5} />
                             </button>
                             <button 
-                              onClick={() => handleTabChange('posts')}
+                              onClick={() => {
+                                // Navigate to the relevant tab based on action type
+                                if (item.type === 'counter_received') {
+                                  handleTabChange('my-bids-offers');
+                                } else {
+                                  handleTabChange('posts');
+                                }
+                              }}
                               className="bg-orange-100 text-orange-700 p-1.5 rounded-md hover:bg-orange-200 flex items-center justify-center transition-colors"
                               title="Counter"
                             >
@@ -806,9 +827,10 @@ const DashboardPage = () => {
                             </button>
                             <button 
                               onClick={() => {
+                                // Navigate to the relevant tab based on action type
                                 if (item.type === 'counter_received') {
                                   handleTabChange('my-bids-offers');
-                                } else if (item.type === 'bid_received' || item.type === 'offer_received') {
+                                } else {
                                   handleTabChange('posts');
                                 }
                               }}
