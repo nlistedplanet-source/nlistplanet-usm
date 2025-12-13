@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { portfolioAPI, listingsAPI } from '../utils/api';
-import { calculateTotalWithFee } from '../utils/helpers';
+import { calculateTotalWithFee, calculateBuyerPays, calculateSellerGets, formatCurrency } from '../utils/helpers';
 import toast from 'react-hot-toast';
 import MyPostsTab from '../components/dashboard/MyPostsTab';
 import MyBidsOffersTab from '../components/dashboard/MyBidsOffersTab';
@@ -130,7 +130,7 @@ const DashboardPage = () => {
                 company: listing.companyName,
                 companySymbol: listing.companyId?.scriptName || listing.companyId?.ScripName || listing.companyId?.symbol || listing.companyName,
                 logo: listing.companyId?.logo || listing.companyId?.Logo,
-                yourPrice: listing.price,
+                yourPrice: calculateSellerGets(listing.price), // Seller sees what they get
                 counterPrice: bid.price,
                 quantity: bid.quantity,
                 user: bid.userId?.username,
@@ -152,7 +152,7 @@ const DashboardPage = () => {
                 company: listing.companyName,
                 companySymbol: listing.companyId?.scriptName || listing.companyId?.ScripName || listing.companyId?.symbol || listing.companyName,
                 logo: listing.companyId?.logo || listing.companyId?.Logo,
-                yourPrice: listing.price * 1.02,
+                yourPrice: calculateBuyerPays(listing.price), // Buyer sees what they pay
                 counterPrice: offer.price,
                 quantity: offer.quantity,
                 user: offer.userId?.username,
@@ -168,6 +168,8 @@ const DashboardPage = () => {
           if (activity.status === 'countered') {
             const counterHistory = activity.counterHistory || [];
             const latestCounter = counterHistory[counterHistory.length - 1];
+            const isBuyer = activity.listing.type === 'sell'; // I am bidding on a sell post -> I am Buyer
+            const basePrice = activity.originalPrice || activity.price;
             
             actions.push({
               type: 'counter_received',
@@ -176,7 +178,7 @@ const DashboardPage = () => {
               company: activity.listing.companyName,
               companySymbol: activity.listing.companyId?.scriptName || activity.listing.companyId?.ScripName || activity.listing.companyId?.symbol || activity.listing.companyName,
               logo: activity.listing.companyId?.logo || activity.listing.companyId?.Logo,
-              yourPrice: activity.originalPrice || activity.price,
+              yourPrice: isBuyer ? calculateBuyerPays(basePrice) : calculateSellerGets(basePrice),
               counterPrice: latestCounter?.price || activity.price,
               quantity: activity.quantity,
               user: activity.listing.userId?.username || 'Seller',
@@ -695,7 +697,7 @@ const DashboardPage = () => {
                       {/* Table Header */}
                       <div className="grid grid-cols-5 bg-gray-50 border-b border-gray-200">
                         <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Type</div>
-                        <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Script</div>
+                        <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Company</div>
                         <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Your Price</div>
                         <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Offer Price</div>
                         <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center">Actions</div>
@@ -706,32 +708,40 @@ const DashboardPage = () => {
                         {/* Type Column */}
                         <div className="p-2 border-r border-gray-200 flex flex-col justify-center items-center text-center">
                           <p className="text-xs font-bold text-gray-900">
-                            {item.type === 'counter_received' ? 'Counter' : 
-                             item.type === 'bid_received' ? 'Bid In' : 'Offer In'}
+                            {item.type === 'bid_received' ? 'Sell' : 
+                             item.type === 'offer_received' ? 'Buy' : 
+                             item.originalListing?.type === 'sell' ? 'Sell' : 'Buy'}
                           </p>
-                          <p className="text-[10px] text-gray-400 mt-0.5">
+                          <p className="text-[10px] font-medium text-blue-600 mt-0.5">
+                            {item.type === 'counter_received' ? 'Counter' : 
+                             item.type === 'bid_received' ? 'Bid' : 'Offer'}
+                          </p>
+                          <p className="text-[9px] text-gray-400 mt-0.5">
                             {new Date(item.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
                           </p>
                         </div>
 
-                        {/* Script Column (No Logo) */}
+                        {/* Company Column (Script Name + Listing Price) */}
                         <div className="p-2 border-r border-gray-200 flex flex-col justify-center items-center text-center min-w-0">
                           <p className="font-bold text-gray-900 text-xs truncate w-full" title={item.companySymbol}>
                             {item.companySymbol}
                           </p>
                           <p className="text-[10px] text-gray-500 mt-0.5">
+                            List Price: {formatCurrency(item.yourPrice)}
+                          </p>
+                          <p className="text-[9px] text-gray-400">
                             Qty: {item.quantity?.toLocaleString('en-IN')}
                           </p>
                         </div>
 
-                        {/* Your Price Column */}
+                        {/* Your Price Column (Latest Bid) */}
                         <div className="p-2 border-r border-gray-200 flex items-center justify-center">
                           <p className="text-sm font-bold text-purple-700">
-                            {formatCurrency(item.yourPrice)}
+                            {formatCurrency(item.counterPrice)}
                           </p>
                         </div>
 
-                        {/* Offer Price Column */}
+                        {/* Offer Price Column (Redundant but keeping structure) */}
                         <div className="p-2 border-r border-gray-200 flex items-center justify-center">
                           <p className="text-sm font-bold text-blue-700">
                             {formatCurrency(item.counterPrice)}
