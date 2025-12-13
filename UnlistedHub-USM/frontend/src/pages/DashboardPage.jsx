@@ -182,12 +182,9 @@ const DashboardPage = () => {
             const isBuyer = activity.listing.type === 'sell'; // I am bidding on a sell post -> I am Buyer
             
             // Calculate List Price (Match MyBids logic)
-            let listPrice = activity.listing.price;
-            if (isBuyer) {
-               // If I am Buyer, I see Buyer Pays price (List + 2%)
-               // Use displayPrice if available, else calculate
-               listPrice = activity.listing.displayPrice || calculateBuyerPays(activity.listing.price);
-            }
+            // Backend /my-placed-bids returns 'listingPrice' (raw) and 'displayPrice' (adjusted)
+            // We use displayPrice which is already calculated as Buyer Pays or Seller Gets
+            const listPrice = activity.listing.displayPrice || activity.listing.listingPrice || activity.listing.price;
 
             // Calculate Other Party's Price (The Counter)
             // If I am Buyer, Seller's counter needs +2%
@@ -211,7 +208,7 @@ const DashboardPage = () => {
               otherActionPrice: otherPrice, // The counter I received
               quantity: activity.quantity,
               user: activity.listing.userId?.username || 'Seller',
-              date: activity.updatedAt,
+              date: activity.createdAt, // Use createdAt from activity wrapper
               originalListing: activity.listing
             });
           }
