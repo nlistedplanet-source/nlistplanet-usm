@@ -123,6 +123,11 @@ const DashboardPage = () => {
         (sellRes.data.data || []).forEach(listing => {
           (listing.bids || []).forEach(bid => {
             if (bid.status === 'pending') {
+              // Find latest prices from history
+              const history = bid.counterHistory || [];
+              const latestSellerCounter = [...history].reverse().find(h => h.by === 'seller');
+              const latestBuyerCounter = [...history].reverse().find(h => h.by === 'buyer');
+
               actions.push({
                 type: 'bid_received',
                 id: bid._id,
@@ -130,8 +135,9 @@ const DashboardPage = () => {
                 company: listing.companyName,
                 companySymbol: listing.companyId?.scriptName || listing.companyId?.ScripName || listing.companyId?.symbol || listing.companyName,
                 logo: listing.companyId?.logo || listing.companyId?.Logo,
-                yourPrice: calculateSellerGets(listing.price), // Seller sees what they get
-                counterPrice: bid.price,
+                listPrice: listing.price, // Seller sees raw list price
+                myActionPrice: latestSellerCounter ? latestSellerCounter.price : listing.price, // My Counter or List Price
+                otherActionPrice: latestBuyerCounter ? latestBuyerCounter.price : bid.price, // Buyer's Bid or Counter
                 quantity: bid.quantity,
                 user: bid.userId?.username,
                 date: bid.createdAt,
@@ -145,6 +151,10 @@ const DashboardPage = () => {
         (buyRes.data.data || []).forEach(listing => {
           (listing.offers || []).forEach(offer => {
             if (offer.status === 'pending') {
+              const history = offer.counterHistory || [];
+              const latestBuyerCounter = [...history].reverse().find(h => h.by === 'buyer'); // Me (Buyer)
+              const latestSellerCounter = [...history].reverse().find(h => h.by === 'seller'); // Them (Seller)
+
               actions.push({
                 type: 'offer_received',
                 id: offer._id,
@@ -152,8 +162,9 @@ const DashboardPage = () => {
                 company: listing.companyName,
                 companySymbol: listing.companyId?.scriptName || listing.companyId?.ScripName || listing.companyId?.symbol || listing.companyName,
                 logo: listing.companyId?.logo || listing.companyId?.Logo,
-                yourPrice: calculateBuyerPays(listing.price), // Buyer sees what they pay
-                counterPrice: offer.price,
+                listPrice: listing.price, // Buyer sees raw list price
+                myActionPrice: latestBuyerCounter ? latestBuyerCounter.price : listing.price,
+                otherActionPrice: latestSellerCounter ? latestSellerCounter.price : offer.price,
                 quantity: offer.quantity,
                 user: offer.userId?.username,
                 date: offer.createdAt,
@@ -169,8 +180,25 @@ const DashboardPage = () => {
             const counterHistory = activity.counterHistory || [];
             const latestCounter = counterHistory[counterHistory.length - 1];
             const isBuyer = activity.listing.type === 'sell'; // I am bidding on a sell post -> I am Buyer
-            const basePrice = activity.originalPrice || activity.price;
             
+            // Calculate List Price (Match MyBids logic)
+            let listPrice = activity.listing.price;
+            if (isBuyer) {
+               // If I am Buyer, I see Buyer Pays price (List + 2%)
+               // Use displayPrice if available, else calculate
+               listPrice = activity.listing.displayPrice || calculateBuyerPays(activity.listing.price);
+            }
+
+            // Calculate Other Party's Price (The Counter)
+            // If I am Buyer, Seller's counter needs +2%
+            let otherPrice = latestCounter?.price || activity.price;
+            if (isBuyer && latestCounter?.by === 'seller') {
+                otherPrice = calculateBuyerPays(latestCounter.price);
+            } else if (!isBuyer && latestCounter?.by === 'buyer') {
+                // If I am Seller, Buyer's counter needs -2% (Seller Gets)
+                otherPrice = calculateSellerGets(latestCounter.price);
+            }
+
             actions.push({
               type: 'counter_received',
               id: activity._id,
@@ -178,8 +206,9 @@ const DashboardPage = () => {
               company: activity.listing.companyName,
               companySymbol: activity.listing.companyId?.scriptName || activity.listing.companyId?.ScripName || activity.listing.companyId?.symbol || activity.listing.companyName,
               logo: activity.listing.companyId?.logo || activity.listing.companyId?.Logo,
-              yourPrice: isBuyer ? calculateBuyerPays(basePrice) : calculateSellerGets(basePrice),
-              counterPrice: latestCounter?.price || activity.price,
+              listPrice: listPrice,
+              myActionPrice: activity.price, // My original bid/offer (My Bids tab shows this)
+              otherActionPrice: otherPrice, // The counter I received
               quantity: activity.quantity,
               user: activity.listing.userId?.username || 'Seller',
               date: activity.updatedAt,
@@ -698,7 +727,7 @@ const DashboardPage = () => {
                       <div className="grid grid-cols-5 bg-gray-50 border-b border-gray-200">
                         <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Type</div>
                         <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Company</div>
-                        <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Your Price</div>
+                        <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Your Bid</div>
                         <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Offer Price</div>
                         <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center">Actions</div>
                       </div>
@@ -727,24 +756,24 @@ const DashboardPage = () => {
                             {item.companySymbol}
                           </p>
                           <p className="text-[10px] text-gray-500 mt-0.5">
-                            List Price: {formatCurrency(item.yourPrice)}
+                            List Price: {formatCurrency(item.listPrice)}
                           </p>
                           <p className="text-[9px] text-gray-400">
                             Qty: {item.quantity?.toLocaleString('en-IN')}
                           </p>
                         </div>
 
-                        {/* Your Price Column (Latest Bid) */}
+                        {/* Your Bid Column (My Action Price) */}
                         <div className="p-2 border-r border-gray-200 flex items-center justify-center">
                           <p className="text-sm font-bold text-purple-700">
-                            {formatCurrency(item.counterPrice)}
+                            {formatCurrency(item.myActionPrice)}
                           </p>
                         </div>
 
-                        {/* Offer Price Column (Redundant but keeping structure) */}
+                        {/* Offer Price Column (Other Action Price) */}
                         <div className="p-2 border-r border-gray-200 flex items-center justify-center">
                           <p className="text-sm font-bold text-blue-700">
-                            {formatCurrency(item.counterPrice)}
+                            {formatCurrency(item.otherActionPrice)}
                           </p>
                         </div>
 
