@@ -403,6 +403,41 @@ const DashboardPage = () => {
     fetchMarketplaceListings();
   };
 
+  // Action Center handlers
+  const handleAcceptAction = async (item) => {
+    try {
+      await listingsAPI.acceptBid(item.listingId, item.id);
+      toast.success('Bid/Offer accepted successfully! 🎉');
+      // Refresh action items by re-fetching dashboard data
+      window.location.reload(); // Simple refresh to update all data
+    } catch (error) {
+      console.error('Failed to accept:', error);
+      toast.error(error.response?.data?.message || 'Failed to accept. Please try again.');
+    }
+  };
+
+  const handleRejectAction = async (item) => {
+    try {
+      await listingsAPI.rejectBid(item.listingId, item.id);
+      toast.success('Bid/Offer rejected');
+      // Refresh action items
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to reject:', error);
+      toast.error(error.response?.data?.message || 'Failed to reject. Please try again.');
+    }
+  };
+
+  const handleCounterAction = (item) => {
+    // Navigate to the appropriate tab where user can counter
+    if (item.type === 'counter_received') {
+      handleTabChange('my-bids-offers');
+    } else {
+      handleTabChange('posts');
+    }
+    toast.info('Please counter the offer in the detailed view');
+  };
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Activity },
     { id: 'marketplace', label: 'Marketplace', icon: Radio },
@@ -784,42 +819,21 @@ const DashboardPage = () => {
                         <div className="p-1.5 flex items-center justify-center">
                           <div className="grid grid-cols-2 gap-1.5 w-full max-w-[80px]">
                             <button 
-                              onClick={() => {
-                                // Navigate to the relevant tab based on action type
-                                if (item.type === 'counter_received') {
-                                  handleTabChange('my-bids-offers');
-                                } else {
-                                  handleTabChange('posts');
-                                }
-                              }}
+                              onClick={() => handleAcceptAction(item)}
                               className="bg-green-100 text-green-700 p-1.5 rounded-md hover:bg-green-200 flex items-center justify-center transition-colors"
                               title="Accept"
                             >
                               <CheckCircle size={14} strokeWidth={2.5} />
                             </button>
                             <button 
-                              onClick={() => {
-                                // Navigate to the relevant tab based on action type
-                                if (item.type === 'counter_received') {
-                                  handleTabChange('my-bids-offers');
-                                } else {
-                                  handleTabChange('posts');
-                                }
-                              }}
+                              onClick={() => handleRejectAction(item)}
                               className="bg-red-100 text-red-700 p-1.5 rounded-md hover:bg-red-200 flex items-center justify-center transition-colors"
                               title="Reject"
                             >
                               <XCircle size={14} strokeWidth={2.5} />
                             </button>
                             <button 
-                              onClick={() => {
-                                // Navigate to the relevant tab based on action type
-                                if (item.type === 'counter_received') {
-                                  handleTabChange('my-bids-offers');
-                                } else {
-                                  handleTabChange('posts');
-                                }
-                              }}
+                              onClick={() => handleCounterAction(item)}
                               className="bg-orange-100 text-orange-700 p-1.5 rounded-md hover:bg-orange-200 flex items-center justify-center transition-colors"
                               title="Counter"
                             >
@@ -827,7 +841,7 @@ const DashboardPage = () => {
                             </button>
                             <button 
                               onClick={() => {
-                                // Navigate to the relevant tab based on action type
+                                // View button - Navigate to the relevant tab
                                 if (item.type === 'counter_received') {
                                   handleTabChange('my-bids-offers');
                                 } else {
