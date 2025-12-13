@@ -762,9 +762,6 @@ const DashboardPage = () => {
             </div>
           </div>
         )}
-
-        {/* Holdings & Activity Grid - DISABLED TEMPORARILY */}
-        {false && <div className="grid lg:grid-cols-3 gap-6">
           
           {/* Action Center (Replaces Holdings) - DISABLED TEMPORARILY */}
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -980,12 +977,6 @@ const DashboardPage = () => {
                 </button>
               </div>
             </div>
-          </div>
-        </div>}
-          </>
-        )}
-          </>
-        )}
 
         {/* Marketplace Tab */}
         {activeTab === 'marketplace' && (
