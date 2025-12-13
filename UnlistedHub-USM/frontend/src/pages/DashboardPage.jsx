@@ -730,6 +730,39 @@ const DashboardPage = () => {
           </div>
         </div>
 
+        {/* Pending Actions Notification */}
+        {actionItems.length > 0 && (
+          <div className="bg-gradient-to-r from-orange-50 to-red-50 border-l-4 border-orange-500 rounded-xl p-6 mb-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <Bell className="text-white" size={24} />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">
+                  {actionItems.length} Pending Action{actionItems.length > 1 ? 's' : ''} Require{actionItems.length === 1 ? 's' : ''} Your Attention
+                </h3>
+                <p className="text-sm text-gray-600 mb-3">
+                  You have {actionItems.length} bid{actionItems.length > 1 ? 's' : ''}/offer{actionItems.length > 1 ? 's' : ''} waiting for your response. Review and take action on incoming offers.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleTabChange('posts')}
+                    className="bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-orange-600 transition-colors text-sm"
+                  >
+                    View My Posts
+                  </button>
+                  <button
+                    onClick={() => handleTabChange('my-bids-offers')}
+                    className="bg-white text-orange-600 px-4 py-2 rounded-lg font-semibold hover:bg-orange-100 transition-colors text-sm border border-orange-300"
+                  >
+                    View My Bids
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Holdings & Activity Grid - DISABLED TEMPORARILY */}
         {false && <div className="grid lg:grid-cols-3 gap-6">
           
