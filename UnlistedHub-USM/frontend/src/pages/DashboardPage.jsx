@@ -180,34 +180,31 @@ const DashboardPage = () => {
             const counterHistory = activity.counterHistory || [];
             const latestCounter = counterHistory[counterHistory.length - 1];
             
-            // Determine if I am Buyer or Seller based on:
-            // - activity.type: 'bid' means I bid on a SELL listing (I am Buyer)
-            // - activity.type: 'offer' means I offered on a BUY listing (I am Seller)
-            // - OR use listingType: if listing is 'sell', bidder is buyer
-            const isBuyer = activity.type === 'bid' || activity.listingType === 'sell';
+            // Determine if I am Buyer or Seller:
+            // - activity.type === 'bid' → I bid on a SELL listing → I am BUYER
+            // - activity.type === 'offer' → I offered on a BUY listing → I am SELLER
+            const isBuyer = activity.type === 'bid';
             
-            // Calculate List Price (Match MyBids logic)
-            // Backend /my-placed-bids returns 'displayPrice' which is already fee-adjusted
-            let listPrice = activity.listing.displayPrice;
-            if (!listPrice) {
-              // Fallback: Calculate based on whether I'm buyer or seller
-              const rawPrice = activity.listing.listingPrice || activity.listing.price;
-              listPrice = isBuyer ? calculateBuyerPays(rawPrice) : calculateSellerGets(rawPrice);
-            }
+            // Get raw listing price
+            const rawListingPrice = activity.listing.listingPrice || activity.listing.price;
+            
+            // Calculate List Price with proper fees
+            // Buyer sees: price + 2%
+            // Seller sees: price - 2%
+            const listPrice = isBuyer 
+              ? calculateBuyerPays(rawListingPrice)
+              : calculateSellerGets(rawListingPrice);
 
-            // Calculate Other Party's Price (The Counter)
-            // CRITICAL: latestCounter.price is the BASE price without fees
-            // We need to apply fees based on who is viewing
-            let otherPrice = activity.price; // Fallback to my bid price
+            // Calculate Other Party's Counter Price with fees
+            // CRITICAL: latestCounter.price is BASE price (what was entered)
+            // Buyer viewing Seller's counter: apply +2%
+            // Seller viewing Buyer's counter: apply -2%
+            let otherPrice = activity.price; // Fallback
             
             if (latestCounter) {
-              if (isBuyer) {
-                // I am Buyer - Seller's counter needs +2% (what I'll pay)
-                otherPrice = calculateBuyerPays(latestCounter.price);
-              } else {
-                // I am Seller - Buyer's counter needs -2% (what I'll receive)
-                otherPrice = calculateSellerGets(latestCounter.price);
-              }
+              otherPrice = isBuyer 
+                ? calculateBuyerPays(latestCounter.price)   // Buyer: Seller's 59 → 60.18
+                : calculateSellerGets(latestCounter.price); // Seller: Buyer's 60 → 58.80
             }
 
             actions.push({
