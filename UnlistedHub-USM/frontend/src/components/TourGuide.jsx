@@ -49,7 +49,7 @@ export const useDashboardTour = () => {
           }
         ],
         onDestroyStarted: () => {
-          if (!driverObj.hasNextStep() || confirm("Are you sure you want to skip the tour?")) {
+          if (!driverObj.hasNextStep() || window.confirm("Are you sure you want to skip the tour?")) {
             driverObj.destroy();
             localStorage.setItem('hasSeenDashboardTour', 'true');
           }
