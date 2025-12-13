@@ -730,11 +730,11 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Holdings & Activity Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        {/* Holdings & Activity Grid - DISABLED TEMPORARILY */}
+        {false && <div className="grid lg:grid-cols-3 gap-6">
           
           {/* Action Center (Replaces Holdings) - DISABLED TEMPORARILY */}
-          {/* <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100">
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-gray-900">Action Center</h2>
@@ -947,8 +947,8 @@ const DashboardPage = () => {
                 </button>
               </div>
             </div>
-          </div> */}
-        </div>
+          </div>
+        </div>}
           </>
         )}
           </>
