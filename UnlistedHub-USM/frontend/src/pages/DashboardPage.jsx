@@ -617,7 +617,7 @@ const DashboardPage = () => {
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleTabChange('posts')}>
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
-                <FileText className="text-white" size={20} />
+                <img src="/Post_icon.png" alt="My Posts" className="w-6 h-6 object-contain" />
               </div>
               <span className="text-[10px] font-medium text-gray-500 bg-blue-50 px-2 py-0.5 rounded-full text-blue-600">Posts</span>
             </div>
@@ -634,7 +634,7 @@ const DashboardPage = () => {
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleTabChange('my-bids-offers')}>
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
-                <TrendingUp className="text-white" size={20} />
+                <img src="/Bids.png" alt="My Bids" className="w-6 h-6 object-contain" />
               </div>
               <span className="text-[10px] font-medium text-gray-500 bg-orange-50 px-2 py-0.5 rounded-full text-orange-600">Bids</span>
             </div>
