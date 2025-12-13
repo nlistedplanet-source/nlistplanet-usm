@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Loader, TrendingUp, TrendingDown, Clock, CheckCircle, XCircle, RotateCcw, MessageCircle } from 'lucide-react';
+import { Loader, TrendingUp, TrendingDown, Clock, CheckCircle, XCircle, RotateCcw, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
 import { listingsAPI } from '../../utils/api';
 import { formatCurrency, formatDate, calculateSellerGets, calculateBuyerPays } from '../../utils/helpers';
 import toast from 'react-hot-toast';
@@ -17,7 +17,7 @@ const MyBidsOffersTab = () => {
   const [dealDetails, setDealDetails] = useState({}); // Store deal details by dealId
 
   // Define which statuses are "active" vs "expired"
-  const activeStatuses = ['pending', 'countered', 'pending_seller_confirmation']; // Added new status
+  const activeStatuses = ['pending', 'countered', 'pending_seller_confirmation'];
   const expiredStatuses = ['accepted', 'rejected', 'expired', 'completed', 'cancelled', 'confirmed', 'sold', 'rejected_by_seller'];
 
   useEffect(() => {
@@ -57,26 +57,30 @@ const MyBidsOffersTab = () => {
   };
 
   const handleAccept = async (activity) => {
+    if (!window.confirm('Are you sure you want to accept this offer? This will finalize the deal.')) return;
+    
     try {
       setActionLoading(activity._id);
       await listingsAPI.acceptBid(activity.listing._id, activity._id);
-      toast.success('Counter offer accepted! 🎉');
+      toast.success('Offer accepted! Deal is being finalized... 🎉');
       fetchMyActivity();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to accept counter offer');
+      toast.error(error.response?.data?.message || 'Failed to accept offer');
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleReject = async (activity) => {
+    if (!window.confirm('Are you sure you want to reject this offer?')) return;
+
     try {
       setActionLoading(activity._id);
       await listingsAPI.rejectBid(activity.listing._id, activity._id);
-      toast.success('Counter offer rejected');
+      toast.success('Offer rejected');
       fetchMyActivity();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to reject counter offer');
+      toast.error(error.response?.data?.message || 'Failed to reject offer');
     } finally {
       setActionLoading(null);
     }
@@ -84,7 +88,12 @@ const MyBidsOffersTab = () => {
 
   const handleCounterClick = (activity) => {
     setSelectedActivity(activity);
-    setCounterPrice(activity.price.toString());
+    // Pre-fill with the LAST price from history or original
+    const lastPrice = activity.counterHistory?.length > 0 
+      ? activity.counterHistory[activity.counterHistory.length - 1].price 
+      : activity.price;
+      
+    setCounterPrice(lastPrice.toString());
     setCounterQuantity(activity.quantity.toString());
     setShowCounterModal(true);
   };
@@ -110,28 +119,46 @@ const MyBidsOffersTab = () => {
     }
   };
 
+  // Helper to determine if action is required
+  const isActionRequired = (activity) => {
+    if (activity.status !== 'countered') return false;
+    if (!activity.counterHistory || activity.counterHistory.length === 0) return false;
+    
+    const lastCounter = activity.counterHistory[activity.counterHistory.length - 1];
+    const isBid = activity.type === 'bid'; // I am Buyer
+    
+    // If I am Buyer (isBid=true), action required if last counter is from Seller
+    // If I am Seller (isBid=false), action required if last counter is from Buyer
+    return isBid ? (lastCounter.by === 'seller') : (lastCounter.by === 'buyer');
+  };
+
   // Filter activities based on submenu and status
   const filteredActivities = activities.filter(activity => {
-    // First filter by type (bids vs offers)
     const typeMatch = activeSubmenu === 'bids' 
       ? activity.type === 'bid' 
       : activity.type === 'offer';
     
     if (!typeMatch) return false;
     
-    // Then filter by status (active vs expired)
-    // Also check if listing is deleted (listing might be null or have isActive = false)
     const isListingDeleted = !activity.listing || activity.listing.isActive === false;
     const isActive = activeStatuses.includes(activity.status) && !isListingDeleted;
     
     if (statusFilter === 'active') {
       return isActive;
     } else {
-      return !isActive; // expired, rejected, completed, or listing deleted
+      return !isActive;
     }
   });
 
-  // Count for badges
+  // Split active activities into "Action Required" and "Others"
+  const actionRequiredActivities = statusFilter === 'active' 
+    ? filteredActivities.filter(a => isActionRequired(a))
+    : [];
+    
+  const otherActivities = statusFilter === 'active'
+    ? filteredActivities.filter(a => !isActionRequired(a))
+    : filteredActivities;
+
   const getStatusCounts = (type) => {
     const typeActivities = activities.filter(a => 
       type === 'bids' ? a.type === 'bid' : a.type === 'offer'
@@ -155,6 +182,227 @@ const MyBidsOffersTab = () => {
     );
   }
 
+  const renderActivityCard = (activity, isActionable) => {
+    const isBid = activity.type === 'bid';
+    const counterHistory = activity.counterHistory || [];
+    const listingPrice = activity.listing?.displayPrice || activity.listing?.listingPrice || activity.listing?.price || 0;
+    const isListingDeleted = !activity.listing || activity.listing.isActive === false;
+    
+    // Determine the "Current Price" to show in the header
+    // If countered, show the latest counter price. If pending, show original bid.
+    const latestCounter = counterHistory.length > 0 ? counterHistory[counterHistory.length - 1] : null;
+    const rawDisplayPrice = latestCounter ? latestCounter.price : (activity.originalPrice || activity.price);
+    
+    // Calculate display price based on fee model
+    // If I am Buyer (isBid): I pay +2% on Seller's price. My price is already what I pay.
+    // If I am Seller (!isBid): I get -2% on Buyer's price. My price is already what I get.
+    let displayPrice = rawDisplayPrice;
+    if (latestCounter) {
+       if (isBid) {
+         // I am Buyer. If counter is from Seller, I see (Price * 1.02). If from me, I see (Price).
+         displayPrice = latestCounter.by === 'seller' ? calculateBuyerPays(latestCounter.price) : latestCounter.price;
+       } else {
+         // I am Seller. If counter is from Buyer, I see (Price * 0.98). If from me, I see (Price).
+         displayPrice = latestCounter.by === 'buyer' ? calculateSellerGets(latestCounter.price) : latestCounter.price;
+       }
+    } else {
+       // Initial Bid/Offer
+       // If I am Buyer (isBid), activity.price is what I entered (what I pay).
+       // If I am Seller (!isBid), activity.price is what I entered (what I get).
+       displayPrice = activity.price;
+    }
+
+    return (
+      <div key={activity._id} className={`bg-white rounded-xl shadow-sm border overflow-hidden transition-all ${
+        isActionable 
+          ? 'border-l-4 border-l-amber-500 border-y-amber-200 border-r-amber-200 shadow-md ring-1 ring-amber-100' 
+          : statusFilter === 'expired' ? 'border-gray-200 opacity-75' : 'border-gray-200'
+      }`}>
+        {/* Header */}
+        <div className={`flex items-center justify-between px-4 py-3 border-b ${
+          isActionable ? 'bg-amber-50' : statusFilter === 'expired' ? 'bg-gray-100' : 'bg-gray-50'
+        }`}>
+          <div>
+            <div className="flex items-center gap-2">
+              <h4 className="font-bold text-gray-900">{activity.listing?.companyName || 'Deleted Listing'}</h4>
+              {isListingDeleted && (
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600">DELETED</span>
+              )}
+              {isActionable && (
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200 animate-pulse">
+                  <AlertTriangle size={10} /> ACTION REQUIRED
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500">
+              {isBid ? 'Seller' : 'Buyer'}: @{activity.listing?.owner?.username || 'Unknown'}
+            </p>
+          </div>
+          <div className="text-right">
+             <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+              activity.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+              activity.status === 'pending_seller_confirmation' ? 'bg-blue-100 text-blue-700' :
+              activity.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700' :
+              activity.status === 'sold' ? 'bg-green-100 text-green-700' :
+              activity.status === 'accepted' ? 'bg-green-100 text-green-700' :
+              activity.status === 'rejected' ? 'bg-red-100 text-red-700' :
+              activity.status === 'countered' ? 'bg-purple-100 text-purple-700' :
+              'bg-gray-100 text-gray-700'
+            }`}>
+              {activity.status === 'pending_seller_confirmation' ? 'Waiting Seller' :
+               activity.status === 'countered' ? 'Negotiation' :
+               activity.status}
+            </span>
+          </div>
+        </div>
+
+        {/* Action Banner (Only for Actionable Items) */}
+        {isActionable && (
+          <div className="bg-amber-50 px-4 py-3 border-b border-amber-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-bold text-amber-900">
+                New Counter Offer Received!
+              </p>
+              <p className="text-xs text-amber-700">
+                The other party has proposed a new price.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button 
+                onClick={() => handleAccept(activity)}
+                disabled={actionLoading === activity._id}
+                className="flex-1 sm:flex-none px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 shadow-sm hover:shadow flex items-center justify-center gap-2 transition-all"
+              >
+                {actionLoading === activity._id ? <Loader size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                Accept @ {formatCurrency(displayPrice)}
+              </button>
+              <button 
+                onClick={() => handleCounterClick(activity)}
+                className="px-3 py-2 bg-white text-purple-700 border border-purple-200 rounded-lg text-sm font-bold hover:bg-purple-50 flex items-center justify-center gap-1 transition-all"
+              >
+                <RotateCcw size={16} />
+                Counter
+              </button>
+              <button 
+                onClick={() => handleReject(activity)}
+                className="px-3 py-2 bg-white text-red-600 border border-red-200 rounded-lg text-sm font-bold hover:bg-red-50 flex items-center justify-center gap-1 transition-all"
+              >
+                <XCircle size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Negotiation History Table */}
+        <div className="p-4">
+          <h5 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <RotateCcw size={12} />
+            Negotiation History
+          </h5>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full border border-gray-200 rounded-lg overflow-hidden text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Round</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Action By</th>
+                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-500">Price</th>
+                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-500">Qty</th>
+                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-500">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {/* Round 1: Initial */}
+                <tr className="bg-white">
+                  <td className="px-3 py-2 text-xs text-gray-500">Round 1</td>
+                  <td className="px-3 py-2 font-medium text-gray-900">You ({isBid ? 'Bid' : 'Offer'})</td>
+                  <td className="px-3 py-2 text-right font-mono text-gray-700">
+                    {formatCurrency(activity.originalPrice || activity.price)}
+                  </td>
+                  <td className="px-3 py-2 text-right text-gray-700">{activity.quantity}</td>
+                  <td className="px-3 py-2 text-center">
+                    {activity.status === 'pending' && !counterHistory.length && (
+                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">Pending</span>
+                    )}
+                  </td>
+                </tr>
+                
+                {/* Counter History */}
+                {counterHistory.map((counter, idx) => {
+                  const isSellerCounter = counter.by === 'seller';
+                  // Determine if this row represents "Me" or "Them"
+                  const isMe = isBid ? !isSellerCounter : isSellerCounter;
+                  
+                  // Price Display Logic
+                  let rowPrice;
+                  if (isBid) {
+                    rowPrice = isSellerCounter ? calculateBuyerPays(counter.price) : counter.price;
+                  } else {
+                    rowPrice = !isSellerCounter ? calculateSellerGets(counter.price) : counter.price;
+                  }
+                  
+                  return (
+                    <tr key={idx} className={isMe ? 'bg-blue-50/30' : 'bg-orange-50/30'}>
+                      <td className="px-3 py-2 text-xs text-gray-500">Round {counter.round || (idx + 2)}</td>
+                      <td className="px-3 py-2">
+                        <span className={`text-xs font-bold ${isMe ? 'text-blue-700' : 'text-orange-700'}`}>
+                          {isMe ? 'You' : (isBid ? 'Seller' : 'Buyer')}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-right font-mono font-bold text-gray-900">
+                        {formatCurrency(rowPrice)}
+                      </td>
+                      <td className="px-3 py-2 text-right text-gray-700">{counter.quantity}</td>
+                      <td className="px-3 py-2 text-center">
+                        {idx === counterHistory.length - 1 && activity.status === 'countered' && (
+                          <span className="text-xs text-gray-400">Current</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Verification Codes (Confirmed) */}
+          {(activity.status === 'confirmed' || activity.status === 'sold') && activity.dealId && dealDetails[activity.dealId] && (
+            <div className="mt-4 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl p-4">
+              <h5 className="text-sm font-bold text-emerald-800 flex items-center gap-2 mb-3">
+                <ShieldCheck size={16} className="text-emerald-600" />
+                Deal Confirmed! Verification Codes
+              </h5>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                <div className="bg-white rounded-lg p-3 border border-blue-200 shadow-sm">
+                  <div className="text-[10px] uppercase text-gray-500 font-bold mb-1">Your Code</div>
+                  <div className="text-lg font-bold text-blue-700 font-mono">
+                    BUY-{dealDetails[activity.dealId].buyerVerificationCode}
+                  </div>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-orange-200 shadow-sm">
+                  <div className="text-[10px] uppercase text-gray-500 font-bold mb-1">Seller Code</div>
+                  <div className="text-lg font-bold text-orange-700 font-mono">
+                    SEL-{dealDetails[activity.dealId].sellerVerificationCode}
+                  </div>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-purple-200 shadow-sm">
+                  <div className="text-[10px] uppercase text-gray-500 font-bold mb-1">Admin Code</div>
+                  <div className="text-lg font-bold text-purple-700 font-mono">
+                    ADM-{dealDetails[activity.dealId].rmVerificationCode}
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-emerald-700">
+                Please share these codes with the Relationship Manager to complete the transaction.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -167,398 +415,173 @@ const MyBidsOffersTab = () => {
       {/* Submenu Tabs */}
       <div className="flex gap-2 mb-3 bg-gray-100 p-1 rounded-xl">
         <button
-          onClick={() => {
-            setActiveSubmenu('bids');
-            setStatusFilter('active');
-          }}
+          onClick={() => { setActiveSubmenu('bids'); setStatusFilter('active'); }}
           className={`flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
             activeSubmenu === 'bids'
-              ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
-              : 'text-gray-600 hover:bg-gray-200'
+              ? 'bg-white text-green-700 shadow-sm ring-1 ring-black/5'
+              : 'text-gray-500 hover:bg-gray-200'
           }`}
         >
           <TrendingUp size={18} />
           Bids Placed
-          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-            activeSubmenu === 'bids' ? 'bg-white/20' : 'bg-gray-300'
-          }`}>
-            {activities.filter(a => a.type === 'bid').length}
-          </span>
+          {activities.filter(a => a.type === 'bid' && activeStatuses.includes(a.status)).length > 0 && (
+             <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">
+               {activities.filter(a => a.type === 'bid' && activeStatuses.includes(a.status)).length}
+             </span>
+          )}
         </button>
         <button
-          onClick={() => {
-            setActiveSubmenu('offers');
-            setStatusFilter('active');
-          }}
+          onClick={() => { setActiveSubmenu('offers'); setStatusFilter('active'); }}
           className={`flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
             activeSubmenu === 'offers'
-              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
-              : 'text-gray-600 hover:bg-gray-200'
+              ? 'bg-white text-blue-700 shadow-sm ring-1 ring-black/5'
+              : 'text-gray-500 hover:bg-gray-200'
           }`}
         >
           <TrendingDown size={18} />
           Offers Made
-          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-            activeSubmenu === 'offers' ? 'bg-white/20' : 'bg-gray-300'
-          }`}>
-            {activities.filter(a => a.type === 'offer').length}
-          </span>
+          {activities.filter(a => a.type === 'offer' && activeStatuses.includes(a.status)).length > 0 && (
+             <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs">
+               {activities.filter(a => a.type === 'offer' && activeStatuses.includes(a.status)).length}
+             </span>
+          )}
         </button>
       </div>
 
-      {/* Active/Expired Toggle - Small Switch */}
+      {/* Active/Expired Toggle */}
       <div className="flex items-center justify-end gap-3 mb-4">
-        <span className={`text-xs font-medium ${statusFilter === 'active' ? 'text-emerald-600' : 'text-gray-400'}`}>
-          Active ({currentCounts.activeCount})
-        </span>
         <button
-          onClick={() => setStatusFilter(statusFilter === 'active' ? 'expired' : 'active')}
-          className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
-            statusFilter === 'expired' ? 'bg-gray-400' : 'bg-emerald-500'
+          onClick={() => setStatusFilter('active')}
+          className={`text-xs font-bold px-3 py-1 rounded-full transition-all ${
+            statusFilter === 'active' ? 'bg-emerald-100 text-emerald-700' : 'text-gray-400 hover:bg-gray-100'
           }`}
         >
-          <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300 ${
-            statusFilter === 'expired' ? 'left-8' : 'left-1'
-          }`} />
+          Active ({currentCounts.activeCount})
         </button>
-        <span className={`text-xs font-medium ${statusFilter === 'expired' ? 'text-gray-700' : 'text-gray-400'}`}>
-          Expired ({currentCounts.expiredCount})
-        </span>
+        <button
+          onClick={() => setStatusFilter('expired')}
+          className={`text-xs font-bold px-3 py-1 rounded-full transition-all ${
+            statusFilter === 'expired' ? 'bg-gray-200 text-gray-700' : 'text-gray-400 hover:bg-gray-100'
+          }`}
+        >
+          History ({currentCounts.expiredCount})
+        </button>
       </div>
 
       {/* Content */}
       {filteredActivities.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 bg-dark-50 rounded-2xl">
+        <div className="flex flex-col items-center justify-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
           {statusFilter === 'active' ? (
-            <Clock className="text-dark-300 mb-3" size={48} />
+            <Clock className="text-gray-300 mb-3" size={48} />
           ) : (
-            <CheckCircle className="text-dark-300 mb-3" size={48} />
+            <CheckCircle className="text-gray-300 mb-3" size={48} />
           )}
-          <p className="text-dark-600 font-medium mb-2">
-            No {statusFilter === 'active' ? 'active' : 'expired/completed'} {activeSubmenu === 'bids' ? 'bids' : 'offers'}
-          </p>
-          <p className="text-dark-500 text-sm text-center">
-            {statusFilter === 'active'
-              ? `Your active ${activeSubmenu === 'bids' ? 'bids' : 'offers'} will appear here`
-              : `${activeSubmenu === 'bids' ? 'Bids' : 'Offers'} that are expired, rejected, or completed will appear here`
-            }
+          <p className="text-gray-600 font-medium mb-2">
+            No {statusFilter === 'active' ? 'active' : 'past'} {activeSubmenu === 'bids' ? 'bids' : 'offers'}
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {filteredActivities.map((activity) => {
-            const isBid = activity.type === 'bid';
-            const counterHistory = activity.counterHistory || [];
-            const listingPrice = activity.listing?.displayPrice || activity.listing?.listingPrice || activity.listing?.price || 0;
-            const hasCounterHistory = counterHistory.length > 0;
-            const isListingDeleted = !activity.listing || activity.listing.isActive === false;
-            const showActions = activity.status === 'countered' && statusFilter === 'active';
-            
-            return (
-              <div key={activity._id} className={`bg-white rounded-xl shadow-sm border overflow-hidden ${statusFilter === 'expired' ? 'border-gray-200 opacity-75' : 'border-gray-200'}`}>
-                {/* Header */}
-                <div className={`flex items-center justify-between px-4 py-3 border-b border-gray-200 ${statusFilter === 'expired' ? 'bg-gray-100' : 'bg-gray-50'}`}>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-gray-900">{activity.listing?.companyName || 'Deleted Listing'}</h4>
-                      {isListingDeleted && (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600">DELETED</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      {isBid ? 'Seller' : 'Buyer'}: @{activity.listing?.owner?.username || 'Unknown'}
-                    </p>
-                    {!isListingDeleted && (
-                      <p className="text-xs text-gray-500">
-                        Listed Price: {formatCurrency(activity.listing?.displayPrice || listingPrice)} x {activity.listing?.listingQuantity || 0} shares
-                      </p>
-                    )}
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    activity.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                    activity.status === 'pending_seller_confirmation' ? 'bg-blue-100 text-blue-700' :
-                    activity.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700' :
-                    activity.status === 'sold' ? 'bg-green-100 text-green-700' :
-                    activity.status === 'accepted' ? 'bg-green-100 text-green-700' :
-                    activity.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                    activity.status === 'rejected_by_seller' ? 'bg-red-100 text-red-700' :
-                    activity.status === 'countered' ? 'bg-purple-100 text-purple-700' :
-                    activity.status === 'expired' ? 'bg-gray-100 text-gray-600' :
-                    activity.status === 'completed' ? 'bg-green-100 text-green-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
-                    {activity.status === 'pending_seller_confirmation' ? 'Waiting Seller' :
-                     activity.status === 'confirmed' ? 'Confirmed' :
-                     activity.status === 'sold' ? 'Sold' :
-                     activity.status === 'rejected_by_seller' ? 'Rejected by Seller' :
-                     activity.status}
-                  </span>
-                </div>
-
-                {/* Negotiation History Table */}
-                <div className="p-4">
-                  <h5 className="text-sm font-bold text-gray-700 flex items-center gap-2 mb-3">
-                    <RotateCcw size={14} />
-                    Negotiation History
-                  </h5>
-                  
-                  <div className="overflow-x-auto">
-                    <table className="w-full border border-gray-300 rounded-lg overflow-hidden">
-                      <thead>
-                        <tr className="bg-gray-100">
-                          <th className="border border-gray-300 px-3 py-2 text-left text-xs font-bold text-gray-700">Round</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left text-xs font-bold text-gray-700">By</th>
-                          <th className="border border-gray-300 px-3 py-2 text-right text-xs font-bold text-gray-700">Price</th>
-                          <th className="border border-gray-300 px-3 py-2 text-right text-xs font-bold text-gray-700">Quantity</th>
-                          <th className="border border-gray-300 px-3 py-2 text-center text-xs font-bold text-gray-700">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {/* Round 1: Your Initial Bid */}
-                        <tr className="bg-green-50 hover:bg-green-100">
-                          <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-purple-700">Round 1</td>
-                          <td className="border border-gray-300 px-3 py-2 text-xs font-semibold text-green-700">Your {isBid ? 'Bid' : 'Offer'}</td>
-                          <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-gray-900 text-right">
-                            {formatCurrency(activity.originalPrice || activity.price)}
-                          </td>
-                          <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-gray-900 text-right">{activity.quantity} shares</td>
-                          <td className="border border-gray-300 px-3 py-2 text-center">
-                            {activity.status === 'pending' && !hasCounterHistory && (
-                              <span className="text-xs text-yellow-600 font-medium">⏳ Waiting...</span>
-                            )}
-                          </td>
-                        </tr>
-                        
-                        {/* Counter History Rows */}
-                        {counterHistory.map((counter, idx) => {
-                          const isSellerCounter = counter.by === 'seller';
-                          const isLatestRow = idx === counterHistory.length - 1;
-                          const canTakeAction = isLatestRow && showActions && isSellerCounter;
-                          
-                          // Viewer perspective:
-                          // - If isBid (buyer viewing their bids on SELL listings):
-                          //   - Seller's counter: buyer sees ×1.02 (what they'll pay)
-                          //   - Buyer's counter: shows as-is (their own entered price)
-                          // - If !isBid (seller viewing their offers on BUY listings):
-                          //   - Buyer's counter: seller sees ×0.98 (what they'll receive)
-                          //   - Seller's counter: shows as-is (their own entered price)
-                          let displayPrice;
-                          if (isBid) {
-                            // Buyer viewing - seller's counter needs ×1.02
-                            displayPrice = isSellerCounter ? calculateBuyerPays(counter.price) : counter.price;
-                          } else {
-                            // Seller viewing - buyer's counter needs ×0.98
-                            displayPrice = !isSellerCounter ? calculateSellerGets(counter.price) : counter.price;
-                          }
-                          
-                          return (
-                            <tr key={idx} className={`${isSellerCounter ? 'bg-orange-50 hover:bg-orange-100' : 'bg-blue-50 hover:bg-blue-100'}`}>
-                              <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-purple-700">
-                                Round {counter.round || (idx + 1)}
-                              </td>
-                              <td className="border border-gray-300 px-3 py-2 text-xs font-semibold">
-                                <span className={isSellerCounter ? 'text-orange-700' : 'text-blue-700'}>
-                                  {isSellerCounter 
-                                    ? `${isBid ? 'Seller' : 'Buyer'} (@${activity.listing.owner?.username}) Counter` 
-                                    : 'Your Counter'
-                                  }
-                                </span>
-                              </td>
-                              <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-gray-900 text-right">
-                                {formatCurrency(displayPrice)}
-                              </td>
-                              <td className="border border-gray-300 px-3 py-2 text-xs font-bold text-gray-900 text-right">
-                                {counter.quantity} shares
-                              </td>
-                              <td className="border border-gray-300 px-3 py-2 text-center">
-                                {canTakeAction && (
-                                  <div className="flex items-center justify-center gap-1">
-                                    <button 
-                                      onClick={() => handleAccept(activity)} 
-                                      disabled={actionLoading === activity._id}
-                                      className="px-2 py-1 bg-green-600 text-white rounded text-xs font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-1"
-                                    >
-                                      <CheckCircle size={12} />
-                                      Accept
-                                    </button>
-                                    <button 
-                                      onClick={() => handleReject(activity)} 
-                                      disabled={actionLoading === activity._id}
-                                      className="px-2 py-1 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-1"
-                                    >
-                                      <XCircle size={12} />
-                                      Reject
-                                    </button>
-                                    <button 
-                                      onClick={() => handleCounterClick(activity)} 
-                                      disabled={actionLoading === activity._id}
-                                      className="px-2 py-1 bg-purple-600 text-white rounded text-xs font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-1"
-                                    >
-                                      <RotateCcw size={12} />
-                                      Counter
-                                    </button>
-                                  </div>
-                                )}
-                                {!canTakeAction && isLatestRow && !isSellerCounter && activity.status === 'countered' && (
-                                  <span className="text-xs text-blue-600 font-medium">⏳ Waiting for response...</span>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                  
-                  {/* Verification Codes (for confirmed deals) */}
-                  {(activity.status === 'confirmed' || activity.status === 'sold') && activity.dealId && dealDetails[activity.dealId] && (
-                    <div className="mt-4 bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-400 rounded-xl p-4">
-                      <h5 className="text-sm font-bold text-emerald-800 flex items-center gap-2 mb-3">
-                        <CheckCircle size={16} className="text-emerald-600" />
-                        🎉 Deal Confirmed! Verification Codes
-                      </h5>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                        <div className="bg-white rounded-lg p-3 border-2 border-blue-300">
-                          <div className="text-xs text-gray-600 font-medium mb-1">Your Verification Code</div>
-                          <div className="text-lg font-bold text-blue-700 font-mono tracking-wider">
-                            BUY-{dealDetails[activity.dealId].buyerVerificationCode}
-                          </div>
-                        </div>
-                        
-                        <div className="bg-white rounded-lg p-3 border-2 border-orange-300">
-                          <div className="text-xs text-gray-600 font-medium mb-1">Seller's Code</div>
-                          <div className="text-lg font-bold text-orange-700 font-mono tracking-wider">
-                            SEL-{dealDetails[activity.dealId].sellerVerificationCode}
-                          </div>
-                        </div>
-                        
-                        <div className="bg-white rounded-lg p-3 border-2 border-purple-300">
-                          <div className="text-xs text-gray-600 font-medium mb-1">RM's Code</div>
-                          <div className="text-lg font-bold text-purple-700 font-mono tracking-wider">
-                            ADM-{dealDetails[activity.dealId].rmVerificationCode}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-emerald-100 rounded-lg p-3 border border-emerald-300">
-                        <p className="text-xs text-emerald-900 font-medium mb-1">📞 Next Steps:</p>
-                        <ol className="text-xs text-emerald-800 space-y-1 ml-4 list-decimal">
-                          <li>Our Relationship Manager will call you and the seller</li>
-                          <li>Verify your code (BUY-{dealDetails[activity.dealId].buyerVerificationCode}) with the RM</li>
-                          <li>RM will confirm seller's code and verify all three codes match</li>
-                          <li>Complete the transaction as per RM guidance</li>
-                        </ol>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Footer */}
-                <div className="px-4 py-2 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
-                  <p className="text-xs text-gray-500">
-                    Created: {formatDate(activity.createdAt)}
-                  </p>
-                  
-                  {/* Status Messages */}
-                  {activity.status === 'accepted' && (
-                    <div className="flex items-center gap-1 text-green-700">
-                      <CheckCircle size={14} />
-                      <span className="text-xs font-bold">✓ Deal Accepted!</span>
-                    </div>
-                  )}
-                  {activity.status === 'rejected' && (
-                    <div className="flex items-center gap-1 text-red-700">
-                      <XCircle size={14} />
-                      <span className="text-xs font-bold">✗ Rejected</span>
-                    </div>
-                  )}
-                  {activity.status === 'pending' && (
-                    <div className="flex items-center gap-1 text-yellow-700">
-                      <Clock size={14} />
-                      <span className="text-xs font-bold">⏳ Waiting for response...</span>
-                    </div>
-                  )}
-                </div>
+        <div className="space-y-6">
+          {/* Action Required Section */}
+          {actionRequiredActivities.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-amber-600 font-bold text-sm uppercase tracking-wider px-1">
+                <AlertTriangle size={16} />
+                Action Required
               </div>
-            );
-          })}
+              {actionRequiredActivities.map(activity => renderActivityCard(activity, true))}
+              
+              {otherActivities.length > 0 && (
+                <div className="border-t border-gray-200 my-6 pt-4">
+                  <div className="flex items-center gap-2 text-gray-400 font-bold text-sm uppercase tracking-wider px-1 mb-4">
+                    <Clock size={16} />
+                    Waiting for Response
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Other Activities */}
+          <div className="space-y-4">
+            {otherActivities.map(activity => renderActivityCard(activity, false))}
+          </div>
         </div>
       )}
 
       {/* Counter Modal */}
       {showCounterModal && selectedActivity && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" onClick={() => setShowCounterModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
-            <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-4 rounded-t-xl">
-              <h3 className="text-xl font-bold">💬 Send Counter Offer</h3>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowCounterModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-4">
+              <h3 className="text-lg font-bold flex items-center gap-2">
+                <RotateCcw size={20} />
+                Send Counter Offer
+              </h3>
               <p className="text-sm opacity-90 mt-1">{selectedActivity.listing.companyName}</p>
             </div>
+            
             <form onSubmit={handleCounterSubmit} className="p-6">
-              <div className="bg-blue-50 rounded-xl p-4 mb-5 border border-blue-200">
-                <p className="text-sm font-bold text-gray-700 mb-3">Current {selectedActivity.type === 'bid' ? 'Bid' : 'Offer'}</p>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="bg-white rounded-lg p-3 border border-blue-300">
-                    <span className="text-gray-600 block mb-1">Price per share:</span>
-                    <span className="font-bold text-gray-900">{formatCurrency(selectedActivity.price)}</span>
+              <div className="bg-blue-50 rounded-xl p-4 mb-5 border border-blue-100">
+                <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Current Status</p>
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(selectedActivity.counterHistory?.length > 0 
+                        ? selectedActivity.counterHistory[selectedActivity.counterHistory.length - 1].price 
+                        : selectedActivity.price)}
+                    </p>
+                    <p className="text-sm text-gray-500">Current Price / Share</p>
                   </div>
-                  <div className="bg-white rounded-lg p-3 border border-blue-300">
-                    <span className="text-gray-600 block mb-1">Quantity:</span>
-                    <span className="font-bold text-gray-900">{selectedActivity.quantity} shares</span>
-                  </div>
-                </div>
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-bold text-gray-700 mb-2">Counter Price (per share) *</label>
-                <input 
-                  type="number" 
-                  required 
-                  min="1" 
-                  step="0.01" 
-                  value={counterPrice} 
-                  onChange={(e) => setCounterPrice(e.target.value)} 
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-semibold text-gray-900" 
-                  placeholder="Enter your counter price" 
-                />
-              </div>
-              <div className="mb-5">
-                <label className="block text-sm font-bold text-gray-700 mb-2">Quantity *</label>
-                <input 
-                  type="number" 
-                  required 
-                  min="1" 
-                  value={counterQuantity} 
-                  onChange={(e) => setCounterQuantity(e.target.value)} 
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-semibold text-gray-900" 
-                  placeholder="Enter quantity" 
-                />
-              </div>
-              {counterPrice && counterQuantity && (
-                <div className="bg-purple-50 rounded-xl p-4 mb-5 border border-purple-200">
-                  <div className="flex items-center justify-between">
-                    <span className="text-purple-800 font-bold">Total Amount:</span>
-                    <span className="text-xl font-bold text-purple-900">{formatCurrency(parseFloat(counterPrice) * parseInt(counterQuantity))}</span>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-gray-900">{selectedActivity.quantity}</p>
+                    <p className="text-sm text-gray-500">Shares</p>
                   </div>
                 </div>
-              )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Your Price</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₹</span>
+                    <input
+                      type="number"
+                      required
+                      value={counterPrice}
+                      onChange={(e) => setCounterPrice(e.target.value)}
+                      className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent font-bold text-gray-900"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Quantity</label>
+                  <input
+                    type="number"
+                    required
+                    value={counterQuantity}
+                    onChange={(e) => setCounterQuantity(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent font-bold text-gray-900"
+                  />
+                </div>
+              </div>
+
               <div className="flex gap-3">
-                <button 
-                  type="button" 
-                  onClick={() => setShowCounterModal(false)} 
-                  className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold hover:bg-gray-300 transition-colors"
+                <button
+                  type="button"
+                  onClick={() => setShowCounterModal(false)}
+                  className="flex-1 py-3 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
-                  disabled={actionLoading === selectedActivity._id || !counterPrice || !counterQuantity} 
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-xl font-bold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                <button
+                  type="submit"
+                  disabled={actionLoading === selectedActivity._id}
+                  className="flex-1 py-3 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 shadow-lg shadow-purple-200 transition-all flex items-center justify-center gap-2"
                 >
-                  {actionLoading === selectedActivity._id ? (
-                    <><Loader className="animate-spin" size={20} />Sending...</>
-                  ) : (
-                    <><MessageCircle size={20} />Send Counter</>
-                  )}
+                  {actionLoading === selectedActivity._id ? <Loader className="animate-spin" /> : <ArrowRight size={18} />}
+                  Send Counter
                 </button>
               </div>
             </form>

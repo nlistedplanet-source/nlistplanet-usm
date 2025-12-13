@@ -147,7 +147,7 @@ const listingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['active', 'sold', 'expired', 'cancelled'],
+    enum: ['active', 'sold', 'expired', 'cancelled', 'negotiating'],
     default: 'active'
   },
   // Sold externally fields

@@ -588,7 +588,10 @@ router.get('/companies', async (req, res, next) => {
 // @access  Admin
 router.post('/companies', upload.single('logo'), async (req, res, next) => {
   try {
-    const { name, scriptName, sector, isin, cin, pan, registrationDate, description } = req.body;
+    const { 
+      name, scriptName, sector, isin, cin, pan, registrationDate, description,
+      website, foundedYear, highlights 
+    } = req.body;
     
     console.log('Creating company with data:', { name, scriptName, sector, isin, cin, pan, registrationDate });
 
@@ -606,6 +609,16 @@ router.post('/companies', upload.single('logo'), async (req, res, next) => {
     if (req.file) {
       logoData = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
     }
+    
+    // Parse highlights
+    let highlightsArray = [];
+    if (highlights) {
+      if (Array.isArray(highlights)) {
+        highlightsArray = highlights.filter(h => h && h.trim());
+      } else if (typeof highlights === 'string') {
+        highlightsArray = highlights.split(/[\n,]/).map(h => h.trim()).filter(h => h);
+      }
+    }
 
     const company = await Company.create({
       name: name.trim(),
@@ -616,7 +629,10 @@ router.post('/companies', upload.single('logo'), async (req, res, next) => {
       cin: (cin && cin.trim()) ? cin.trim() : null,
       pan: (pan && pan.trim()) ? pan.trim() : null,
       registrationDate: parseIndianDate(registrationDate),
-      description: (description && description.trim()) ? description.trim() : null
+      description: (description && description.trim()) ? description.trim() : null,
+      website: (website && website.trim()) ? website.trim() : null,
+      foundedYear: foundedYear ? parseInt(foundedYear) : null,
+      highlights: highlightsArray
     });
 
     res.status(201).json({
@@ -628,9 +644,31 @@ router.post('/companies', upload.single('logo'), async (req, res, next) => {
     console.error('Company create error:', error.message);
     console.error('Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
     if (error.code === 11000) {
+      let message = 'Duplicate value entered';
+      let field = 'field';
+
+      if (error.keyValue) {
+        field = Object.keys(error.keyValue)[0];
+      } else if (error.message) {
+        // Fallback for older MongoDB drivers
+        if (error.message.includes('name_1')) field = 'name';
+        else if (error.message.includes('isin_1')) field = 'isin';
+        else if (error.message.includes('cin_1')) field = 'cin';
+      }
+      
+      if (field === 'name') {
+        message = 'Company with this name already exists';
+      } else if (field === 'isin') {
+        message = 'Company with this ISIN already exists';
+      } else if (field === 'cin') {
+        message = 'Company with this CIN already exists';
+      } else {
+        message = `Company with this ${field} already exists`;
+      }
+
       return res.status(400).json({
         success: false,
-        message: 'Company with this name already exists'
+        message
       });
     }
     // Better error handling for validation errors
@@ -655,7 +693,10 @@ router.post('/companies', upload.single('logo'), async (req, res, next) => {
 // @access  Admin
 router.put('/companies/:id', upload.single('logo'), async (req, res, next) => {
   try {
-    const { name, scriptName, sector, isin, cin, pan, registrationDate, description } = req.body;
+    const { 
+      name, scriptName, sector, isin, cin, pan, registrationDate, description,
+      website, foundedYear, highlights 
+    } = req.body;
     
     const company = await Company.findById(req.params.id);
     if (!company) {
@@ -674,6 +715,19 @@ router.put('/companies/:id', upload.single('logo'), async (req, res, next) => {
     company.pan = (pan && pan.trim()) ? pan.trim() : null;
     company.registrationDate = parseIndianDate(registrationDate);
     company.description = (description && description.trim()) ? description.trim() : null;
+    
+    // New fields
+    company.website = (website && website.trim()) ? website.trim() : null;
+    company.foundedYear = foundedYear ? parseInt(foundedYear) : null;
+    
+    if (highlights) {
+      if (Array.isArray(highlights)) {
+        company.highlights = highlights.filter(h => h && h.trim());
+      } else if (typeof highlights === 'string') {
+        // Handle comma or newline separated string
+        company.highlights = highlights.split(/[\n,]/).map(h => h.trim()).filter(h => h);
+      }
+    }
 
     // Handle logo upload
     if (req.file) {
@@ -689,9 +743,31 @@ router.put('/companies/:id', upload.single('logo'), async (req, res, next) => {
     });
   } catch (error) {
     if (error.code === 11000) {
+      let message = 'Duplicate value entered';
+      let field = 'field';
+
+      if (error.keyValue) {
+        field = Object.keys(error.keyValue)[0];
+      } else if (error.message) {
+        // Fallback for older MongoDB drivers
+        if (error.message.includes('name_1')) field = 'name';
+        else if (error.message.includes('isin_1')) field = 'isin';
+        else if (error.message.includes('cin_1')) field = 'cin';
+      }
+      
+      if (field === 'name') {
+        message = 'Company with this name already exists';
+      } else if (field === 'isin') {
+        message = 'Company with this ISIN already exists';
+      } else if (field === 'cin') {
+        message = 'Company with this CIN already exists';
+      } else {
+        message = `Company with this ${field} already exists`;
+      }
+
       return res.status(400).json({
         success: false,
-        message: 'Company with this name already exists'
+        message
       });
     }
     // Better error handling for validation errors

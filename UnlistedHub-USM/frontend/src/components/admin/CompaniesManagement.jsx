@@ -24,7 +24,10 @@ const CompaniesManagement = () => {
     pan: '',
     registrationDate: '',
     description: '',
-    logoUrl: ''
+    logoUrl: '',
+    website: '',
+    foundedYear: '',
+    highlights: ''
   });
 
   // Fetch companies
@@ -133,7 +136,10 @@ const CompaniesManagement = () => {
       pan: '',
       registrationDate: '',
       description: '',
-      logoUrl: ''
+      logoUrl: '',
+      website: '',
+      foundedYear: '',
+      highlights: ''
     });
     setLogoFile(null);
     setLogoPreview(null);
@@ -152,7 +158,10 @@ const CompaniesManagement = () => {
       pan: company.pan || '',
       registrationDate: company.registrationDate ? new Date(company.registrationDate).toLocaleDateString('en-GB') : '',
       description: company.description || '',
-      logoUrl: company.logo || ''
+      logoUrl: company.logo || '',
+      website: company.website || '',
+      foundedYear: company.foundedYear || '',
+      highlights: Array.isArray(company.highlights) ? company.highlights.join('\n') : (company.highlights || '')
     });
     setLogoFile(null);
     setLogoPreview(company.logo || null);
@@ -178,6 +187,9 @@ const CompaniesManagement = () => {
         submitData.append('pan', formData.pan || '');
         submitData.append('registrationDate', formData.registrationDate || '');
         submitData.append('description', formData.description || '');
+        submitData.append('website', formData.website || '');
+        submitData.append('foundedYear', formData.foundedYear || '');
+        submitData.append('highlights', formData.highlights || '');
         submitData.append('logo', logoFile);
         headers['Content-Type'] = 'multipart/form-data';
       } else {
@@ -191,7 +203,10 @@ const CompaniesManagement = () => {
           pan: formData.pan || '',
           registrationDate: formData.registrationDate || '',
           description: formData.description || '',
-          logoUrl: formData.logoUrl || '' // Explicitly send logoUrl
+          logoUrl: formData.logoUrl || '', // Explicitly send logoUrl
+          website: formData.website || '',
+          foundedYear: formData.foundedYear || '',
+          highlights: formData.highlights || ''
         };
         headers['Content-Type'] = 'application/json';
       }
@@ -604,6 +619,37 @@ const CompaniesManagement = () => {
                   />
                   <p className="text-xs text-gray-500 mt-1">Format: DD/MM/YYYY (e.g., 18/08/2005)</p>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Website</label>
+                  <input
+                    type="url"
+                    value={formData.website}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder="https://example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Founded Year</label>
+                  <input
+                    type="number"
+                    value={formData.foundedYear}
+                    onChange={(e) => setFormData({ ...formData, foundedYear: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder="e.g., 2005"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Highlights (One per line)</label>
+                <textarea
+                  value={formData.highlights}
+                  onChange={(e) => setFormData({ ...formData, highlights: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  placeholder="Pre-IPO Investment Opportunity&#10;Verified on NlistPlanet&#10;Market Leader in Sector"
+                />
               </div>
 
               <div>

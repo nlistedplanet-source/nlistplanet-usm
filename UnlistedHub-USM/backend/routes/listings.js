@@ -611,6 +611,9 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
             b.status = 'rejected';
           }
         });
+      } else if (newStatus === 'pending_seller_confirmation') {
+        // Mark as negotiating to hide from marketplace while seller confirms
+        listing.status = 'negotiating';
       }
       
       await listing.save();
@@ -836,6 +839,12 @@ router.put('/:listingId/deals/:dealId/reject', protect, async (req, res, next) =
     if (bid) {
       bid.status = 'rejected';
     }
+
+    // Revert listing status to active if it was negotiating
+    if (listing.status === 'negotiating') {
+      listing.status = 'active';
+    }
+
     await listing.save();
 
     // Notify buyer about rejection
