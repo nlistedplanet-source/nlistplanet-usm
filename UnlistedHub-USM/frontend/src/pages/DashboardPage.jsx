@@ -204,12 +204,13 @@ const DashboardPage = () => {
               companySymbol: activity.listing.companyId?.scriptName || activity.listing.companyId?.ScripName || activity.listing.companyId?.symbol || activity.listing.companyName,
               logo: activity.listing.companyId?.logo || activity.listing.companyId?.Logo,
               listPrice: listPrice,
-              myActionPrice: activity.price, // My original bid/offer (My Bids tab shows this)
+              myActionPrice: activity.originalPrice || activity.price, // My ORIGINAL bid/offer (never changes)
               otherActionPrice: otherPrice, // The counter I received
               quantity: activity.quantity,
               user: activity.listing.userId?.username || 'Seller',
               date: activity.createdAt, // Use createdAt from activity wrapper
-              originalListing: activity.listing
+              originalListing: activity.listing,
+              isBuyer: isBuyer // Store for UI logic
             });
           }
         });
@@ -725,7 +726,11 @@ const DashboardPage = () => {
                         <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Type</div>
                         <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Company</div>
                         <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Your Bid</div>
-                        <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Offer Price</div>
+                        <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">
+                          {item.type === 'counter_received' 
+                            ? (item.isBuyer ? 'Seller Price' : 'Buyer Price')
+                            : (item.type === 'bid_received' ? 'Buyer Price' : 'Seller Price')}
+                        </div>
                         <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center">Actions</div>
                       </div>
                       
@@ -799,7 +804,13 @@ const DashboardPage = () => {
                               <RotateCcw size={14} strokeWidth={2.5} />
                             </button>
                             <button 
-                              onClick={() => handleTabChange(item.type === 'counter_received' ? 'my-bids-offers' : 'posts')}
+                              onClick={() => {
+                                if (item.type === 'counter_received') {
+                                  handleTabChange('my-bids-offers');
+                                } else if (item.type === 'bid_received' || item.type === 'offer_received') {
+                                  handleTabChange('posts');
+                                }
+                              }}
                               className="bg-gray-100 text-gray-700 p-1.5 rounded-md hover:bg-gray-200 flex items-center justify-center transition-colors"
                               title="View"
                             >
