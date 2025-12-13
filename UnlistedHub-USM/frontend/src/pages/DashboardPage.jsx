@@ -313,16 +313,6 @@ const DashboardPage = () => {
     }
   }, [activeTab, user]);
 
-  const formatCurrency = (amount) => {
-    const safe = Number(amount);
-    const value = isNaN(safe) ? 0 : safe;
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(value);
-  };
-
   // Handlers for marketplace card actions
   const handlePlaceBid = (listing) => {
     setSelectedListing(listing);
