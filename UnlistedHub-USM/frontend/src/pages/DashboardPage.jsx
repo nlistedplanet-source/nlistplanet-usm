@@ -762,6 +762,201 @@ const DashboardPage = () => {
             </div>
           </div>
         )}
+
+        {/* Action Center */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-gray-900">Action Center</h2>
+                <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {actionItems.length} New
+                </span>
+              </div>
+              <button onClick={() => handleTabChange('posts')} className="text-sm text-purple-600 font-medium hover:underline">
+                View All
+              </button>
+            </div>
+            
+            <div className="p-4">
+              {actionItems.length === 0 ? (
+                <div className="text-center py-8 bg-gray-50 rounded-xl">
+                  <CheckCircle className="mx-auto text-green-500 mb-2" size={32} />
+                  <p className="text-gray-900 font-medium text-sm">All Caught Up!</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {actionItems.map((item) => (
+                    <div key={item.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                      {/* Table Header */}
+                      <div className="grid grid-cols-5 bg-gray-50 border-b border-gray-200">
+                        <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Type</div>
+                        <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Company</div>
+                        <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">Your Bid</div>
+                        <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center border-r border-gray-200">
+                          {item.type === 'counter_received' 
+                            ? (item.isBuyer ? 'Seller Price' : 'Buyer Price')
+                            : (item.type === 'bid_received' ? 'Buyer Price' : 'Seller Price')}
+                        </div>
+                        <div className="text-[10px] font-bold text-gray-500 uppercase py-2 px-1 text-center">Actions</div>
+                      </div>
+                      
+                      {/* Table Data Row */}
+                      <div className="grid grid-cols-5 items-stretch hover:bg-gray-50 transition-colors">
+                        {/* Type Column */}
+                        <div className="p-2 border-r border-gray-200 flex flex-col justify-center items-center text-center">
+                          <p className="text-xs font-bold text-gray-900">
+                            {item.type === 'bid_received' ? 'Sell' : 
+                             item.type === 'offer_received' ? 'Buy' : 
+                             item.originalListing?.type === 'sell' ? 'Sell' : 'Buy'}
+                          </p>
+                          <p className="text-[10px] font-medium text-blue-600 mt-0.5">
+                            {item.type === 'counter_received' ? 'Counter' : 
+                             item.type === 'bid_received' ? 'Bid' : 'Offer'}
+                          </p>
+                          <p className="text-[9px] text-gray-400 mt-0.5">
+                            {new Date(item.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                          </p>
+                        </div>
+
+                        {/* Company Column (Script Name + Listing Price) */}
+                        <div className="p-2 border-r border-gray-200 flex flex-col justify-center items-center text-center min-w-0">
+                          <p className="font-bold text-gray-900 text-xs truncate w-full" title={item.companySymbol}>
+                            {item.companySymbol}
+                          </p>
+                          <p className="text-[10px] text-gray-500 mt-0.5">
+                            List Price: {formatCurrency(item.listPrice)}
+                          </p>
+                          <p className="text-[9px] text-gray-400">
+                            Qty: {item.quantity?.toLocaleString('en-IN')}
+                          </p>
+                        </div>
+
+                        {/* Your Bid Column (My Action Price) */}
+                        <div className="p-2 border-r border-gray-200 flex items-center justify-center">
+                          <p className="text-sm font-bold text-purple-700">
+                            {formatCurrency(item.myActionPrice)}
+                          </p>
+                        </div>
+
+                        {/* Offer Price Column (Other Action Price) */}
+                        <div className="p-2 border-r border-gray-200 flex items-center justify-center">
+                          <p className="text-sm font-bold text-blue-700">
+                            {formatCurrency(item.otherActionPrice)}
+                          </p>
+                        </div>
+
+                        {/* Action Buttons Column (2x2 Grid) */}
+                        <div className="p-1.5 flex items-center justify-center">
+                          <div className="grid grid-cols-2 gap-1.5 w-full max-w-[80px]">
+                            <button 
+                              onClick={() => handleAcceptAction(item)}
+                              className="bg-green-100 text-green-700 p-1.5 rounded-md hover:bg-green-200 flex items-center justify-center transition-colors"
+                              title="Accept"
+                            >
+                              <CheckCircle size={14} strokeWidth={2.5} />
+                            </button>
+                            <button 
+                              onClick={() => handleRejectAction(item)}
+                              className="bg-red-100 text-red-700 p-1.5 rounded-md hover:bg-red-200 flex items-center justify-center transition-colors"
+                              title="Reject"
+                            >
+                              <XCircle size={14} strokeWidth={2.5} />
+                            </button>
+                            <button 
+                              onClick={() => handleCounterAction(item)}
+                              className="bg-orange-100 text-orange-700 p-1.5 rounded-md hover:bg-orange-200 flex items-center justify-center transition-colors"
+                              title="Counter"
+                            >
+                              <RotateCcw size={14} strokeWidth={2.5} />
+                            </button>
+                            <button 
+                              onClick={() => {
+                                // View button - Navigate to the relevant tab
+                                if (item.type === 'counter_received') {
+                                  handleTabChange('my-bids-offers');
+                                } else {
+                                  handleTabChange('posts');
+                                }
+                              }}
+                              className="bg-gray-100 text-gray-700 p-1.5 rounded-md hover:bg-gray-200 flex items-center justify-center transition-colors"
+                              title="View"
+                            >
+                              <Eye size={14} strokeWidth={2.5} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+            <div className="p-6 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
+              <p className="text-sm text-gray-600 mt-1">Your latest transactions</p>
+            </div>
+            
+            <div className="p-6">
+              <div className="space-y-4">
+                {recentActivities.slice(0, 5).map((activity, index) => {
+                  let icon = <Activity size={20} />;
+                  let colorClass = 'bg-gray-100 text-gray-600';
+                  let title = 'Activity';
+                  
+                  // Determine Icon and Color based on action/type
+                  if (activity.action === 'buy' || activity.action === 'placed_bid' || activity.action === 'placed_offer' || activity.action === 'listed_buy') {
+                    icon = <TrendingUp size={20} />;
+                    colorClass = 'bg-green-100 text-green-600';
+                    title = activity.action === 'buy' ? 'Bought Shares' : 
+                            activity.action === 'listed_buy' ? 'Created Buy Request' : 'Placed Order';
+                  } else if (activity.action === 'sell' || activity.action === 'listed_sell') {
+                    icon = <TrendingDown size={20} />;
+                    colorClass = 'bg-red-100 text-red-600';
+                    title = activity.action === 'sell' ? 'Sold Shares' : 'Listed for Sale';
+                  } else if (activity.action === 'accepted_bid') {
+                    icon = <CheckCircle size={20} />;
+                    colorClass = 'bg-emerald-100 text-emerald-600';
+                    title = 'Accepted Bid';
+                  } else if (activity.action === 'rejected_bid') {
+                    icon = <XCircle size={20} />;
+                    colorClass = 'bg-red-50 text-red-500';
+                    title = 'Rejected Bid';
+                  } else if (activity.action?.includes('counter')) {
+                    icon = <RotateCcw size={20} />;
+                    colorClass = 'bg-orange-100 text-orange-600';
+                    title = 'Countered Offer';
+                  }
+
+                  return (
+                    <div key={index} className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
+                        {icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 text-sm truncate">
+                          {title}
+                        </p>
+                        <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                          {activity.description || `${activity.quantity} shares of ${activity.companyName}`}
+                        </p>
+                        <p className="text-[10px] text-gray-400 mt-1">
+                          {new Date(activity.date).toLocaleDateString()} • {new Date(activity.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <button className="w-full mt-4 text-purple-600 font-medium text-sm hover:bg-purple-50 py-2 rounded-lg transition-colors">
+                View All Activity →
+              </button>
+            </div>
+        </div>
           </>
         )}
           </>
