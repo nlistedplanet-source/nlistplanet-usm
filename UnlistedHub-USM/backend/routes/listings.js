@@ -525,6 +525,22 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
       const bidderInfo = await User.findById(bid.userId).select('username fullName email');
       const ownerInfo = listing.userId; // Already populated
       
+      if (!bidderInfo) {
+        console.error(`❌ Accept Bid Error: Bidder not found (ID: ${bid.userId})`);
+        return res.status(404).json({
+          success: false,
+          message: 'Bidder user account not found'
+        });
+      }
+
+      if (!ownerInfo) {
+        console.error(`❌ Accept Bid Error: Listing owner not found (ID: ${listing.userId})`);
+        return res.status(404).json({
+          success: false,
+          message: 'Listing owner account not found'
+        });
+      }
+      
       // Determine buyer and seller based on listing type
       const isSellListing = listing.type === 'sell';
       const sellerId = isSellListing ? listing.userId._id : bid.userId;
@@ -535,6 +551,8 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
       const buyerName = isSellListing ? bidderInfo.fullName : ownerInfo.fullName;
       
       // Calculate prices with platform fee
+      // For SELL listing: bid.price is Base Price -> Buyer Pays +2%, Seller Gets -2%
+      // For BUY listing: bid.price is Seller Receives -> Buyer Pays = SellerReceives / 0.98
       const buyerPaysPerShare = isSellListing ? bid.price * 1.02 : bid.price / 0.98;
       const sellerReceivesPerShare = isSellListing ? bid.price * 0.98 : bid.price;
       const platformFeePerShare = buyerPaysPerShare - sellerReceivesPerShare;
@@ -601,10 +619,10 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
       });
       
     } catch (dealError) {
-      console.error('❌ Failed to create pending deal:', dealError.message);
+      console.error('❌ Failed to create pending deal:', dealError);
       return res.status(500).json({
         success: false,
-        message: 'Failed to create deal. Please try again.'
+        message: `Failed to create deal: ${dealError.message}`
       });
     }
 
