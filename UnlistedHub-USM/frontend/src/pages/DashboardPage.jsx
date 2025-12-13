@@ -54,10 +54,12 @@ import MarketplaceCard from '../components/MarketplaceCard';
 import BidOfferModal from '../components/BidOfferModal';
 import ShareCardGenerator from '../components/ShareCardGenerator';
 import VerificationCodesModal from '../components/VerificationCodesModal';
+import { useDashboardTour } from '../components/TourGuide';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const { user, logout, loading: authLoading } = useAuth();
+  useDashboardTour();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
   const [loading, setLoading] = useState(true);
@@ -495,7 +497,7 @@ const DashboardPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Left Sidebar Navigation - Compact */}
-      <aside className="w-56 bg-white border-r border-gray-200 fixed left-0 top-0 h-full flex flex-col z-30">
+      <aside id="dashboard-sidebar" className="w-56 bg-white border-r border-gray-200 fixed left-0 top-0 h-full flex flex-col z-30">
         {/* User Profile */}
         <div className="p-3 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -609,6 +611,7 @@ const DashboardPage = () => {
               return (
                 <button
                   key={tab.id}
+                  id={tab.id === 'marketplace' ? 'sidebar-tab-marketplace' : undefined}
                   onClick={() => handleTabChange(tab.id)}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
                     isActive
@@ -652,7 +655,7 @@ const DashboardPage = () => {
         ) : (
           <>
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+        <div id="dashboard-stats-grid" className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
           {/* Total Portfolio Value */}
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
@@ -777,7 +780,7 @@ const DashboardPage = () => {
         {/* Action Center & Recent Activity Grid */}
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Action Center */}
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 min-h-[500px] flex flex-col">
+          <div id="dashboard-action-center" className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 min-h-[500px] flex flex-col">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-gray-900">Action Center</h2>
