@@ -766,8 +766,8 @@ const DashboardPage = () => {
         {/* Action Center & Recent Activity Grid */}
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Action Center */}
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100">
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 min-h-[500px] flex flex-col">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-gray-900">Action Center</h2>
                 <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">
@@ -779,9 +779,9 @@ const DashboardPage = () => {
               </button>
             </div>
             
-            <div className="p-4">
+            <div className="p-4 flex-1 overflow-y-auto">
               {actionItems.length === 0 ? (
-                <div className="text-center py-8 bg-gray-50 rounded-xl">
+                <div className="h-full flex flex-col items-center justify-center text-center py-8 bg-gray-50 rounded-xl">
                   <CheckCircle className="mx-auto text-green-500 mb-2" size={32} />
                   <p className="text-gray-900 font-medium text-sm">All Caught Up!</p>
                 </div>
@@ -896,13 +896,13 @@ const DashboardPage = () => {
           </div>
 
           {/* Recent Activity Sidebar */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-            <div className="p-6 border-b border-gray-100">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 min-h-[500px] flex flex-col">
+            <div className="p-6 border-b border-gray-100 flex-shrink-0">
               <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
               <p className="text-sm text-gray-600 mt-1">Your latest transactions</p>
             </div>
             
-            <div className="p-6">
+            <div className="p-6 flex-1 overflow-y-auto">
               <div className="space-y-4">
                 {recentActivities.slice(0, 5).map((activity, index) => {
                   let icon = <Activity size={20} />;
