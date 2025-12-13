@@ -183,17 +183,27 @@ const DashboardPage = () => {
             
             // Calculate List Price (Match MyBids logic)
             // Backend /my-placed-bids returns 'listingPrice' (raw) and 'displayPrice' (adjusted)
-            // We use displayPrice which is already calculated as Buyer Pays or Seller Gets
-            const listPrice = activity.listing.displayPrice || activity.listing.listingPrice || activity.listing.price;
+            // Ensure we always use displayPrice which is correctly calculated with fees
+            let listPrice = activity.listing.displayPrice;
+            if (!listPrice) {
+              // Fallback: Calculate based on listing type
+              const rawPrice = activity.listing.listingPrice || activity.listing.price;
+              listPrice = isBuyer ? calculateBuyerPays(rawPrice) : calculateSellerGets(rawPrice);
+            }
 
             // Calculate Other Party's Price (The Counter)
-            // If I am Buyer, Seller's counter needs +2%
-            let otherPrice = latestCounter?.price || activity.price;
-            if (isBuyer && latestCounter?.by === 'seller') {
+            // CRITICAL: latestCounter contains the BASE price without fees
+            // We need to apply fees based on who is viewing
+            let otherPrice = activity.price; // Fallback to my bid price
+            
+            if (latestCounter) {
+              if (isBuyer) {
+                // I am Buyer - Seller's counter needs +2% (what I'll pay)
                 otherPrice = calculateBuyerPays(latestCounter.price);
-            } else if (!isBuyer && latestCounter?.by === 'buyer') {
-                // If I am Seller, Buyer's counter needs -2% (Seller Gets)
+              } else {
+                // I am Seller - Buyer's counter needs -2% (what I'll receive)
                 otherPrice = calculateSellerGets(latestCounter.price);
+              }
             }
 
             actions.push({
@@ -205,7 +215,7 @@ const DashboardPage = () => {
               logo: activity.listing.companyId?.logo || activity.listing.companyId?.Logo,
               listPrice: listPrice,
               myActionPrice: activity.originalPrice || activity.price, // My ORIGINAL bid/offer (never changes)
-              otherActionPrice: otherPrice, // The counter I received
+              otherActionPrice: otherPrice, // The counter I received (with fees applied)
               quantity: activity.quantity,
               user: activity.listing.userId?.username || 'Seller',
               date: activity.createdAt, // Use createdAt from activity wrapper
