@@ -24,6 +24,7 @@ export const listingsAPI = {
   counterBid: (listingId, bidId, data) => axios.put(`/listings/${listingId}/bids/${bidId}/counter`, data),
   confirmDeal: (listingId, dealId) => axios.put(`/listings/${listingId}/deals/${dealId}/confirm`),
   rejectDeal: (listingId, dealId, reason) => axios.put(`/listings/${listingId}/deals/${dealId}/reject`, { reason }),
+  getCompletedDeals: () => axios.get('/listings/completed-deals'),
   getDeal: (dealId) => axios.get(`/admin/deals/${dealId}`),
   delete: (id) => axios.delete(`/listings/${id}`),
 };

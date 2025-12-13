@@ -53,6 +53,7 @@ import NewsManagement from '../components/admin/NewsManagement';
 import MarketplaceCard from '../components/MarketplaceCard';
 import BidOfferModal from '../components/BidOfferModal';
 import ShareCardGenerator from '../components/ShareCardGenerator';
+import VerificationCodesModal from '../components/VerificationCodesModal';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -83,6 +84,8 @@ const DashboardPage = () => {
   const [showBidModal, setShowBidModal] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
   const [shareListingData, setShareListingData] = useState(null);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [verificationDeal, setVerificationDeal] = useState(null);
   const [likedListings, setLikedListings] = useState(new Set());
   const [favoritedListings, setFavoritedListings] = useState(new Set());
   const [actionItems, setActionItems] = useState([]);
@@ -406,10 +409,18 @@ const DashboardPage = () => {
   // Action Center handlers
   const handleAcceptAction = async (item) => {
     try {
-      await listingsAPI.acceptBid(item.listingId, item.id);
+      const response = await listingsAPI.acceptBid(item.listingId, item.id);
       toast.success('Bid/Offer accepted successfully! 🎉');
-      // Refresh action items by re-fetching dashboard data
-      window.location.reload(); // Simple refresh to update all data
+      
+      // Check if deal is confirmed and has codes (Seller accepted)
+      if (response.data.deal && response.data.deal.status === 'confirmed') {
+        setVerificationDeal(response.data.deal);
+        setShowVerificationModal(true);
+      } else {
+        // Buyer accepted (pending seller confirmation)
+        // Refresh action items by re-fetching dashboard data
+        window.location.reload(); 
+      }
     } catch (error) {
       console.error('Failed to accept:', error);
       toast.error(error.response?.data?.message || 'Failed to accept. Please try again.');
@@ -1295,6 +1306,18 @@ const DashboardPage = () => {
           onClose={() => {
             setShowShareCard(false);
             setShareListingData(null);
+          }}
+        />
+      )}
+
+      {/* Verification Codes Modal */}
+      {showVerificationModal && verificationDeal && (
+        <VerificationCodesModal
+          deal={verificationDeal}
+          onClose={() => {
+            setShowVerificationModal(false);
+            setVerificationDeal(null);
+            window.location.reload(); // Refresh to update UI state
           }}
         />
       )}
