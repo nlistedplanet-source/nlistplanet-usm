@@ -28,6 +28,14 @@ const newsSchema = new mongoose.Schema({
     type: String,
     default: ''  // Natural conversational Hindi summary
   },
+  editorHeadline: {
+    type: String,
+    default: ''  // AI-generated newspaper-style headline
+  },
+  editorCrux: {
+    type: String,
+    default: ''  // AI-generated short crux/summary (newspaper style)
+  },
   thumbnailAIGenerated: {
     type: Boolean,
     default: false  // Flag if thumbnail was AI-generated

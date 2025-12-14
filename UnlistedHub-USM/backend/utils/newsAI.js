@@ -30,6 +30,55 @@ if (process.env.CLOUDINARY_CLOUD_NAME) {
 }
 
 /**
+ * Generate newspaper-style editor headline + crux
+ * Reads full English summary and creates concise rewrite like newspaper editors do
+ */
+export const generateEditorHeadlineAndCrux = async (title, englishSummary) => {
+  const openai = getOpenAI();
+  if (!openai) {
+    console.log('⚠️ OpenAI not configured');
+    return { headline: '', crux: '' };
+  }
+  
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a professional newspaper editor. Your job is to:
+1. Read the full news story
+2. Create a sharp, attention-grabbing headline (8-12 words)
+3. Write a concise crux/summary (30-40 words) that captures the essence
+4. Use active voice, strong verbs, and clear language
+5. Make it engaging like Economic Times, Business Standard style
+6. Focus on the most newsworthy angle
+
+Return JSON format: {"headline": "...", "crux": "..."}`
+        },
+        {
+          role: 'user',
+          content: `Original Title: ${title}\n\nFull Story:\n${englishSummary}\n\nCreate newspaper-style headline and crux:`
+        }
+      ],
+      max_tokens: 200,
+      temperature: 0.8,
+      response_format: { type: 'json_object' }
+    });
+    
+    const result = JSON.parse(response.choices[0]?.message?.content || '{}');
+    console.log(`  ✅ Generated editor headline: ${result.headline?.substring(0, 50)}...`);
+    return {
+      headline: result.headline || '',
+      crux: result.crux || ''
+    };
+  } catch (error) {
+    console.error('  ❌ OpenAI editor generation error:', error.message);
+    return { headline: '', crux: '' };
+  }
+};
+
+/**
  * Generate Inshorts-style Hindi summary
  * Short: 40-60 words in Hindi with formal tone
  */
@@ -188,7 +237,7 @@ const uploadToCloudinary = async (imageUrl, title) => {
 
 /**
  * Process single news item with AI
- * Generates Hindi summary and image if needed
+ * Generates Hindi summary, editor headline/crux, and image if needed
  */
 export const processNewsWithAI = async (newsItem) => {
   const { title, summary, thumbnail, category } = newsItem;
@@ -197,6 +246,9 @@ export const processNewsWithAI = async (newsItem) => {
   
   // Generate Hindi summary
   const hindiSummary = await generateHindiInshortsSummary(title, summary);
+  
+  // Generate editor headline and crux (newspaper style)
+  const { headline: editorHeadline, crux: editorCrux } = await generateEditorHeadlineAndCrux(title, summary);
   
   // Generate image if missing
   let finalThumbnail = thumbnail;
@@ -208,6 +260,8 @@ export const processNewsWithAI = async (newsItem) => {
   return {
     ...newsItem,
     hindiSummary,
+    editorHeadline,
+    editorCrux,
     thumbnail: finalThumbnail
   };
 };
@@ -235,6 +289,7 @@ export const processNewsItemsWithAI = async (newsItems) => {
 };
 
 export default {
+  generateEditorHeadlineAndCrux,
   generateHindiInshortsSummary,
   generateNewsImage,
   processNewsWithAI,

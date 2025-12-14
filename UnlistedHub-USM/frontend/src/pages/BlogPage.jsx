@@ -198,7 +198,7 @@ const BlogPage = () => {
                 key={article._id}
                 className="group bg-gray-900 rounded-2xl overflow-hidden border border-gray-800 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10"
               >
-                {/* Thumbnail */}
+                {/* Thumbnail - Clean, no badges */}
                 <div className="relative h-48 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
                   {article.thumbnail ? (
                     <img
@@ -215,18 +215,6 @@ const BlogPage = () => {
                       <BookOpen className="w-12 h-12 text-gray-700" />
                     </div>
                   )}
-                  
-                  {/* Category Badge */}
-                  <div className="absolute top-3 left-3">
-                    <span className={`${getCategoryColor(article.category)} text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg`}>
-                      {article.category}
-                    </span>
-                  </div>
-
-                  {/* Source Badge */}
-                  <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-lg">
-                    <span className="text-white text-xs font-medium">{article.sourceName}</span>
-                  </div>
 
                   {/* Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60"></div>
@@ -234,33 +222,30 @@ const BlogPage = () => {
 
                 {/* Content */}
                 <div className="p-5">
+                  {/* Editor Headline (newspaper style) */}
                   <h2 
                     onClick={() => setSelectedArticle(article)}
                     className="text-white font-bold text-lg leading-tight mb-3 line-clamp-2 group-hover:text-emerald-400 transition-colors cursor-pointer"
                   >
-                    {article.title}
+                    {article.editorHeadline || article.title}
                   </h2>
 
+                  {/* Editor Crux (newspaper style summary) */}
                   <p 
                     onClick={() => setSelectedArticle(article)}
                     className="text-gray-400 text-sm leading-relaxed mb-4 line-clamp-3 cursor-pointer"
                   >
-                    {article.summary}
+                    {article.editorCrux || article.summary}
                   </p>
 
-                  {/* Hindi Summary Preview */}
-                  {article.hindiSummary && (
-                    <p 
-                      onClick={() => setSelectedArticle(article)}
-                      className="text-gray-500 text-sm leading-relaxed mb-4 line-clamp-2 font-hindi cursor-pointer italic"
-                    >
-                      {article.hindiSummary}
-                    </p>
-                  )}
-
-                  {/* Footer */}
+                  {/* Footer with Category Tag & Source */}
                   <div className="flex items-center justify-between text-gray-500 text-xs pt-4 border-t border-gray-800">
                     <div className="flex items-center gap-2">
+                      {/* Category Tag at Bottom */}
+                      <span className={`${getCategoryColor(article.category)} text-white text-[10px] font-bold px-2 py-1 rounded-md`}>
+                        {article.category}
+                      </span>
+                      <span className="text-gray-600">•</span>
                       <Calendar size={14} />
                       <span>{formatDate(article.publishedAt)}</span>
                     </div>
@@ -324,10 +309,15 @@ const BlogPage = () => {
                 </div>
               )}
 
-              {/* Title */}
-              <h1 className="text-white font-bold text-2xl leading-tight mb-4">
-                {selectedArticle.title}
+              {/* Editor Headline */}
+              <h1 className="text-white font-bold text-2xl leading-tight mb-2">
+                {selectedArticle.editorHeadline || selectedArticle.title}
               </h1>
+
+              {/* Original Title (if different) */}
+              {selectedArticle.editorHeadline && selectedArticle.editorHeadline !== selectedArticle.title && (
+                <p className="text-gray-500 text-sm mb-4 italic">Original: {selectedArticle.title}</p>
+              )}
 
               {/* Date */}
               <div className="flex items-center gap-2 text-gray-500 text-sm mb-6">
@@ -335,9 +325,19 @@ const BlogPage = () => {
                 <span>{formatDate(selectedArticle.publishedAt)}</span>
               </div>
 
-              {/* English Summary */}
+              {/* Editor Crux (Newspaper Style) */}
+              {selectedArticle.editorCrux && (
+                <div className="mb-6 bg-emerald-500/10 border-l-4 border-emerald-500 p-4 rounded-r-lg">
+                  <h3 className="text-emerald-400 font-semibold text-xs mb-2 uppercase tracking-wider">Editor's Brief</h3>
+                  <p className="text-gray-200 text-base leading-relaxed font-medium">
+                    {selectedArticle.editorCrux}
+                  </p>
+                </div>
+              )}
+
+              {/* Full Original Summary */}
               <div className="mb-6">
-                <h3 className="text-emerald-400 font-semibold text-sm mb-2 uppercase tracking-wider">Summary</h3>
+                <h3 className="text-gray-400 font-semibold text-sm mb-2 uppercase tracking-wider">Full Story</h3>
                 <p className="text-gray-300 text-base leading-relaxed">
                   {selectedArticle.summary}
                 </p>
