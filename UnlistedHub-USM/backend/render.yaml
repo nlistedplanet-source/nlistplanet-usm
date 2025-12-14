@@ -47,3 +47,5 @@ services:
         sync: false
       - key: FRONTEND_URL
         value: https://nlistplanet-usm.vercel.app
+      - key: CORS_ORIGINS
+        value: https://www.nlistplanet.com,https://nlistplanet.com,https://nlistplanet-usm.vercel.app
