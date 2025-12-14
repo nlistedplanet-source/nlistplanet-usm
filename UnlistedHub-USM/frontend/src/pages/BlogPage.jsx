@@ -10,6 +10,7 @@ const BlogPage = () => {
   const [error, setError] = useState(null);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedArticle, setSelectedArticle] = useState(null);
 
   // Get base API URL
   const getBaseUrl = () => {
@@ -195,8 +196,7 @@ const BlogPage = () => {
             {filteredNews.map((article) => (
               <article
                 key={article._id}
-                onClick={() => navigate(`/blog/${article._id}`)}
-                className="group bg-gray-900 rounded-2xl overflow-hidden border border-gray-800 hover:border-emerald-500/50 transition-all duration-300 cursor-pointer hover:shadow-xl hover:shadow-emerald-500/10"
+                className="group bg-gray-900 rounded-2xl overflow-hidden border border-gray-800 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10"
               >
                 {/* Thumbnail */}
                 <div className="relative h-48 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
@@ -234,13 +234,29 @@ const BlogPage = () => {
 
                 {/* Content */}
                 <div className="p-5">
-                  <h2 className="text-white font-bold text-lg leading-tight mb-3 line-clamp-2 group-hover:text-emerald-400 transition-colors">
+                  <h2 
+                    onClick={() => setSelectedArticle(article)}
+                    className="text-white font-bold text-lg leading-tight mb-3 line-clamp-2 group-hover:text-emerald-400 transition-colors cursor-pointer"
+                  >
                     {article.title}
                   </h2>
 
-                  <p className="text-gray-400 text-sm leading-relaxed mb-4 line-clamp-3">
+                  <p 
+                    onClick={() => setSelectedArticle(article)}
+                    className="text-gray-400 text-sm leading-relaxed mb-4 line-clamp-3 cursor-pointer"
+                  >
                     {article.summary}
                   </p>
+
+                  {/* Hindi Summary Preview */}
+                  {article.hindiSummary && (
+                    <p 
+                      onClick={() => setSelectedArticle(article)}
+                      className="text-gray-500 text-sm leading-relaxed mb-4 line-clamp-2 font-hindi cursor-pointer italic"
+                    >
+                      {article.hindiSummary}
+                    </p>
+                  )}
 
                   {/* Footer */}
                   <div className="flex items-center justify-between text-gray-500 text-xs pt-4 border-t border-gray-800">
@@ -254,10 +270,9 @@ const BlogPage = () => {
                         href={article.sourceUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
                         className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-medium"
                       >
-                        Read More
+                        {article.sourceName || 'Source'}
                         <ExternalLink size={12} />
                       </a>
                     )}
@@ -268,6 +283,92 @@ const BlogPage = () => {
           </div>
         )}
       </main>
+
+      {/* Full Article Modal */}
+      {selectedArticle && (
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedArticle(null)}
+        >
+          <div 
+            className="bg-gray-900 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-gray-800 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-gray-900/95 backdrop-blur-xl border-b border-gray-800 p-4 flex items-center justify-between z-10">
+              <div className="flex items-center gap-3">
+                <span className={`${getCategoryColor(selectedArticle.category)} text-white text-xs font-bold px-3 py-1 rounded-full`}>
+                  {selectedArticle.category}
+                </span>
+                <span className="text-gray-500 text-sm">{selectedArticle.sourceName}</span>
+              </div>
+              <button
+                onClick={() => setSelectedArticle(null)}
+                className="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6">
+              {/* Thumbnail */}
+              {selectedArticle.thumbnail && (
+                <div className="relative h-64 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl overflow-hidden mb-6">
+                  <img
+                    src={selectedArticle.thumbnail}
+                    alt={selectedArticle.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
+                </div>
+              )}
+
+              {/* Title */}
+              <h1 className="text-white font-bold text-2xl leading-tight mb-4">
+                {selectedArticle.title}
+              </h1>
+
+              {/* Date */}
+              <div className="flex items-center gap-2 text-gray-500 text-sm mb-6">
+                <Calendar size={16} />
+                <span>{formatDate(selectedArticle.publishedAt)}</span>
+              </div>
+
+              {/* English Summary */}
+              <div className="mb-6">
+                <h3 className="text-emerald-400 font-semibold text-sm mb-2 uppercase tracking-wider">Summary</h3>
+                <p className="text-gray-300 text-base leading-relaxed">
+                  {selectedArticle.summary}
+                </p>
+              </div>
+
+              {/* Hindi Summary */}
+              {selectedArticle.hindiSummary && (
+                <div className="bg-gray-800/50 rounded-xl p-5 mb-6 border border-gray-700">
+                  <h3 className="text-emerald-400 font-semibold text-sm mb-3 uppercase tracking-wider">हिंदी सारांश</h3>
+                  <p className="text-gray-300 text-base leading-relaxed font-hindi">
+                    {selectedArticle.hindiSummary}
+                  </p>
+                </div>
+              )}
+
+              {/* Source Link */}
+              {selectedArticle.sourceUrl && (
+                <a
+                  href={selectedArticle.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600 transition-colors"
+                >
+                  Read Full Article on {selectedArticle.sourceName}
+                  <ExternalLink size={18} />
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
