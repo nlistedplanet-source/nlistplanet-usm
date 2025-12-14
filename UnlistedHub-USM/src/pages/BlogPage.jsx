@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share2, ExternalLink, ChevronUp, ChevronDown, BookOpen } from 'lucide-react';
+import { ArrowLeft, Share2, ExternalLink, ChevronUp, ChevronDown, BookOpen, Calendar } from 'lucide-react';
 import LandingBottomNav from '../components/common/LandingBottomNav';
+import TopBar from '../components/TopBar';
 
 const BlogPage = () => {
   const navigate = useNavigate();
@@ -12,10 +13,11 @@ const BlogPage = () => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1024 : false);
 
   // Get base API URL without /api suffix for news endpoint
   const getBaseUrl = () => {
-    const envUrl = process.env.REACT_APP_API_URL || 'https://api.nlistplanet.com/api';
+    const envUrl = process.env.REACT_APP_API_URL || 'https://nlistplanet-usm-v8dc.onrender.com/api';
     // Remove /api suffix if present to avoid double /api/api
     return envUrl.replace(/\/api\/?$/, '');
   };
@@ -25,6 +27,9 @@ const BlogPage = () => {
 
   useEffect(() => {
     fetchNews();
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [activeCategory]);
 
   const fetchNews = async () => {
@@ -117,35 +122,117 @@ const BlogPage = () => {
         console.log('Share cancelled');
       }
     } else {
-      navigator.clipboard.writeText(`${article.title}\n\n${article.summary}`);
+      navigator.clipboard.writeText(`${article.title}\n\n${article.summary}\n${window.location.origin}/blog/${article._id}`);
       alert('Copied to clipboard!');
     }
   };
 
   const currentArticle = news[currentIndex];
 
-  if (loading) {
-    return null;
-  }
-
-  if (error || news.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
-        <div className="text-center">
-          <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-            <BookOpen className="w-10 h-10 text-gray-600" />
-          </div>
-          <p className="text-gray-400 mb-2">{error || 'No news available'}</p>
-          <button
-            onClick={fetchNews}
-            className="px-6 py-2 bg-emerald-500 text-white rounded-xl font-medium mt-4"
-          >
-            Try Again
-          </button>
+  const renderError = () => (
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
+      <div className="text-center">
+        <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+          <BookOpen className="w-10 h-10 text-gray-600" />
         </div>
+        <p className="text-gray-400 mb-2">{error || 'No news available'}</p>
+        <button
+          onClick={fetchNews}
+          className="px-6 py-2 bg-emerald-500 text-white rounded-xl font-medium mt-4"
+        >
+          Try Again
+        </button>
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <TopBar />
+        <div className="max-w-6xl mx-auto px-4 py-16 text-gray-500">Loading news...</div>
       </div>
     );
   }
+
+  if (error || news.length === 0) {
+    return renderError();
+  }
+
+  const renderDesktop = () => (
+    <div className="min-h-screen bg-gray-50">
+      <TopBar />
+      <main className="max-w-6xl mx-auto px-4 lg:px-6 py-10">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <div>
+            <p className="text-emerald-600 font-semibold text-sm">Latest Insights</p>
+            <h1 className="text-3xl font-bold text-gray-900">Nlist Planet Blog</h1>
+            <p className="text-gray-600 mt-1">Fresh updates on unlisted markets, IPOs, and startups.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className={`px-3 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
+                  activeCategory === category
+                    ? 'bg-emerald-600 text-white border-emerald-600'
+                    : 'bg-white text-gray-700 border-gray-200 hover:border-emerald-200'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {news.map((article) => (
+            <article
+              key={article._id}
+              className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition cursor-pointer flex flex-col"
+              onClick={() => navigate(`/blog/${article._id}`)}
+            >
+              <div className="relative h-44 w-full rounded-t-2xl overflow-hidden bg-gray-100">
+                {article.thumbnail ? (
+                  <img
+                    src={article.thumbnail}
+                    alt={article.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-300">
+                    <BookOpen className="w-10 h-10" />
+                  </div>
+                )}
+                <span className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getCategoryColor(article.category)}`}>
+                  {article.category || 'General'}
+                </span>
+              </div>
+
+              <div className="p-4 flex-1 flex flex-col">
+                <div className="flex items-center gap-2 text-gray-500 text-xs mb-2">
+                  <Calendar size={14} />
+                  <span>{formatDate(article.publishedAt)}</span>
+                  <span className="h-1 w-1 rounded-full bg-gray-300" />
+                  <span className="text-gray-500">{article.sourceName || 'Source'}</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 mb-2">{article.title}</h3>
+                <p className="text-sm text-gray-600 line-clamp-3 mb-3 flex-1">{article.summary}</p>
+                <div className="flex items-center justify-between text-sm text-emerald-600 font-semibold">
+                  <span>Read more</span>
+                  <ExternalLink size={16} />
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+
+  if (isDesktop) return renderDesktop();
 
   return (
     <div className="h-screen bg-gray-950 overflow-hidden flex flex-col">
