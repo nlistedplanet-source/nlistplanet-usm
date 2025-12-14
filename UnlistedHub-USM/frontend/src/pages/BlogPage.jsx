@@ -15,7 +15,7 @@ const BlogPage = () => {
 
   // Get base API URL without /api suffix for news endpoint
   const getBaseUrl = () => {
-    const envUrl = process.env.REACT_APP_API_URL || 'https://api.nlistplanet.com/api';
+    const envUrl = process.env.REACT_APP_API_URL || 'https://nlistplanet-usm-v8dc.onrender.com/api';
     // Remove /api suffix if present to avoid double /api/api
     return envUrl.replace(/\/api\/?$/, '');
   };
