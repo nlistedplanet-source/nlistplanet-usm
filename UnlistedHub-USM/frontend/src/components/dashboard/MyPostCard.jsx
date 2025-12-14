@@ -363,14 +363,12 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                   <div className="absolute left-0 top-6 hidden group-hover:block w-64 bg-gray-900 text-white text-xs rounded-lg p-3 shadow-2xl z-50">
                     <p className="font-bold text-sm mb-2">{listing.companyName || 'Company Details'}</p>
                     <div className="space-y-1.5">
-                      <p><span className="text-gray-400">Sector:</span> {listing.companyId?.Sector || listing.companyId?.sector || 'N/A'}</p>
-                      <p><span className="text-gray-400">ISIN:</span> {listing.companyId?.ISIN || 'N/A'}</p>
-                      <p><span className="text-gray-400">PAN:</span> {listing.companyId?.PAN || 'N/A'}</p>
-                      <p><span className="text-gray-400">CIN:</span> {listing.companyId?.CIN || 'N/A'}</p>
-                      {listing.companyId?.EPS && <p><span className="text-gray-400">EPS:</span> ₹{listing.companyId.EPS}</p>}
-                      {listing.companyId?.PERatio && <p><span className="text-gray-400">PE Ratio:</span> {listing.companyId.PERatio}</p>}
-                      {listing.companyId?.MarketCap && <p><span className="text-gray-400">Market Cap:</span> {listing.companyId.MarketCap}</p>}
-                      {listing.companyId?.RegistrationDate && <p><span className="text-gray-400">Registration:</span> {listing.companyId.RegistrationDate}</p>}
+                      <p><span className="text-gray-400">Sector:</span> {listing.companyId?.sector || 'N/A'}</p>
+                      <p><span className="text-gray-400">ISIN:</span> {listing.companyId?.isin || 'N/A'}</p>
+                      <p><span className="text-gray-400">PAN:</span> {listing.companyId?.pan || 'N/A'}</p>
+                      <p><span className="text-gray-400">CIN:</span> {listing.companyId?.cin || 'N/A'}</p>
+                      {listing.companyId?.website && <p><span className="text-gray-400">Website:</span> {listing.companyId.website}</p>}
+                      {listing.companyId?.foundedYear && <p><span className="text-gray-400">Founded:</span> {listing.companyId.foundedYear}</p>}
                     </div>
                   </div>
                 </div>
