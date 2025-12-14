@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Use hardcoded production URL to avoid stale Vercel env vars
-const PROD_API_URL = 'https://nlistplanet-usm-api.onrender.com/api';
+const PROD_API_URL = 'https://nlistplanet-usm-v8dc.onrender.com/api';
 const API_URL = process.env.NODE_ENV === 'development' 
   ? (process.env.REACT_APP_API_URL || 'http://localhost:5000/api')
   : PROD_API_URL;
