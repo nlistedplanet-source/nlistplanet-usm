@@ -46,8 +46,14 @@ const OffersTab = () => {
   const handleAccept = async (offer) => {
     try {
       setActionLoading(offer._id);
-      await listingsAPI.acceptBid(offer.listing._id, offer._id);
-      toast.success('Offer accepted successfully! 🎉');
+      const response = await listingsAPI.acceptBid(offer.listing._id, offer._id);
+      const status = response.data.status;
+      
+      if (status === 'confirmed') {
+        toast.success('Deal confirmed! 🎉');
+      } else if (status === 'accepted') {
+        toast.success('Accepted! Waiting for other party to confirm. ⏳');
+      }
       fetchOffers();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to accept offer');

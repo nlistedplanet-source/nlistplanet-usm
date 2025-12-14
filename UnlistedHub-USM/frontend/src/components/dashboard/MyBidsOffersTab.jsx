@@ -57,12 +57,18 @@ const MyBidsOffersTab = () => {
   };
 
   const handleAccept = async (activity) => {
-    if (!window.confirm('Are you sure you want to accept this offer? This will finalize the deal.')) return;
+    if (!window.confirm('Are you sure you want to accept this offer?')) return;
     
     try {
       setActionLoading(activity._id);
-      await listingsAPI.acceptBid(activity.listing._id, activity._id);
-      toast.success('Offer accepted! Deal is being finalized... 🎉');
+      const response = await listingsAPI.acceptBid(activity.listing._id, activity._id);
+      const status = response.data.status;
+      
+      if (status === 'confirmed') {
+        toast.success('Deal confirmed! 🎉');
+      } else if (status === 'accepted') {
+        toast.success('Accepted! Waiting for other party to confirm. ⏳');
+      }
       fetchMyActivity();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to accept offer');

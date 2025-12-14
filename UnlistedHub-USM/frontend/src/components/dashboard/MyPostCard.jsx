@@ -96,8 +96,14 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
   const handleAccept = async (bid) => {
     try {
       setActionLoading(bid._id);
-      await listingsAPI.acceptBid(listing._id, bid._id);
-      toast.success('Bid accepted successfully! 🎉');
+      const response = await listingsAPI.acceptBid(listing._id, bid._id);
+      const status = response.data.status;
+      
+      if (status === 'confirmed') {
+        toast.success('Deal confirmed! 🎉');
+      } else if (status === 'accepted') {
+        toast.success('Accepted! Waiting for other party to confirm. ⏳');
+      }
       onRefresh();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to accept bid');

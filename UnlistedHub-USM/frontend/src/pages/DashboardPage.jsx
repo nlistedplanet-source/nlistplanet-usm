@@ -417,15 +417,19 @@ const DashboardPage = () => {
   const handleAcceptAction = async (item) => {
     try {
       const response = await listingsAPI.acceptBid(item.listingId, item.id);
-      toast.success('Bid/Offer accepted successfully! 🎉');
+      const status = response.data.status;
       
-      // Check if deal is confirmed and has codes (Seller accepted)
-      if (response.data.deal && response.data.deal.status === 'confirmed') {
-        setVerificationDeal(response.data.deal);
-        setShowVerificationModal(true);
-      } else {
-        // Buyer accepted (pending seller confirmation)
-        // Refresh action items by re-fetching dashboard data
+      if (status === 'confirmed') {
+        // Second party accepted - deal confirmed
+        toast.success('Deal confirmed! 🎉');
+        if (response.data.deal) {
+          setVerificationDeal(response.data.deal);
+          setShowVerificationModal(true);
+        }
+      } else if (status === 'accepted') {
+        // First party accepted - waiting for other party
+        toast.success('Accepted! Waiting for other party to confirm. ⏳');
+        // Refresh action items
         window.location.reload(); 
       }
     } catch (error) {
