@@ -404,8 +404,8 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                   </div>
                 </td>
                 <td className="border-2 border-gray-400 px-2 py-2 text-center">
-                  <div className="text-sm font-bold text-gray-900 cursor-help" title={`${(listing.minQuantity || 1).toLocaleString('en-IN')} shares`}>
-                    {formatShortQuantity(listing.minQuantity || 1)}
+                  <div className="text-sm font-bold text-gray-900 cursor-help" title={`${(listing.minLot || 1).toLocaleString('en-IN')} shares`}>
+                    {formatShortQuantity(listing.minLot || 1)}
                   </div>
                 </td>
                 <td className="border-2 border-gray-400 px-2 py-2 text-center">
