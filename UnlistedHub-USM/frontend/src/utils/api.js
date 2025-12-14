@@ -104,6 +104,9 @@ export const adminAPI = {
   getDeal: (id) => axios.get(`/admin/deals/${id}`),
   markDealAsSold: (id, notes) => axios.put(`/admin/deals/${id}/mark-sold`, { adminNotes: notes }),
   updateDealStatus: (id, status, notes) => axios.put(`/admin/deals/${id}/update-status`, { status, notes }),
+  // Accepted deals management
+  getAcceptedDeals: (params) => axios.get('/admin/accepted-deals', { params }),
+  closeDeal: (dealId, listingId, bidId, notes) => axios.post(`/admin/accepted-deals/${dealId}/close`, { listingId, bidId, notes }),
 };
 
 export default axios;

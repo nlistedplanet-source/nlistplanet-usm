@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import CompanyData from '../components/admin/CompanyData';
 import UserManagement from '../components/admin/UserManagement';
 import NewsManagement from '../components/admin/NewsManagement';
+import AcceptedDeals from '../components/admin/AcceptedDeals';
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
@@ -35,6 +36,7 @@ const AdminDashboard = () => {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'users', label: 'Users', icon: Users },
     { id: 'companies', label: 'Companies', icon: Database },
+    { id: 'accepted-deals', label: 'Accepted Deals', icon: CheckCircle },
     { id: 'news', label: 'News/Blog', icon: Newspaper },
   ];
 
@@ -327,6 +329,9 @@ const AdminDashboard = () => {
 
           {/* Company Data Tab */}
           {activeTab === 'companies' && <CompanyData />}
+
+          {/* Accepted Deals Tab */}
+          {activeTab === 'accepted-deals' && <AcceptedDeals />}
 
           {/* News Management Tab */}
           {activeTab === 'news' && <NewsManagement />}

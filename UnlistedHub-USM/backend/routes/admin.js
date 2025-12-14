@@ -1827,5 +1827,200 @@ router.put('/deals/:id/update-status', async (req, res, next) => {
   }
 });
 
+// @route   GET /api/admin/accepted-deals
+// @desc    Get all accepted/pending confirmation deals
+// @access  Admin
+router.get('/accepted-deals', async (req, res, next) => {
+  try {
+    const { page = 1, limit = 20, status: filterStatus } = req.query;
+    const skip = (page - 1) * limit;
+
+    // Find all listings with accepted or pending confirmation bids/offers
+    const listings = await Listing.find({
+      $or: [
+        { 'bids.status': { $in: ['accepted', 'pending_seller_confirmation', 'confirmed'] } },
+        { 'offers.status': { $in: ['accepted', 'pending_buyer_confirmation', 'confirmed'] } }
+      ]
+    })
+      .populate('userId', 'username email fullName phoneNumber')
+      .populate('companyId', 'name ScripName scriptName logo Logo')
+      .populate('bids.userId', 'username email fullName phoneNumber')
+      .populate('offers.userId', 'username email fullName phoneNumber')
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    // Extract accepted deals
+    const acceptedDeals = [];
+
+    listings.forEach(listing => {
+      // Process bids (for sell listings)
+      if (listing.bids && listing.bids.length > 0) {
+        listing.bids.forEach(bid => {
+          if (['accepted', 'pending_seller_confirmation', 'confirmed'].includes(bid.status)) {
+            if (!filterStatus || bid.status === filterStatus) {
+              acceptedDeals.push({
+                _id: bid._id,
+                type: 'sell',
+                listingId: listing._id,
+                listingType: listing.listingType,
+                company: listing.companyName,
+                companySymbol: listing.companyId?.ScripName || listing.companyId?.scriptName || listing.companyName,
+                companyLogo: listing.companyId?.Logo || listing.companyId?.logo,
+                quantity: bid.quantity,
+                agreedPrice: bid.price,
+                buyerOfferedPrice: bid.buyerOfferedPrice,
+                sellerReceivesPrice: bid.sellerReceivesPrice,
+                platformFee: bid.platformFee,
+                status: bid.status,
+                seller: {
+                  _id: listing.userId._id,
+                  username: listing.userId.username,
+                  email: listing.userId.email,
+                  fullName: listing.userId.fullName,
+                  phoneNumber: listing.userId.phoneNumber
+                },
+                buyer: {
+                  _id: bid.userId._id,
+                  username: bid.userId.username,
+                  email: bid.userId.email,
+                  fullName: bid.userId.fullName,
+                  phoneNumber: bid.userId.phoneNumber
+                },
+                bidId: bid._id,
+                dealId: bid.dealId,
+                buyerAcceptedAt: bid.buyerAcceptedAt,
+                createdAt: bid.createdAt,
+                updatedAt: bid.updatedAt || listing.updatedAt
+              });
+            }
+          }
+        });
+      }
+
+      // Process offers (for buy listings)
+      if (listing.offers && listing.offers.length > 0) {
+        listing.offers.forEach(offer => {
+          if (['accepted', 'pending_buyer_confirmation', 'confirmed'].includes(offer.status)) {
+            if (!filterStatus || offer.status === filterStatus) {
+              acceptedDeals.push({
+                _id: offer._id,
+                type: 'buy',
+                listingId: listing._id,
+                listingType: listing.listingType,
+                company: listing.companyName,
+                companySymbol: listing.companyId?.ScripName || listing.companyId?.scriptName || listing.companyName,
+                companyLogo: listing.companyId?.Logo || listing.companyId?.logo,
+                quantity: offer.quantity,
+                agreedPrice: offer.price,
+                buyerOfferedPrice: offer.buyerOfferedPrice,
+                sellerReceivesPrice: offer.sellerReceivesPrice,
+                platformFee: offer.platformFee,
+                status: offer.status,
+                buyer: {
+                  _id: listing.userId._id,
+                  username: listing.userId.username,
+                  email: listing.userId.email,
+                  fullName: listing.userId.fullName,
+                  phoneNumber: listing.userId.phoneNumber
+                },
+                seller: {
+                  _id: offer.userId._id,
+                  username: offer.userId.username,
+                  email: offer.userId.email,
+                  fullName: offer.userId.fullName,
+                  phoneNumber: offer.userId.phoneNumber
+                },
+                offerId: offer._id,
+                dealId: offer.dealId,
+                sellerAcceptedAt: offer.sellerAcceptedAt,
+                createdAt: offer.createdAt,
+                updatedAt: offer.updatedAt || listing.updatedAt
+              });
+            }
+          }
+        });
+      }
+    });
+
+    // Sort by updatedAt (most recent first)
+    acceptedDeals.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
+    const total = acceptedDeals.length;
+    const totalPages = Math.ceil(total / limit);
+
+    res.json({
+      success: true,
+      data: {
+        deals: acceptedDeals,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          totalPages
+        },
+        stats: {
+          total: acceptedDeals.length,
+          accepted: acceptedDeals.filter(d => d.status === 'accepted').length,
+          pendingConfirmation: acceptedDeals.filter(d => d.status.includes('pending')).length,
+          confirmed: acceptedDeals.filter(d => d.status === 'confirmed').length
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   POST /api/admin/accepted-deals/:dealId/close
+// @desc    Close/mark deal as completed (Admin closes accepted deal)
+// @access  Admin
+router.post('/accepted-deals/:dealId/close', async (req, res, next) => {
+  try {
+    const { dealId } = req.params;
+    const { listingId, bidId, notes } = req.body;
+
+    // Find the listing
+    const listing = await Listing.findById(listingId);
+    if (!listing) {
+      return res.status(404).json({
+        success: false,
+        message: 'Listing not found'
+      });
+    }
+
+    // Find the bid/offer
+    let bid = listing.bids.id(bidId);
+    let offer = listing.offers.id(bidId);
+    const item = bid || offer;
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: 'Bid/Offer not found'
+      });
+    }
+
+    // Update status to closed
+    item.status = 'closed';
+    item.closedAt = new Date();
+    item.closedBy = req.user._id;
+    item.adminNotes = notes;
+
+    await listing.save();
+
+    res.json({
+      success: true,
+      message: 'Deal closed successfully',
+      data: {
+        listing,
+        item
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
 

@@ -508,22 +508,62 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
       });
     }
 
-    // Check if already accepted
-    if (bid.status === 'accepted' || bid.status === 'confirmed' || bid.status === 'pending_seller_confirmation') {
+    // Check if already confirmed
+    if (bid.status === 'confirmed') {
       return res.status(400).json({
         success: false,
-        message: 'This bid has already been accepted or is pending confirmation'
+        message: 'This bid has already been confirmed'
       });
     }
 
-    // Determine new status based on who is accepting
-    // If Owner accepts -> Confirmed (Deal Done, as Bidder already committed)
-    // If Bidder accepts -> Pending Seller Confirmation (Buyer accepting Seller's listing/counter)
-    const newStatus = isOwner ? 'confirmed' : 'pending_seller_confirmation';
+    // Check if user already accepted
+    if (bid.status === 'accepted') {
+      // Someone already accepted, now checking who is accepting now
+      const isSellListing = listing.type === 'sell';
+      const buyerId = isSellListing ? bid.userId : listing.userId._id;
+      const sellerId = isSellListing ? listing.userId._id : bid.userId;
+      
+      // Check who accepted first
+      const buyerAcceptedFirst = bid.buyerAcceptedAt;
+      const sellerAcceptedFirst = bid.sellerAcceptedAt;
+      
+      if (buyerAcceptedFirst && isBidder) {
+        return res.status(400).json({
+          success: false,
+          message: 'You have already accepted this. Waiting for other party to confirm.'
+        });
+      }
+      
+      if (sellerAcceptedFirst && isOwner) {
+        return res.status(400).json({
+          success: false,
+          message: 'You have already accepted this. Waiting for other party to confirm.'
+        });
+      }
+      
+      // Second party is accepting → Status becomes 'confirmed'
+      bid.status = 'confirmed';
+      if (isBidder) {
+        bid.buyerAcceptedAt = new Date();
+      } else {
+        bid.sellerAcceptedAt = new Date();
+      }
+    } else {
+      // First acceptance → Status becomes 'accepted'
+      bid.status = 'accepted';
+      
+      // Track who accepted first
+      const isSellListing = listing.type === 'sell';
+      const isBuyer = isSellListing ? isBidder : isOwner;
+      
+      if (isBuyer) {
+        bid.buyerAcceptedAt = new Date();
+      } else {
+        bid.sellerAcceptedAt = new Date();
+      }
+    }
 
-    // Update bid status
-    bid.status = newStatus;
-    if (isBidder) bid.buyerAcceptedAt = new Date();
+    const newStatus = bid.status;
     bid.dealId = null; // Will be set after creating deal
     
     // ============ CREATE DEAL ============
@@ -582,16 +622,17 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
         buyerPaysPerShare,
         sellerReceivesPerShare,
         status: newStatus,
-        buyerAcceptedAt: isBidder ? new Date() : undefined,
+        buyerAcceptedAt: bid.buyerAcceptedAt,
+        sellerAcceptedAt: bid.sellerAcceptedAt,
         buyerAcceptedPrice: buyerPaysPerShare
       };
 
-      // If confirmed immediately (Owner accepted), set confirmation flags
+      // If confirmed, set confirmation flags
       if (newStatus === 'confirmed') {
+        dealData.buyerConfirmed = true;
         dealData.sellerConfirmed = true;
-        dealData.sellerConfirmedAt = new Date();
-        // If Owner is Buyer (Buy Listing), they are confirming.
-        // If Owner is Seller (Sell Listing), they are confirming.
+        dealData.buyerConfirmedAt = bid.buyerAcceptedAt;
+        dealData.sellerConfirmedAt = bid.sellerAcceptedAt;
       }
 
       const deal = await CompletedDeal.create(dealData);
@@ -601,8 +642,9 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
       // Update bid with dealId
       bid.dealId = deal._id;
       
-      // If confirmed, update listing status to sold and reject others
+      // Update listing status based on deal status
       if (newStatus === 'confirmed') {
+        // Deal confirmed → Mark as sold
         listing.status = 'sold';
         
         // Reject all other pending bids
@@ -611,8 +653,8 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
             b.status = 'rejected';
           }
         });
-      } else if (newStatus === 'pending_seller_confirmation') {
-        // Mark as negotiating to hide from marketplace while seller confirms
+      } else if (newStatus === 'accepted') {
+        // First acceptance → Hide from marketplace (negotiating)
         listing.status = 'negotiating';
       }
       
@@ -620,10 +662,11 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
       
       // ============ NOTIFICATIONS ============
       if (newStatus === 'confirmed') {
+        // Both parties confirmed → Deal complete
         // Notify buyer about confirmation
         await Notification.create({
           userId: buyerId,
-          type: 'seller_confirmed',
+          type: 'deal_confirmed',
           title: '🎉 Deal Confirmed!',
           message: `Your deal for ${listing.companyName} is confirmed! Check your verification codes.`,
           data: {
@@ -636,44 +679,49 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
         // Notify seller about confirmation
         await Notification.create({
           userId: sellerId,
-          type: 'confirmation_success',
-          title: '✅ Deal Confirmed!',
-          message: `You confirmed the sale of ${listing.companyName}. Check your verification codes.`,
+          type: 'deal_confirmed',
+          title: '🎉 Deal Confirmed!',
+          message: `Your deal for ${listing.companyName} is confirmed! Check your verification codes.`,
           data: {
             listingId: listing._id,
             dealId: deal._id,
             companyName: listing.companyName
           }
         });
-      } else {
-        // Pending Seller Confirmation
-        // Notify seller about buyer's acceptance
+      } else if (newStatus === 'accepted') {
+        // First party accepted → Waiting for second party
+        const acceptorId = isBidder ? buyerId : sellerId;
+        const waitingForId = isBidder ? sellerId : buyerId;
+        const acceptorUsername = isBidder ? buyerUsername : sellerUsername;
+        const waitingForUsername = isBidder ? sellerUsername : buyerUsername;
+        
+        // Notify the person who accepted
         await Notification.create({
-          userId: sellerId,
-          type: 'buyer_accepted',
-          title: '🔔 Buyer Accepted Your Listing!',
-          message: `@${buyerUsername} wants to buy ${bid.quantity} shares of ${listing.companyName} at ₹${sellerReceivesPerShare.toFixed(2)}/share`,
+          userId: acceptorId,
+          type: 'acceptance_sent',
+          title: '✅ Acceptance Sent!',
+          message: `Waiting for @${waitingForUsername} to accept the deal for ${listing.companyName}`,
           data: {
             listingId: listing._id,
             bidId: bid._id,
             dealId: deal._id,
-            amount: sellerReceivesPerShare * bid.quantity,
+            amount: isBidder ? buyerPaysPerShare * bid.quantity : sellerReceivesPerShare * bid.quantity,
             quantity: bid.quantity,
             companyName: listing.companyName
           }
         });
         
-        // Notify buyer about successful acceptance
+        // Notify the other party about acceptance
         await Notification.create({
-          userId: buyerId,
-          type: 'acceptance_sent',
-          title: '✅ Acceptance Sent!',
-          message: `Waiting for @${sellerUsername} to confirm your acceptance for ${listing.companyName}`,
+          userId: waitingForId,
+          type: 'party_accepted',
+          title: '🔔 Deal Accepted!',
+          message: `@${acceptorUsername} accepted the deal for ${listing.companyName}. Accept to confirm!`,
           data: {
             listingId: listing._id,
             bidId: bid._id,
             dealId: deal._id,
-            amount: buyerPaysPerShare * bid.quantity,
+            amount: isBidder ? sellerReceivesPerShare * bid.quantity : buyerPaysPerShare * bid.quantity,
             quantity: bid.quantity,
             companyName: listing.companyName
           }
@@ -682,14 +730,20 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
 
       res.json({
         success: true,
-        message: newStatus === 'confirmed' ? 'Deal confirmed! Verification codes generated.' : 'Acceptance sent. Waiting for confirmation.',
+        message: newStatus === 'confirmed' 
+          ? 'Deal confirmed! Verification codes generated.' 
+          : 'Acceptance sent! Waiting for other party to confirm.',
+        status: newStatus,
         deal: newStatus === 'confirmed' ? {
             id: deal._id,
             status: deal.status,
             buyerCode: deal.buyerVerificationCode,
             sellerCode: deal.sellerVerificationCode,
             rmCode: deal.rmVerificationCode
-        } : undefined
+        } : {
+            id: deal._id,
+            status: deal.status
+        }
       });
       
     } catch (dealError) {
