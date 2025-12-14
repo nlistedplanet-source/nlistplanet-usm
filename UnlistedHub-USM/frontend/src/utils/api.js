@@ -1,13 +1,17 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'https://nlistplanet-usm-api.onrender.com/api';
+// Use hardcoded production URL to avoid stale Vercel env vars
+const PROD_API_URL = 'https://nlistplanet-usm-api.onrender.com/api';
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? (process.env.REACT_APP_API_URL || 'http://localhost:5000/api')
+  : PROD_API_URL;
+
 export const BASE_API_URL = API_URL;
 
 axios.defaults.baseURL = API_URL;
 
-if (!process.env.REACT_APP_API_URL) {
-  // eslint-disable-next-line no-console
-  console.warn('REACT_APP_API_URL not provided. Falling back to production backend URL.');
+if (process.env.NODE_ENV === 'production' && process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL !== PROD_API_URL) {
+  console.warn('Ignoring REACT_APP_API_URL in production to ensure stability. Using:', PROD_API_URL);
 }
 
 // Listings API

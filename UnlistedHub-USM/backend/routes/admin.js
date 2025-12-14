@@ -937,6 +937,13 @@ router.post('/ads', async (req, res, next) => {
       data: ad
     });
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: messages.join(', ')
+      });
+    }
     next(error);
   }
 });
@@ -994,6 +1001,13 @@ router.put('/ads/:id', async (req, res, next) => {
       data: ad
     });
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: messages.join(', ')
+      });
+    }
     next(error);
   }
 });

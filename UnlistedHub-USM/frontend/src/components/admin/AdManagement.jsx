@@ -69,7 +69,8 @@ const AdManagement = () => {
       fetchAds();
     } catch (error) {
       console.error('Error saving ad:', error);
-      alert(error.response?.data?.message || 'Failed to save ad');
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to save ad';
+      alert(`Error: ${errorMessage}`);
     }
   };
 

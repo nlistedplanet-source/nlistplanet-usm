@@ -57,6 +57,7 @@ import ShareCardGenerator from '../components/ShareCardGenerator';
 import VerificationCodesModal from '../components/VerificationCodesModal';
 import CreateListingModal from '../components/CreateListingModal';
 import { useDashboardTour } from '../components/TourGuide';
+import AdBanner from '../components/AdBanner';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -1136,6 +1137,11 @@ const DashboardPage = () => {
                   </select>
                 </div>
               </div>
+            </div>
+
+            {/* Ad Banner */}
+            <div className="mb-6">
+              <AdBanner position="listings-top" className="h-24 md:h-32 w-full" />
             </div>
 
             {/* Listings Grid */}

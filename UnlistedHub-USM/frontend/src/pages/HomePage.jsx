@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { companiesAPI } from '../utils/api';
+import AdBanner from '../components/AdBanner';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -122,6 +123,11 @@ const HomePage = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Ad Banner Section */}
+      <div className="max-w-7xl mx-auto px-4 mt-8">
+        <AdBanner position="home-banner" className="h-32 md:h-48 w-full" />
       </div>
 
       {/* Company Logos Section - Fetch from Database */}

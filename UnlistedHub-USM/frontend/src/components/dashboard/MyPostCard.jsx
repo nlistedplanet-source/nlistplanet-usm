@@ -332,7 +332,7 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
             {logoUrl ? (
               <img 
                 src={logoUrl} 
-                alt={listing.companyId?.ScriptName || listing.companyName}
+                alt={listing.companyId?.scriptName || listing.companyId?.ScriptName || listing.companyName}
                 className="w-10 h-10 rounded-md object-cover border border-purple-300 shadow-sm"
                 onError={(e) => {
                   e.target.onerror = null;
@@ -345,12 +345,12 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
               className="w-10 h-10 rounded-md bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-sm border border-purple-300"
               style={{ display: logoUrl ? 'none' : 'flex' }}
             >
-              {(listing.companyId?.ScriptName || listing.companyName)?.charAt(0) || 'C'}
+              {(listing.companyId?.scriptName || listing.companyId?.ScriptName || listing.companyName)?.charAt(0) || 'C'}
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-semibold text-gray-900">
-                  {listing.companyId?.ScriptName || listing.companyName || 'Unknown'}
+                  {listing.companyId?.scriptName || listing.companyId?.ScriptName || listing.companyName || 'Unknown'}
                 </h3>
                 <div className="group relative">
                   <Info size={16} className="text-blue-500 cursor-help" />

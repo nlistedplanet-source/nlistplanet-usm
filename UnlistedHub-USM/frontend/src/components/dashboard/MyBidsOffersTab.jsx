@@ -224,7 +224,9 @@ const MyBidsOffersTab = () => {
         }`}>
           <div>
             <div className="flex items-center gap-2">
-              <h4 className="font-bold text-gray-900">{activity.listing?.companyName || 'Deleted Listing'}</h4>
+              <h4 className="font-bold text-gray-900">
+                {activity.listing?.companyId?.scriptName || activity.listing?.companyId?.ScripName || activity.listing?.companyName || 'Deleted Listing'}
+              </h4>
               {isListingDeleted && (
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600">DELETED</span>
               )}
