@@ -1,6 +1,9 @@
+// Load environment variables FIRST before any other imports that might need them
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -24,11 +27,9 @@ import adminCompaniesRoutes from './routes/adminCompanies.js';
 import adsRoutes from './routes/ads.js';
 import newsRoutes from './routes/news.js';
 import adminNewsRoutes from './routes/adminNews.js';
+import adminNewsAIRoutes from './routes/adminNewsAI.js';
 import shareRoutes from './routes/share.js';
 import { startNewsScheduler } from './utils/newsScheduler.js';
-
-// Load environment variables
-dotenv.config();
 
 // Validate critical environment variables
 const requiredEnvVars = ['MONGODB_URI', 'JWT_SECRET'];
@@ -220,6 +221,7 @@ app.use('/api/share', shareRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin', adminCompaniesRoutes);
 app.use('/api/admin/news', adminNewsRoutes);
+app.use('/api/admin/news-ai', adminNewsAIRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

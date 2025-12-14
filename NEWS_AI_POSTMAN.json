@@ -1,0 +1,156 @@
+{
+  "info": {
+    "name": "News AI Admin APIs",
+    "description": "Admin endpoints for manual AI processing of news",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get News Missing Hindi",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/news-ai/missing-hindi",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "news-ai", "missing-hindi"]
+        }
+      }
+    },
+    {
+      "name": "Get News Missing Images",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/news-ai/missing-images",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "news-ai", "missing-images"]
+        }
+      }
+    },
+    {
+      "name": "Process Single News with AI",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/news-ai/process-ai/:newsId",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "news-ai", "process-ai", ":newsId"],
+          "variable": [
+            {
+              "key": "newsId",
+              "value": "6756a1234567890abcdef123"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Batch Process News with AI",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"newsIds\": [\n    \"6756a1234567890abcdef123\",\n    \"6756a1234567890abcdef124\",\n    \"6756a1234567890abcdef125\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/admin/news-ai/batch-process-ai",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "news-ai", "batch-process-ai"]
+        }
+      }
+    },
+    {
+      "name": "Generate Image Only",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/news-ai/generate-image/:newsId",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "news-ai", "generate-image", ":newsId"],
+          "variable": [
+            {
+              "key": "newsId",
+              "value": "6756a1234567890abcdef123"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Generate Hindi Summary Only",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/news-ai/generate-hindi/:newsId",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "news-ai", "generate-hindi", ":newsId"],
+          "variable": [
+            {
+              "key": "newsId",
+              "value": "6756a1234567890abcdef123"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://nlistplanet-usm-v8dc.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "your_admin_jwt_token_here",
+      "type": "string"
+    }
+  ]
+}

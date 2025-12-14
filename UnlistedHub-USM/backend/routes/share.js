@@ -7,9 +7,16 @@ import OpenAI from 'openai';
 
 const router = express.Router();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+// Lazy initialization for OpenAI
+let openai = null;
+const getOpenAI = () => {
+  if (!openai && process.env.OPENAI_API_KEY) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    });
+  }
+  return openai;
+};
 
 // @route   POST /api/share/create
 // @desc    Create a share tracking link
@@ -48,7 +55,8 @@ router.post('/create', protect, async (req, res) => {
 
     // Generate AI caption using OpenAI (with fallback)
     let aiInsight = '';
-    if (process.env.OPENAI_API_KEY) {
+    const openai = getOpenAI();
+    if (openai) {
       try {
         const completion = await openai.chat.completions.create({
           model: 'gpt-4o-mini',

@@ -7,26 +7,8 @@
 
 import mongoose from 'mongoose';
 import Parser from 'rss-parser';
-import OpenAI from 'openai';
-import { v2 as cloudinary } from 'cloudinary';
 import News from '../models/News.js';
-
-// Initialize OpenAI (if available)
-let openai = null;
-if (process.env.OPENAI_API_KEY) {
-  openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-  });
-}
-
-// Initialize Cloudinary (if available)
-if (process.env.CLOUDINARY_CLOUD_NAME) {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-  });
-}
+import { processNewsWithAI } from './newsAI.js';
 
 // RSS Parser
 const parser = new Parser({
@@ -123,31 +105,7 @@ const isRelevantNews = (title, content) => {
   return RELEVANT_KEYWORDS.some(keyword => text.includes(keyword));
 };
 
-// Generate Hindi summary
-const generateHindiSummary = async (title, englishSummary) => {
-  if (!openai) return '';
-  
-  try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: `You are a professional Hindi news translator. Use formal newspaper Hindi. Keep it 50-60 words max. Technical terms like IPO, shares can stay in English.`
-        },
-        {
-          role: 'user',
-          content: `Title: ${title}\nSummary: ${englishSummary}\n\nTranslate to formal Hindi:`
-        }
-      ],
-      max_tokens: 200,
-      temperature: 0.5
-    });
-    return response.choices[0]?.message?.content?.trim() || '';
-  } catch (error) {
-    return '';
-  }
-};
+// This function is now handled by newsAI.js
 
 // Extract tags
 const extractTags = (title, content) => {
@@ -180,15 +138,22 @@ const fetchRSSFeed = async (feed) => {
         const category = detectCategory(item.title, summary) || feed.category;
         const thumbnail = extractThumbnail(item);
         const tags = extractTags(item.title, content);
-        const hindiSummary = await generateHindiSummary(item.title, summary);
+        
+        // Process with AI (Hindi summary + image generation if needed)
+        const aiProcessed = await processNewsWithAI({
+          title: item.title,
+          summary,
+          thumbnail,
+          category
+        });
         
         newsItems.push({
           title: item.title,
           summary,
-          hindiSummary,
+          hindiSummary: aiProcessed.hindiSummary,
           content: content.substring(0, 2000),
           category,
-          thumbnail,
+          thumbnail: aiProcessed.thumbnail, // May be AI-generated if original was missing
           sourceUrl: item.link,
           sourceName: feed.name,
           author: item.creator || item.author || feed.name,
