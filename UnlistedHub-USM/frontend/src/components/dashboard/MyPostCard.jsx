@@ -364,9 +364,9 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                     <p className="font-bold text-sm mb-2">{listing.companyName || 'Company Details'}</p>
                     <div className="space-y-1.5">
                       <p><span className="text-gray-400">Sector:</span> {listing.companyId?.sector || 'N/A'}</p>
-                      <p><span className="text-gray-400">ISIN:</span> {listing.companyId?.isin || 'N/A'}</p>
-                      <p><span className="text-gray-400">PAN:</span> {listing.companyId?.pan || 'N/A'}</p>
-                      <p><span className="text-gray-400">CIN:</span> {listing.companyId?.cin || 'N/A'}</p>
+                      {listing.companyId?.isin && <p><span className="text-gray-400">ISIN:</span> {listing.companyId.isin}</p>}
+                      {listing.companyId?.pan && <p><span className="text-gray-400">PAN:</span> {listing.companyId.pan}</p>}
+                      {listing.companyId?.cin && <p><span className="text-gray-400">CIN:</span> {listing.companyId.cin}</p>}
                       {listing.companyId?.website && <p><span className="text-gray-400">Website:</span> {listing.companyId.website}</p>}
                       {listing.companyId?.foundedYear && <p><span className="text-gray-400">Founded:</span> {listing.companyId.foundedYear}</p>}
                     </div>
