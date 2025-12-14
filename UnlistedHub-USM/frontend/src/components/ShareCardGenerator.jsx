@@ -3,6 +3,7 @@ import html2canvas from 'html2canvas';
 import { Share2, Download, X, Copy, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from '../utils/api';
+import { calculateBuyerPays } from '../utils/helpers';
 
 const ShareCardGenerator = ({ listing, onClose }) => {
   const cardRef = useRef(null);
@@ -25,7 +26,7 @@ const ShareCardGenerator = ({ listing, onClose }) => {
       const fallbackData = {
         shareId: `fallback_${listing._id}_${Date.now()}`,
         shareUrl: `${window.location.origin}/listing/${listing._id}`,
-        caption: `🚀 Investment Opportunity!\n\n${listing.companyName || listing.company?.name || 'Company'} - ${listing.company?.sector || 'Unlisted Share'}\n\n💰 Ask Price: ₹${listing.price}\n📊 Quantity: ${listing.quantity}\n\n👉 Explore now: ${window.location.origin}/listing/${listing._id}\n\n#UnlistedShares #Investment #NlistPlanet`
+        caption: `🚀 Investment Opportunity!\n\n${listing.companyName || listing.company?.name || 'Company'} - ${listing.company?.sector || 'Unlisted Share'}\n\n💰 Ask Price: ₹${formattedDisplayPrice}\n📊 Quantity: ${listing.quantity}\n\n👉 Explore now: ${window.location.origin}/listing/${listing._id}\n\n#UnlistedShares #Investment #NlistPlanet`
       };
       setShareData(fallbackData);
       toast.error('Using offline mode for share');
@@ -158,6 +159,12 @@ const ShareCardGenerator = ({ listing, onClose }) => {
     description: `Hi, I want to sell ${listing.company?.name || listing.companyName} shares. Interested buyers can contact me on Nlist Planet. Price negotiable.`
   };
 
+  const basePrice = Number(listing.price || listing.listingPrice || 0);
+  const displayPrice = isBuyListing ? basePrice : calculateBuyerPays(basePrice);
+  const formattedDisplayPrice = Number.isFinite(displayPrice)
+    ? displayPrice.toFixed(displayPrice % 1 === 0 ? 0 : 2)
+    : '0';
+
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 relative my-4">
@@ -218,7 +225,7 @@ const ShareCardGenerator = ({ listing, onClose }) => {
                 <div className="grid grid-cols-2 gap-8">
                   <div>
                     <div className="text-2xl text-gray-600 mb-2">{cardTheme.priceLabel}</div>
-                    <div className={`text-7xl font-bold ${cardTheme.priceColor}`}>₹{listing.price}</div>
+                    <div className={`text-7xl font-bold ${cardTheme.priceColor}`}>₹{formattedDisplayPrice}</div>
                   </div>
                   <div className="text-right">
                     <div className="text-2xl text-gray-600 mb-2">Quantity</div>
