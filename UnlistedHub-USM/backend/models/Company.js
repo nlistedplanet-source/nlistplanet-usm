@@ -95,6 +95,39 @@ const companySchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Pre-save hook to normalize data
+companySchema.pre('save', function(next) {
+  // Normalize identifiers to UPPERCASE (PAN, ISIN, CIN should be uppercase as per standards)
+  if (this.pan) {
+    this.pan = this.pan.toUpperCase().trim();
+  }
+  if (this.isin) {
+    this.isin = this.isin.toUpperCase().trim();
+  }
+  if (this.cin) {
+    this.cin = this.cin.toUpperCase().trim();
+  }
+  
+  // Normalize sector to Title Case (consistent formatting)
+  if (this.sector) {
+    this.sector = this.sector.trim().split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+  
+  // Normalize company name (trim and proper spacing)
+  if (this.name) {
+    this.name = this.name.trim().replace(/\s+/g, ' ');
+  }
+  
+  // Normalize scriptName
+  if (this.scriptName) {
+    this.scriptName = this.scriptName.trim().replace(/\s+/g, ' ');
+  }
+  
+  next();
+});
+
 // Index for search
 companySchema.index({ name: 'text', sector: 'text' });
 companySchema.index({ sector: 1, isActive: 1 });
