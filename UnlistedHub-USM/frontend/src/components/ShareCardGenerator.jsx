@@ -220,20 +220,10 @@ const ShareCardGenerator = ({ listing, onClose }) => {
                   left: 0
                 }}
               >
-            {/* Card Header with Company Logo */}
+            {/* Card Header */}
             <div className="p-16 pb-8 flex items-start justify-between">
-              <div className="flex items-center gap-4">
-                {listing.companyId?.logo && (
-                  <img 
-                    src={listing.companyId.logo} 
-                    alt="Company Logo" 
-                    className="w-20 h-20 rounded-xl object-contain bg-white shadow-lg"
-                    crossOrigin="anonymous"
-                  />
-                )}
-                <div className={`text-sm ${cardTheme.accentColor}`}>
-                  {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                </div>
+              <div className={`text-sm ${cardTheme.accentColor}`}>
+                {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
               </div>
               <div className={`text-right ${cardTheme.accentColor} font-bold text-2xl flex items-center justify-end gap-2`}>
                 <span className="text-3xl">{cardTheme.icon}</span>
@@ -241,11 +231,21 @@ const ShareCardGenerator = ({ listing, onClose }) => {
               </div>
             </div>
 
-            {/* Company Info */}
+            {/* Company Info with Logo */}
             <div className="px-16">
-              <h1 className="text-7xl font-bold text-gray-900 leading-tight mb-12">
-                {listing.companyId?.scriptName || listing.companyId?.name || listing.companyName}
-              </h1>
+              <div className="flex items-center gap-6 mb-12">
+                {listing.companyId?.logo && (
+                  <img 
+                    src={listing.companyId.logo} 
+                    alt="Company Logo" 
+                    className="w-24 h-24 rounded-2xl object-contain bg-white shadow-xl border-2 border-gray-200"
+                    crossOrigin="anonymous"
+                  />
+                )}
+                <h1 className="text-7xl font-bold text-gray-900 leading-tight">
+                  {listing.companyId?.scriptName || listing.companyId?.name || listing.companyName}
+                </h1>
+              </div>
 
               {/* Category Badge */}
               <div className={`inline-block ${cardTheme.badgeBg} ${cardTheme.badgeText} px-8 py-3 rounded-full text-2xl font-semibold mb-16`}>
@@ -253,20 +253,44 @@ const ShareCardGenerator = ({ listing, onClose }) => {
               </div>
 
               {/* Connecting Message */}
-              <div className="bg-white rounded-2xl p-8 mb-12 border-2 border-gray-200">
-                <p className="text-2xl text-gray-800 font-semibold leading-relaxed">
-                  Hi! I am {isBuyListing ? 'buying' : 'selling'} <span className={cardTheme.accentColor}>{listing.companyId?.scriptName || listing.companyId?.name || listing.companyName}</span> shares. Interested people connect!
-                </p>
-                <div className="flex items-center gap-3 mt-4">
-                  <div className="text-xl text-gray-600">@{listing.userId?.username || listing.username || 'trader'}</div>
-                  <div className="text-xl text-green-600">✓ Verified</div>
+              <div className={`bg-gradient-to-r ${cardTheme.priceBoxGradient} rounded-2xl p-8 mb-12 border-2 ${cardTheme.badgeBg} shadow-lg`}>
+                <div className="flex items-start gap-4">
+                  <span className="text-5xl">{isBuyListing ? '💰' : '🚀'}</span>
+                  <div className="flex-1">
+                    <p className="text-3xl text-gray-900 font-bold leading-relaxed mb-3">
+                      {isBuyListing ? '🔍 Looking to Buy!' : '💎 Exclusive Opportunity!'}
+                    </p>
+                    <p className="text-2xl text-gray-700 leading-relaxed">
+                      {isBuyListing ? (
+                        <>Seeking <span className={`font-bold ${cardTheme.accentColor}`}>{listing.companyId?.scriptName || listing.companyId?.name || listing.companyName}</span> shares for my portfolio. Serious sellers, let's connect!</>
+                      ) : (
+                        <>Premium <span className={`font-bold ${cardTheme.accentColor}`}>{listing.companyId?.scriptName || listing.companyId?.name || listing.companyName}</span> shares available. Ready to exit? Connect with serious investors!</>
+                      )}
+                    </p>
+                    <div className="flex items-center gap-3 mt-5 pt-4 border-t border-gray-300">
+                      <div className="text-xl text-gray-700 font-semibold">@{listing.userId?.username || listing.username || 'trader'}</div>
+                      <div className="text-xl text-green-600 font-semibold">✓ Verified Trader</div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {/* Company Highlights */}
-              <div className={`bg-gradient-to-r ${cardTheme.priceBoxGradient} rounded-3xl p-12 mb-12`}>
-                <div className="text-3xl font-bold text-gray-900 mb-8">Investment Highlights</div>
+              <div className={`bg-white rounded-3xl p-12 mb-12 border-2 border-gray-200 shadow-lg`}>
+                <div className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                  <span>✨</span> Investment Highlights
+                </div>
                 <div className="space-y-5">
+                  {/* Company Description/Analysis */}
+                  {listing.companyId?.description && (
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 mb-6 border border-blue-200">
+                      <p className="text-xl text-gray-800 leading-relaxed italic">
+                        {listing.companyId.description}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Highlights List */}
                   {(listing.companyId?.highlights && listing.companyId.highlights.length > 0) ? (
                     listing.companyId.highlights.slice(0, 5).map((highlight, idx) => (
                       <div key={idx} className="flex items-start gap-4">
