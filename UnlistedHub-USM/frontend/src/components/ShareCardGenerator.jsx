@@ -217,17 +217,17 @@ const ShareCardGenerator = ({ listing, onClose }) => {
             {/* Company Info */}
             <div className="px-16">
               <h1 className="text-7xl font-bold text-gray-900 leading-tight mb-12">
-                {listing.company?.name || listing.companyName}
+                {listing.companyId?.name || listing.companyId?.scriptName || listing.companyName}
               </h1>
 
               {/* Category Badge */}
               <div className={`inline-block ${cardTheme.badgeBg} ${cardTheme.badgeText} px-8 py-3 rounded-full text-2xl font-semibold mb-16`}>
-                {listing.company?.sector || 'Unlisted Share'}
+                {listing.companyId?.sector || 'Unlisted Share'}
               </div>
 
               {/* User Info */}
               <div className="flex items-center gap-4 mb-16">
-                <div className="text-2xl text-gray-600">@{listing.user?.username || 'trader'}</div>
+                <div className="text-2xl text-gray-600">@{listing.userId?.username || listing.username || 'trader'}</div>
                 <div className="text-2xl text-green-600">✓ Verified</div>
               </div>
 
