@@ -221,12 +221,28 @@ const MyBidsOffersTab = () => {
        }
     }
 
+    // Determine card background color based on status
+    const getCardBgClass = () => {
+      if (isActionable) return 'bg-amber-50';
+      if (activity.status === 'confirmed' || activity.status === 'sold') return 'bg-emerald-50';
+      if (activity.status === 'pending_buyer_confirmation') return 'bg-rose-50';
+      if (activity.status === 'rejected') return 'bg-red-50';
+      if (activity.status === 'accepted') return 'bg-teal-50';
+      if (statusFilter === 'expired') return 'bg-gray-50 opacity-75';
+      return 'bg-white';
+    };
+
+    const getBorderClass = () => {
+      if (isActionable) return 'border-l-4 border-l-amber-500 border-y-amber-200 border-r-amber-200 shadow-md ring-1 ring-amber-100';
+      if (activity.status === 'confirmed' || activity.status === 'sold') return 'border-emerald-200';
+      if (activity.status === 'pending_buyer_confirmation') return 'border-rose-200 shadow-md';
+      if (activity.status === 'rejected') return 'border-red-200';
+      if (activity.status === 'accepted') return 'border-teal-200';
+      return 'border-gray-200';
+    };
+
     return (
-      <div key={activity._id} className={`bg-white rounded-xl shadow-sm border overflow-hidden transition-all ${
-        isActionable 
-          ? 'border-l-4 border-l-amber-500 border-y-amber-200 border-r-amber-200 shadow-md ring-1 ring-amber-100' 
-          : statusFilter === 'expired' ? 'border-gray-200 opacity-75' : 'border-gray-200'
-      }`}>
+      <div key={activity._id} className={`${getCardBgClass()} rounded-xl shadow-sm border overflow-hidden transition-all ${getBorderClass()}`}>
         {/* Header */}
         <div className={`flex items-center justify-between px-4 py-3 border-b ${
           isActionable ? 'bg-amber-50' : statusFilter === 'expired' ? 'bg-gray-100' : 'bg-gray-50'
@@ -251,18 +267,23 @@ const MyBidsOffersTab = () => {
           </div>
           <div className="text-right">
              <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-              activity.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-              activity.status === 'pending_seller_confirmation' ? 'bg-blue-100 text-blue-700' :
-              activity.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700' :
-              activity.status === 'sold' ? 'bg-green-100 text-green-700' :
-              activity.status === 'accepted' ? 'bg-green-100 text-green-700' :
-              activity.status === 'rejected' ? 'bg-red-100 text-red-700' :
-              activity.status === 'countered' ? 'bg-purple-100 text-purple-700' :
+              activity.status === 'pending' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+              activity.status === 'pending_seller_confirmation' ? 'bg-orange-100 text-orange-800 border border-orange-200' :
+              activity.status === 'pending_buyer_confirmation' ? 'bg-rose-100 text-rose-800 border border-rose-200 animate-pulse' :
+              activity.status === 'confirmed' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+              activity.status === 'sold' ? 'bg-green-100 text-green-800 border border-green-200' :
+              activity.status === 'accepted' ? 'bg-teal-100 text-teal-800 border border-teal-200' :
+              activity.status === 'rejected' ? 'bg-red-100 text-red-800 border border-red-200' :
+              activity.status === 'countered' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
               'bg-gray-100 text-gray-700'
             }`}>
-              {activity.status === 'pending' ? 'Awaiting Response' :
-               activity.status === 'pending_seller_confirmation' ? 'Waiting Seller' :
-               activity.status === 'countered' ? 'Negotiation' :
+              {activity.status === 'pending' ? (isBid ? 'Seller Reviewing Your Bid' : 'Buyer Reviewing Your Offer') :
+               activity.status === 'pending_seller_confirmation' ? 'Waiting for Seller to Accept' :
+               activity.status === 'pending_buyer_confirmation' ? '🔔 Action Required: Accept Deal' :
+               activity.status === 'countered' ? 'New Counter Offer Available' :
+               activity.status === 'accepted' ? 'Other Party Accepted - Your Turn' :
+               activity.status === 'confirmed' ? '🎉 Deal Confirmed by Both Parties' :
+               activity.status === 'rejected' ? (isBid ? 'Your Bid was Declined' : 'Your Offer was Declined') :
                activity.status}
             </span>
           </div>
@@ -325,7 +346,14 @@ const MyBidsOffersTab = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {/* Round 1: Initial */}
-                <tr className="bg-white">
+                <tr className={`${
+                  activity.status === 'confirmed' || activity.status === 'sold' ? 'bg-emerald-50' :
+                  activity.status === 'pending_buyer_confirmation' ? 'bg-rose-50' :
+                  activity.status === 'rejected' ? 'bg-red-50' :
+                  activity.status === 'accepted' ? 'bg-teal-50' :
+                  activity.status === 'pending' && !counterHistory.length ? 'bg-amber-50' :
+                  'bg-white'
+                }`}>
                   <td className="px-3 py-2 text-xs text-gray-500">Round 1</td>
                   <td className="px-3 py-2 font-medium text-gray-900">You ({isBid ? 'Bid' : 'Offer'})</td>
                   <td className="px-3 py-2 text-right font-mono text-gray-700">
@@ -334,7 +362,7 @@ const MyBidsOffersTab = () => {
                   <td className="px-3 py-2 text-right text-gray-700">{activity.quantity}</td>
                   <td className="px-3 py-2 text-center">
                     {activity.status === 'pending' && !counterHistory.length && (
-                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">Pending</span>
+                      <span className="text-xs bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">⏳ Waiting</span>
                     )}
                   </td>
                 </tr>
@@ -353,21 +381,30 @@ const MyBidsOffersTab = () => {
                     rowPrice = !isSellerCounter ? calculateSellerGets(counter.price) : counter.price;
                   }
                   
+                  const isLatestRound = idx === counterHistory.length - 1;
+                  const rowBgClass = isLatestRound 
+                    ? (isMe ? 'bg-blue-100 border-l-4 border-l-blue-500' : 'bg-orange-100 border-l-4 border-l-orange-500')
+                    : (isMe ? 'bg-blue-50/40' : 'bg-orange-50/40');
+                  
                   return (
-                    <tr key={idx} className={isMe ? 'bg-blue-50/30' : 'bg-orange-50/30'}>
-                      <td className="px-3 py-2 text-xs text-gray-500">Round {counter.round || (idx + 2)}</td>
+                    <tr key={idx} className={`${rowBgClass} transition-all hover:shadow-sm`}>
+                      <td className="px-3 py-2 text-xs font-semibold text-gray-600">
+                        Round {counter.round || (idx + 2)}
+                        {isLatestRound && <span className="ml-1 text-[10px] text-purple-600">● Latest</span>}
+                      </td>
                       <td className="px-3 py-2">
                         <span className={`text-xs font-bold ${isMe ? 'text-blue-700' : 'text-orange-700'}`}>
-                          {isMe ? 'You' : (isBid ? 'Seller' : 'Buyer')}
+                          {isMe ? '👤 You' : (isBid ? '👔 Seller' : '🛒 Buyer')}
                         </span>
+                        <span className="text-[10px] text-gray-500 ml-1">(Counter)</span>
                       </td>
                       <td className="px-3 py-2 text-right font-mono font-bold text-gray-900">
                         {formatCurrency(rowPrice)}
                       </td>
-                      <td className="px-3 py-2 text-right text-gray-700">{counter.quantity}</td>
+                      <td className="px-3 py-2 text-right font-semibold text-gray-900">{counter.quantity}</td>
                       <td className="px-3 py-2 text-center">
-                        {idx === counterHistory.length - 1 && activity.status === 'countered' && (
-                          <span className="text-xs text-gray-400">Current</span>
+                        {isLatestRound && activity.status === 'countered' && (
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">Current</span>
                         )}
                       </td>
                     </tr>
