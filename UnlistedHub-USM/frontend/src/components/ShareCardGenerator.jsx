@@ -23,10 +23,21 @@ const ShareCardGenerator = ({ listing, onClose }) => {
     } catch (error) {
       console.error('Share API error:', error);
       // Generate fallback data if API fails
+      const companyName = listing.companyId?.name || listing.companyName || 'Company';
+      const sector = listing.companyId?.sector || 'Unlisted Share';
+      const highlights = listing.companyId?.highlights || [
+        'Pre-IPO Investment Opportunity',
+        'Verified on NlistPlanet',
+        `${sector} Sector`,
+        'Direct Peer-to-Peer Trading'
+      ];
+      
+      const highlightsList = highlights.slice(0, 4).map((h, i) => `${i + 1}. ${h}`).join('\n');
+      
       const fallbackData = {
         shareId: `fallback_${listing._id}_${Date.now()}`,
         shareUrl: `${window.location.origin}/listing/${listing._id}`,
-        caption: `🚀 Investment Opportunity!\n\n${listing.companyName || listing.company?.name || 'Company'} - ${listing.company?.sector || 'Unlisted Share'}\n\n💰 Ask Price: ₹${formattedDisplayPrice}\n📊 Quantity: ${listing.quantity}\n\n👉 Explore now: ${window.location.origin}/listing/${listing._id}\n\n#UnlistedShares #Investment #NlistPlanet`
+        caption: `💎 Premium Investment Opportunity\n\n🏢 ${companyName}\n📊 ${sector}\n\n✨ Investment Highlights:\n${highlightsList}\n\n👉 Explore this opportunity:\n${window.location.origin}/listing/${listing._id}\n\n🔒 Verified Trading on NlistPlanet\n\n#UnlistedShares #Investment #PreIPO #${sector.replace(/\s+/g, '')} #NlistPlanet`
       };
       setShareData(fallbackData);
       toast.error('Using offline mode for share');
@@ -143,9 +154,9 @@ const ShareCardGenerator = ({ listing, onClose }) => {
     priceBoxGradient: 'from-teal-100 to-emerald-100',
     priceLabel: 'Bid Price',
     priceColor: 'text-emerald-600',
-    icon: '💰',
-    hashtag: '#BuyingShares',
-    description: `Hi, I want to buy ${listing.company?.name || listing.companyName} shares. Interested sellers can contact me on Nlist Planet. Price negotiable.`
+    icon: '�',
+    hashtag: '#InvestmentOpportunity',
+    description: `Seeking ${listing.companyId?.name || listing.companyName} shares for my investment portfolio. Connect with sellers on NlistPlanet for verified unlisted share trading.`
   } : {
     gradient: 'from-orange-50 to-amber-50',
     accentColor: 'text-orange-600',
@@ -155,8 +166,8 @@ const ShareCardGenerator = ({ listing, onClose }) => {
     priceLabel: 'Ask Price',
     priceColor: 'text-red-600',
     icon: '🚀',
-    hashtag: '#SellingShares',
-    description: `Hi, I want to sell ${listing.company?.name || listing.companyName} shares. Interested buyers can contact me on Nlist Planet. Price negotiable.`
+    hashtag: '#UnlistedShares',
+    description: `Premium investment opportunity in ${listing.companyId?.name || listing.companyName}. Connect with serious investors on NlistPlanet for verified unlisted share trading.`
   };
 
   const basePrice = Number(listing.price || listing.listingPrice || 0);
@@ -220,23 +231,47 @@ const ShareCardGenerator = ({ listing, onClose }) => {
                 <div className="text-2xl text-green-600">✓ Verified</div>
               </div>
 
-              {/* Price Box */}
+              {/* Company Highlights */}
               <div className={`bg-gradient-to-r ${cardTheme.priceBoxGradient} rounded-3xl p-12 mb-16`}>
-                <div className="grid grid-cols-2 gap-8">
-                  <div>
-                    <div className="text-2xl text-gray-600 mb-2">{cardTheme.priceLabel}</div>
-                    <div className={`text-7xl font-bold ${cardTheme.priceColor}`}>₹{formattedDisplayPrice}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl text-gray-600 mb-2">Quantity</div>
-                    <div className="text-7xl font-bold text-gray-900">
-                      {listing.quantity >= 100000 
-                        ? `${(listing.quantity / 100000).toFixed(1)}L` 
-                        : listing.quantity >= 1000
-                        ? `${(listing.quantity / 1000).toFixed(1)}K`
-                        : listing.quantity}
-                    </div>
-                  </div>
+                <div className="text-2xl font-bold text-gray-900 mb-6">Investment Highlights</div>
+                <div className="space-y-4">
+                  {(listing.companyId?.highlights && listing.companyId.highlights.length > 0) ? (
+                    listing.companyId.highlights.slice(0, 4).map((highlight, idx) => (
+                      <div key={idx} className="flex items-start gap-4">
+                        <div className={`w-8 h-8 rounded-full ${cardTheme.badgeBg} ${cardTheme.badgeText} flex items-center justify-center font-bold text-xl flex-shrink-0`}>
+                          {idx + 1}
+                        </div>
+                        <div className="text-2xl text-gray-800 leading-relaxed">{highlight}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <>
+                      <div className="flex items-start gap-4">
+                        <div className={`w-8 h-8 rounded-full ${cardTheme.badgeBg} ${cardTheme.badgeText} flex items-center justify-center font-bold text-xl flex-shrink-0`}>
+                          ✓
+                        </div>
+                        <div className="text-2xl text-gray-800 leading-relaxed">Pre-IPO Investment Opportunity</div>
+                      </div>
+                      <div className="flex items-start gap-4">
+                        <div className={`w-8 h-8 rounded-full ${cardTheme.badgeBg} ${cardTheme.badgeText} flex items-center justify-center font-bold text-xl flex-shrink-0`}>
+                          ✓
+                        </div>
+                        <div className="text-2xl text-gray-800 leading-relaxed">Verified on NlistPlanet</div>
+                      </div>
+                      <div className="flex items-start gap-4">
+                        <div className={`w-8 h-8 rounded-full ${cardTheme.badgeBg} ${cardTheme.badgeText} flex items-center justify-center font-bold text-xl flex-shrink-0`}>
+                          ✓
+                        </div>
+                        <div className="text-2xl text-gray-800 leading-relaxed">{listing.companyId?.sector || 'Unlisted Share'} Sector</div>
+                      </div>
+                      <div className="flex items-start gap-4">
+                        <div className={`w-8 h-8 rounded-full ${cardTheme.badgeBg} ${cardTheme.badgeText} flex items-center justify-center font-bold text-xl flex-shrink-0`}>
+                          ✓
+                        </div>
+                        <div className="text-2xl text-gray-800 leading-relaxed">Direct Peer-to-Peer Trading</div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 

@@ -52,6 +52,12 @@ router.post('/create', protect, async (req, res) => {
     // Get company info from populated field or fallback
     const companyName = listing.companyId?.name || listing.companyId?.CompanyName || listing.companyName || 'Unlisted Company';
     const companySector = listing.companyId?.sector || listing.companyId?.Sector || 'Growing Sector';
+    const companyHighlights = listing.companyId?.highlights || [
+      'Pre-IPO Investment Opportunity',
+      'Verified on NlistPlanet',
+      `${companySector} Sector`,
+      'Direct Peer-to-Peer Trading'
+    ];
 
     // Generate AI caption using OpenAI (with fallback)
     let aiInsight = '';
@@ -92,15 +98,26 @@ Do not include price or financial advice disclaimers.`
       aiInsight = `${companyName} operates in ${companySector} with strong market fundamentals. An exciting opportunity for investors looking to diversify their portfolio with unlisted shares.`;
     }
 
-    // Generate caption
+    // Generate caption with highlights
     const shareUrl = `${process.env.FRONTEND_URL || 'https://nlistplanet.com'}/listing/${listingId}?ref=${shareId}`;
-    const caption = `🚀 Get Your Share in Fast-Growing Companies!
+    const highlightsList = companyHighlights.slice(0, 4).map((h, i) => `${i + 1}. ${h}`).join('\n');
+    
+    const caption = `💎 Premium Investment Opportunity
+
+🏢 ${companyName}
+📊 ${companySector}
+
+✨ Investment Highlights:
+${highlightsList}
 
 ${aiInsight}
 
-👉 Explore now: ${shareUrl}
+👉 Explore this opportunity:
+${shareUrl}
 
-#UnlistedShares #Investment #WealthCreation`;
+🔒 Verified Trading on NlistPlanet
+
+#UnlistedShares #Investment #PreIPO #${companySector.replace(/\s+/g, '')} #NlistPlanet`;
 
     res.status(201).json({
       success: true,
