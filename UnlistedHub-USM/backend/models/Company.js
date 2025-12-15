@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { generateCompanyHighlights } from '../utils/companyAI.js';
 
 const companySchema = new mongoose.Schema({
   name: {
@@ -126,6 +127,39 @@ companySchema.pre('save', function(next) {
   }
   
   next();
+});
+
+// Post-save hook to generate AI highlights for new companies
+companySchema.post('save', async function(doc) {
+  // Only generate for new companies without highlights
+  if (doc.isNew || !doc.highlights || doc.highlights.length === 0) {
+    try {
+      console.log(`\n🤖 Auto-generating highlights for new company: ${doc.name}`);
+      
+      const { highlights, description } = await generateCompanyHighlights({
+        name: doc.name,
+        scriptName: doc.scriptName,
+        sector: doc.sector,
+        description: doc.description
+      });
+      
+      // Update company with generated highlights (without triggering save hook again)
+      await mongoose.model('Company').updateOne(
+        { _id: doc._id },
+        { 
+          $set: { 
+            highlights: highlights,
+            description: description || doc.description
+          }
+        }
+      );
+      
+      console.log(`✅ Auto-generated ${highlights.length} highlights for ${doc.name}`);
+    } catch (error) {
+      console.error(`❌ Failed to auto-generate highlights for ${doc.name}:`, error.message);
+      // Don't throw error - let company creation succeed even if AI fails
+    }
+  }
 });
 
 // Index for search
