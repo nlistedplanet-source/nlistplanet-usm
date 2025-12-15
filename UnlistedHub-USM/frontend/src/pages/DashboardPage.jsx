@@ -352,17 +352,13 @@ const DashboardPage = () => {
       
       toast.success('Order placed successfully! The seller will be notified.');
       
+      // Remove this listing from marketplace immediately (user already placed bid)
+      setMarketplaceListings(prev => prev.filter(l => l._id !== listingToAccept._id));
+      
       // Close modal
       setShowAcceptConfirmation(false);
       setListingToAccept(null);
       setAcceptedTerms(false);
-      
-      // Refresh marketplace listings
-      const response = await listingsAPI.getAll({ status: 'active', limit: 50 });
-      const filteredListings = response.data.data.filter(
-        l => l.userId?._id !== user?._id && l.userId !== user?._id
-      );
-      setMarketplaceListings(filteredListings);
     } catch (error) {
       console.error('Failed to accept listing:', error);
       toast.error(error.response?.data?.message || 'Failed to place order. Please try again.');

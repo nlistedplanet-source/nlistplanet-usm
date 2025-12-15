@@ -212,10 +212,13 @@ const MyBidsOffersTab = () => {
          displayPrice = latestCounter.by === 'buyer' ? calculateSellerGets(latestCounter.price) : latestCounter.price;
        }
     } else {
-       // Initial Bid/Offer
-       // If I am Buyer (isBid), activity.price is what I entered (what I pay).
-       // If I am Seller (!isBid), activity.price is what I entered (what I get).
-       displayPrice = activity.price;
+       // Initial Bid/Offer - use the actual price buyer/seller sees (with fees)
+       // Backend sends buyerOfferedPrice (buyer pays) and sellerReceivesPrice (seller gets)
+       if (isBid) {
+         displayPrice = activity.buyerOfferedPrice || activity.originalPrice || activity.price;
+       } else {
+         displayPrice = activity.sellerReceivesPrice || activity.originalPrice || activity.price;
+       }
     }
 
     return (
@@ -248,7 +251,7 @@ const MyBidsOffersTab = () => {
           </div>
           <div className="text-right">
              <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-              activity.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+              activity.status === 'pending' ? 'bg-amber-100 text-amber-700' :
               activity.status === 'pending_seller_confirmation' ? 'bg-blue-100 text-blue-700' :
               activity.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700' :
               activity.status === 'sold' ? 'bg-green-100 text-green-700' :
@@ -257,7 +260,8 @@ const MyBidsOffersTab = () => {
               activity.status === 'countered' ? 'bg-purple-100 text-purple-700' :
               'bg-gray-100 text-gray-700'
             }`}>
-              {activity.status === 'pending_seller_confirmation' ? 'Waiting Seller' :
+              {activity.status === 'pending' ? 'Awaiting Response' :
+               activity.status === 'pending_seller_confirmation' ? 'Waiting Seller' :
                activity.status === 'countered' ? 'Negotiation' :
                activity.status}
             </span>
@@ -325,7 +329,7 @@ const MyBidsOffersTab = () => {
                   <td className="px-3 py-2 text-xs text-gray-500">Round 1</td>
                   <td className="px-3 py-2 font-medium text-gray-900">You ({isBid ? 'Bid' : 'Offer'})</td>
                   <td className="px-3 py-2 text-right font-mono text-gray-700">
-                    {formatCurrency(activity.originalPrice || activity.price)}
+                    {formatCurrency(isBid ? (activity.buyerOfferedPrice || activity.originalPrice || activity.price) : (activity.sellerReceivesPrice || activity.originalPrice || activity.price))}
                   </td>
                   <td className="px-3 py-2 text-right text-gray-700">{activity.quantity}</td>
                   <td className="px-3 py-2 text-center">
