@@ -47,6 +47,7 @@ import UserManagement from '../components/admin/UserManagement';
 import ListingsManagement from '../components/admin/ListingsManagement';
 import TransactionsManagement from '../components/admin/TransactionsManagement';
 import ReportsManagement from '../components/admin/ReportsManagement';
+import AcceptedDeals from '../components/admin/AcceptedDeals';
 import PlatformSettings from '../components/admin/PlatformSettings';
 import AdManagement from '../components/admin/AdManagement';
 import ReferralTracking from '../components/admin/ReferralTracking';
@@ -491,6 +492,7 @@ const DashboardPage = () => {
     { id: 'admin-listings', label: 'Listings Management', icon: FileText },
     { id: 'admin-transactions', label: 'Transactions', icon: IndianRupee },
     { id: 'admin-companies', label: 'Companies Management', icon: Building2 },
+    { id: 'admin-final-deals', label: 'Final Deals', icon: CheckCircle },
     { id: 'admin-news', label: 'News/Blog', icon: Newspaper },
     { id: 'admin-ads', label: 'Ads Management', icon: Shield },
     { id: 'admin-referrals', label: 'Referral Tracking', icon: Gift },
@@ -1359,6 +1361,12 @@ const DashboardPage = () => {
 
         {user?.role === 'admin' && activeTab === 'admin-reports' && (
           <ReportsManagement />
+        )}
+
+        {user?.role === 'admin' && activeTab === 'admin-final-deals' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <AcceptedDeals defaultFilter="confirmed" />
+          </div>
         )}
 
         {user?.role === 'admin' && activeTab === 'admin-ads' && (

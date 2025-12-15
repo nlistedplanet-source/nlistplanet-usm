@@ -277,6 +277,13 @@ const UserManagement = () => {
                       <td className="px-2 py-1.5">
                         <div className="flex items-center gap-1 justify-center">
                           <button
+                            onClick={() => window.open(`/dashboard?viewAs=${user._id}`, '_blank')}
+                            className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors inline-flex items-center gap-0.5"
+                            title="View Dashboard"
+                          >
+                            <Eye size={10} /> View
+                          </button>
+                          <button
                             onClick={() => handleBanToggle(user._id, user.isBanned, user.username)}
                             className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${
                               user.isBanned

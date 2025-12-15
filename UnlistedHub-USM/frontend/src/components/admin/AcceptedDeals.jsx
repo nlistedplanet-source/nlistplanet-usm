@@ -8,11 +8,11 @@ import { adminAPI } from '../../utils/api';
 import { formatCurrency, formatDate } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 
-const AcceptedDeals = () => {
+const AcceptedDeals = ({ defaultFilter = '' }) => {
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterStatus, setFilterStatus] = useState(defaultFilter);
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
