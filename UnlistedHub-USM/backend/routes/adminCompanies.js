@@ -198,7 +198,19 @@ function parseCompanyData(text) {
 // @access  Admin
 router.post('/companies', protect, authorize('admin'), upload.single('logo'), async (req, res, next) => {
   try {
-    const { name, sector, scriptName, isin, cin, pan, registrationDate, description, ...otherData } = req.body;
+    const { name, sector, scriptName, isin, cin, pan, registrationDate, description, highlights, foundedYear, website, ...otherData } = req.body;
+
+    console.log('Create Company Request:', {
+      name,
+      sector,
+      scriptName,
+      isin,
+      cin,
+      pan,
+      highlights: highlights ? typeof highlights : 'none',
+      hasFile: !!req.file,
+      bodyLogo: req.body.logo ? 'present' : 'none'
+    });
 
     // Check if company already exists
     const existingCompany = await Company.findOne({ 
@@ -227,6 +239,21 @@ router.post('/companies', protect, authorize('admin'), upload.single('logo'), as
       logoUrl = req.body.logoUrl;
     }
 
+    // Parse highlights - convert string to array if needed
+    let highlightsArray = [];
+    if (highlights) {
+      if (typeof highlights === 'string') {
+        // Split by newlines and filter empty lines
+        highlightsArray = highlights
+          .split('\n')
+          .map(line => line.trim().replace(/^#\s*/, '')) // Remove leading # if present
+          .filter(line => line.length > 0)
+          .slice(0, 5); // Maximum 5 highlights
+      } else if (Array.isArray(highlights)) {
+        highlightsArray = highlights.slice(0, 5);
+      }
+    }
+
     // Create company
     const company = await Company.create({
       name,
@@ -238,6 +265,9 @@ router.post('/companies', protect, authorize('admin'), upload.single('logo'), as
       pan: pan || '',
       registrationDate: registrationDate || null,
       description: description || '',
+      highlights: highlightsArray,
+      foundedYear: foundedYear ? parseInt(foundedYear) : null,
+      website: website || '',
       ...otherData
     });
 
