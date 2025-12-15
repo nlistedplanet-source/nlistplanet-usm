@@ -220,9 +220,21 @@ const ShareCardGenerator = ({ listing, onClose }) => {
                   left: 0
                 }}
               >
-            {/* Card Header */}
-            <div className="p-16 pb-8">
-              <div className={`text-sm ${cardTheme.accentColor} mb-4`}>{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+            {/* Card Header with Company Logo */}
+            <div className="p-16 pb-8 flex items-start justify-between">
+              <div className="flex items-center gap-4">
+                {listing.companyId?.logo && (
+                  <img 
+                    src={listing.companyId.logo} 
+                    alt="Company Logo" 
+                    className="w-20 h-20 rounded-xl object-contain bg-white shadow-lg"
+                    crossOrigin="anonymous"
+                  />
+                )}
+                <div className={`text-sm ${cardTheme.accentColor}`}>
+                  {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </div>
+              </div>
               <div className={`text-right ${cardTheme.accentColor} font-bold text-2xl flex items-center justify-end gap-2`}>
                 <span className="text-3xl">{cardTheme.icon}</span>
                 <span>{cardTheme.hashtag}</span>
@@ -232,7 +244,7 @@ const ShareCardGenerator = ({ listing, onClose }) => {
             {/* Company Info */}
             <div className="px-16">
               <h1 className="text-7xl font-bold text-gray-900 leading-tight mb-12">
-                {listing.companyId?.name || listing.companyId?.scriptName || listing.companyName}
+                {listing.companyId?.scriptName || listing.companyId?.name || listing.companyName}
               </h1>
 
               {/* Category Badge */}
@@ -240,66 +252,79 @@ const ShareCardGenerator = ({ listing, onClose }) => {
                 {listing.companyId?.sector || 'Unlisted Share'}
               </div>
 
-              {/* User Info */}
-              <div className="flex items-center gap-4 mb-16">
-                <div className="text-2xl text-gray-600">@{listing.userId?.username || listing.username || 'trader'}</div>
-                <div className="text-2xl text-green-600">✓ Verified</div>
+              {/* Connecting Message */}
+              <div className="bg-white rounded-2xl p-8 mb-12 border-2 border-gray-200">
+                <p className="text-2xl text-gray-800 font-semibold leading-relaxed">
+                  Hi! I am {isBuyListing ? 'buying' : 'selling'} <span className={cardTheme.accentColor}>{listing.companyId?.scriptName || listing.companyId?.name || listing.companyName}</span> shares. Interested people connect!
+                </p>
+                <div className="flex items-center gap-3 mt-4">
+                  <div className="text-xl text-gray-600">@{listing.userId?.username || listing.username || 'trader'}</div>
+                  <div className="text-xl text-green-600">✓ Verified</div>
+                </div>
               </div>
 
               {/* Company Highlights */}
-              <div className={`bg-gradient-to-r ${cardTheme.priceBoxGradient} rounded-3xl p-12 mb-16`}>
-                <div className="text-2xl font-bold text-gray-900 mb-6">Investment Highlights</div>
-                <div className="space-y-4">
+              <div className={`bg-gradient-to-r ${cardTheme.priceBoxGradient} rounded-3xl p-12 mb-12`}>
+                <div className="text-3xl font-bold text-gray-900 mb-8">Investment Highlights</div>
+                <div className="space-y-5">
                   {(listing.companyId?.highlights && listing.companyId.highlights.length > 0) ? (
-                    listing.companyId.highlights.slice(0, 4).map((highlight, idx) => (
+                    listing.companyId.highlights.slice(0, 5).map((highlight, idx) => (
                       <div key={idx} className="flex items-start gap-4">
-                        <div className={`w-8 h-8 rounded-full ${cardTheme.badgeBg} ${cardTheme.badgeText} flex items-center justify-center font-bold text-xl flex-shrink-0`}>
+                        <div className={`w-10 h-10 rounded-full ${cardTheme.badgeBg} ${cardTheme.badgeText} flex items-center justify-center font-bold text-2xl flex-shrink-0`}>
                           {idx + 1}
                         </div>
-                        <div className="text-2xl text-gray-800 leading-relaxed">{highlight}</div>
+                        <div className="text-2xl text-gray-800 leading-relaxed pt-1">{highlight}</div>
                       </div>
                     ))
                   ) : (
                     <>
-                      <div className="flex items-start gap-4">
-                        <div className={`w-8 h-8 rounded-full ${cardTheme.badgeBg} ${cardTheme.badgeText} flex items-center justify-center font-bold text-xl flex-shrink-0`}>
-                          ✓
+                      {listing.companyId?.sector && (
+                        <div className="flex items-start gap-4">
+                          <div className={`w-10 h-10 rounded-full ${cardTheme.badgeBg} ${cardTheme.badgeText} flex items-center justify-center font-bold text-2xl flex-shrink-0`}>1</div>
+                          <div className="text-2xl text-gray-800 leading-relaxed pt-1">{listing.companyId.sector} Sector Leader</div>
                         </div>
-                        <div className="text-2xl text-gray-800 leading-relaxed">Pre-IPO Investment Opportunity</div>
+                      )}
+                      <div className="flex items-start gap-4">
+                        <div className={`w-10 h-10 rounded-full ${cardTheme.badgeBg} ${cardTheme.badgeText} flex items-center justify-center font-bold text-2xl flex-shrink-0`}>2</div>
+                        <div className="text-2xl text-gray-800 leading-relaxed pt-1">Pre-IPO Investment Opportunity</div>
                       </div>
                       <div className="flex items-start gap-4">
-                        <div className={`w-8 h-8 rounded-full ${cardTheme.badgeBg} ${cardTheme.badgeText} flex items-center justify-center font-bold text-xl flex-shrink-0`}>
-                          ✓
-                        </div>
-                        <div className="text-2xl text-gray-800 leading-relaxed">Verified on NlistPlanet</div>
+                        <div className={`w-10 h-10 rounded-full ${cardTheme.badgeBg} ${cardTheme.badgeText} flex items-center justify-center font-bold text-2xl flex-shrink-0`}>3</div>
+                        <div className="text-2xl text-gray-800 leading-relaxed pt-1">Verified Trading on NlistPlanet</div>
                       </div>
                       <div className="flex items-start gap-4">
-                        <div className={`w-8 h-8 rounded-full ${cardTheme.badgeBg} ${cardTheme.badgeText} flex items-center justify-center font-bold text-xl flex-shrink-0`}>
-                          ✓
-                        </div>
-                        <div className="text-2xl text-gray-800 leading-relaxed">{listing.companyId?.sector || 'Unlisted Share'} Sector</div>
-                      </div>
-                      <div className="flex items-start gap-4">
-                        <div className={`w-8 h-8 rounded-full ${cardTheme.badgeBg} ${cardTheme.badgeText} flex items-center justify-center font-bold text-xl flex-shrink-0`}>
-                          ✓
-                        </div>
-                        <div className="text-2xl text-gray-800 leading-relaxed">Direct Peer-to-Peer Trading</div>
+                        <div className={`w-10 h-10 rounded-full ${cardTheme.badgeBg} ${cardTheme.badgeText} flex items-center justify-center font-bold text-2xl flex-shrink-0`}>4</div>
+                        <div className="text-2xl text-gray-800 leading-relaxed pt-1">Direct Peer-to-Peer Trading Platform</div>
                       </div>
                     </>
                   )}
                 </div>
               </div>
 
-              {/* Description */}
-              <p className="text-2xl text-gray-700 mb-16 leading-relaxed">
-                {cardTheme.description}
-              </p>
             </div>
 
-            {/* Footer */}
+            {/* Footer with Statutory Warning and Logo */}
             <div className="px-16 pb-16">
-              <div className="text-xl text-gray-500">nlistplanet.com/share/{listing._id?.substring(0, 6)}</div>
-              <div className="text-xl text-gray-400 mt-2">{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+              {/* Statutory Warning */}
+              <div className="bg-red-50 border-l-4 border-red-500 p-8 mb-8 rounded-lg">
+                <p className="text-xl text-red-800 font-semibold leading-relaxed">
+                  ⚠️ Statutory Warning: Unlisted shares are subject to market risks. Please do your own research before investing. Past performance is not indicative of future results.
+                </p>
+              </div>
+
+              {/* Footer with NlistPlanet Logo */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xl text-gray-500 font-medium">nlistplanet.com</div>
+                  <div className="text-lg text-gray-400 mt-1">{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className={`w-16 h-16 rounded-full ${cardTheme.badgeBg} flex items-center justify-center`}>
+                    <span className={`text-4xl font-bold ${cardTheme.badgeText}`}>N</span>
+                  </div>
+                  <div className="text-2xl font-bold text-gray-700">NlistPlanet</div>
+                </div>
+              </div>
             </div>
               </div>
             </div>
