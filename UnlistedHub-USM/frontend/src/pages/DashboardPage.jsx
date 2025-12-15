@@ -551,19 +551,32 @@ const DashboardPage = () => {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Admin Viewing Banner */}
       {isViewingAsAdmin && viewingUser && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 flex items-center justify-between shadow-lg">
-          <div className="flex items-center gap-3">
-            <span className="text-lg font-bold">👁️ Admin View:</span>
-            <span className="text-sm">Viewing dashboard of <strong>@{viewingUser.username}</strong> ({viewingUser.fullName || 'No Name'})</span>
+        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-500 via-red-500 to-red-600 text-white px-6 py-4 flex items-center justify-between shadow-2xl border-b-4 border-red-700">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
+              <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 ring-2 ring-white/50">
+                {viewingUser.avatar ? (
+                  <img src={viewingUser.avatar} alt={viewingUser.username} className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  <span className="text-orange-600 font-bold text-sm">{viewingUser.username?.charAt(0).toUpperCase()}</span>
+                )}
+              </div>
+              <span className="text-lg font-bold">👁️ Admin View Mode</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-medium opacity-90">Currently Viewing Dashboard Of:</span>
+              <span className="text-base font-bold">{viewingUser.fullName || viewingUser.username} <span className="text-sm font-normal">(@{viewingUser.username})</span></span>
+            </div>
           </div>
           <button
             onClick={() => {
               searchParams.delete('viewAs');
               setSearchParams(searchParams);
             }}
-            className="px-4 py-1.5 bg-white text-orange-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+            className="px-5 py-2 bg-white text-red-600 font-bold rounded-lg hover:bg-gray-100 transition-all hover:scale-105 shadow-lg flex items-center gap-2"
           >
-            Exit View
+            <span>Exit View</span>
+            <span className="text-lg">✕</span>
           </button>
         </div>
       )}
@@ -722,8 +735,33 @@ const DashboardPage = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className={`flex-1 ml-56 overflow-x-auto ${isViewingAsAdmin ? 'mt-[52px]' : ''}`}>
+      <main className={`flex-1 ml-56 overflow-x-auto ${isViewingAsAdmin ? 'mt-[68px]' : ''}`}>
         <div className="p-6 min-w-0">
+        
+        {/* Viewing User Header - Only shown when admin is viewing another user */}
+        {isViewingAsAdmin && viewingUser && (
+          <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-orange-200 rounded-xl p-5 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center flex-shrink-0 ring-4 ring-orange-200">
+                {viewingUser.avatar ? (
+                  <img src={viewingUser.avatar} alt={viewingUser.username} className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  <span className="text-white font-bold text-2xl">{viewingUser.username?.charAt(0).toUpperCase()}</span>
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="text-2xl font-bold text-gray-900">{viewingUser.fullName || viewingUser.username}</h2>
+                  <span className="px-2.5 py-1 bg-orange-500 text-white text-xs font-bold rounded-full">@{viewingUser.username}</span>
+                  {viewingUser.role === 'admin' && (
+                    <span className="px-2.5 py-1 bg-blue-600 text-white text-xs font-bold rounded-full">ADMIN</span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-600 font-medium">👤 Viewing this user's complete dashboard • All data shown below belongs to this user</p>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Tab Content */}
         {activeTab === 'overview' && (
