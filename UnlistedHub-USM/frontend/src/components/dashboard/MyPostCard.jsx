@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import SoldConfirmModal from '../SoldConfirmModal';
 import { Share2, Zap, Edit, Trash2, CheckCircle, XCircle, MessageSquare, Loader, Eye, Info, ChevronDown, ChevronUp, History, Clock, AlertCircle } from 'lucide-react';
 import { formatCurrency, formatDate, formatNumber, numberToWords, formatShortAmount, formatShortQuantity, calculateSellerGets } from '../../utils/helpers';
-import * as htmlToImage from 'html-to-image';
 import { listingsAPI } from '../../utils/api';
 import toast from 'react-hot-toast';
 
@@ -41,7 +40,6 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
   const [showSoldModal, setShowSoldModal] = useState(false);
   const [markedSold, setMarkedSold] = useState(false);
   const [soldPricePerShare, setSoldPricePerShare] = useState(null);
-  const shareDomRef = useRef(null);
 
   const isSell = listing.type === 'sell';
   const bidsArray = (isSell ? listing.bids : listing.offers) || [];
@@ -222,64 +220,6 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
     }
   };
 
-  const handleShare = async () => {
-    const deeplink = `${window.location.origin}/listing/${listing._id}?ref=${listing.user?._id || 'guest'}&source=share`;
-    const hashtags = [`#UnlistedShare`, `#NlistPlanet`, `#${(script || '').replace(/[^a-zA-Z0-9]/g, '')}`].join(' ');
-    const caption = `Check out this unlisted share of ${script} listed on Nlist Planet.\nAsk Price: ${price} • Quantity: ${qty}\n${deeplink}\n\n${hashtags}`;
-
-    try {
-      // First: Try html-to-image DOM capture (pixel-perfect)
-      if (shareDomRef.current && htmlToImage?.toBlob) {
-        try {
-          const blob = await htmlToImage.toBlob(shareDomRef.current, { cacheBust: true });
-          if (blob) {
-            const file = new File([blob], `${script.replace(/\s+/g,'_')}_share.png`, { type: 'image/png' });
-            // Try native share with file + caption
-            if (navigator.canShare?.({ files: [file] })) {
-              try {
-                await navigator.share({ files: [file], title: `${script} on Nlist Planet`, text: caption });
-                toast.success('Shared successfully! 🎉');
-                return;
-              } catch (e) {
-                console.warn('navigator.share(files) failed:', e);
-              }
-            }
-            // Fallback: copy caption + download image
-            await navigator.clipboard.writeText(caption);
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${script.replace(/\s+/g,'_')}_share.png`;
-            a.click();
-            URL.revokeObjectURL(url);
-            toast.success('Caption copied & image downloaded! Paste caption + attach image on WhatsApp.');
-            return;
-          }
-        } catch (e) {
-          console.warn('html-to-image failed, trying canvas:', e);
-        }
-      }
-
-      // Fallback: navigator.share with text + deeplink
-      if (navigator.share) {
-        try {
-          await navigator.share({ title: `${script} on Nlist Planet`, text: caption, url: deeplink });
-          toast.success('Shared successfully! 🎉');
-          return;
-        } catch (e) {
-          console.warn('navigator.share(text) failed:', e);
-        }
-      }
-
-      // Last resort: copy caption to clipboard
-      await navigator.clipboard.writeText(caption);
-      toast.success('Caption copied to clipboard! Share manually on WhatsApp.');
-    } catch (err) {
-      console.error('Share error:', err);
-      toast.error('Unable to share. Please try again.');
-    }
-  };
-
   const copyShareLink = () => {
     const shareLink = `${window.location.origin}/listing/${listing._id}?ref=${listing.user?._id || 'guest'}&source=share`;
     navigator.clipboard.writeText(shareLink);
@@ -418,7 +358,7 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
 
         {/* Actions */}
         <div className="px-3 py-1 border-b border-gray-200 bg-gray-50 flex items-center justify-end gap-2">
-          <button onClick={handleShare} className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm">
+          <button onClick={() => onShare && onShare(listing)} className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm">
             <Share2 className="w-3.5 h-3.5" /> Share
           </button>
           <button onClick={() => onBoost && onBoost(listing._id)} className="px-3 py-1 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm" disabled={markedSold}>
@@ -694,36 +634,6 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
           </div>
         )}
       </div>
-      {/* Hidden DOM node for html-to-image capture (offscreen) */}
-      <div ref={shareDomRef} style={{ position: 'absolute', left: '-10000px', top: 0, width: 1200, padding: 24, background: 'white' }}>
-        <div style={{ borderRadius: 16, border: `8px solid ${isSell ? '#F59E0B' : '#10B981'}`, padding: 24, background: isSell ? '#FFF7ED' : '#F0FFF4', width: 1152 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ color: '#6B7280', fontSize: 16 }}>{formatDate(new Date())}</div>
-            <div style={{ color: isSell ? '#B45309' : '#065F46', fontWeight: 700 }}>#UnlistedShare</div>
-          </div>
-          <h2 style={{ fontSize: 40, margin: '12px 0', color: '#0F172A' }}>{listing.companyId?.ScriptName || listing.companyName || 'Company'}</h2>
-          <div style={{ color: '#F97316', marginBottom: 8 }}>{listing.companyId?.Sector || listing.companyId?.sector || 'Sector'}</div>
-          <div style={{ color: '#374151', marginBottom: 18 }}>@{listing.user?.username || 'trader'}  ✓ Verified</div>
-          <div style={{ borderRadius: 12, padding: 16, background: isSell ? '#FEF3C7' : '#ECFDF5', marginBottom: 18 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ color: '#6B7280', fontSize: 14 }}>Ask Price</div>
-                <div style={{ fontSize: 36, fontWeight: 700, color: '#B91C1C' }}>{price}</div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ color: '#111827', fontSize: 14 }}>Quantity</div>
-                <div style={{ fontSize: 28, fontWeight: 700 }}>{qty}</div>
-              </div>
-            </div>
-          </div>
-          <div style={{ color: '#374151', fontSize: 18 }}>Check out this unlisted share of <strong>{listing.companyId?.ScriptName || listing.companyName}</strong> listed on Nlist Planet. Explore more and make your offer now!</div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20, color: '#6B7280', fontSize: 14 }}>
-            <div>nlistplanet.com/share/{listing._id?.slice(-6)}</div>
-            <div>{formatDate(new Date())}</div>
-          </div>
-        </div>
-      </div>
-
       {/* Modify Modal */}
       {showModifyModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" onClick={() => setShowModifyModal(false)}>
