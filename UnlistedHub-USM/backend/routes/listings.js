@@ -92,7 +92,8 @@ router.get('/my', protect, async (req, res, next) => {
 
     const listings = await Listing.find(query)
       .sort('-createdAt')
-      .populate('companyId', 'CompanyName ScripName scriptName Logo Sector name logo sector PAN ISIN CIN pan isin cin');
+      .populate('userId', 'username avatar fullName')
+      .populate('companyId', 'CompanyName ScripName scriptName Logo Sector name logo sector PAN ISIN CIN pan isin cin highlights');
 
     res.json({
       success: true,
