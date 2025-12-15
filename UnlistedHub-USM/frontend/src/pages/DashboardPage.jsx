@@ -97,6 +97,9 @@ const DashboardPage = () => {
   const [viewMode, setViewMode] = useState('user'); // 'user' or 'admin'
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [showAcceptConfirmation, setShowAcceptConfirmation] = useState(false);
+  const [listingToAccept, setListingToAccept] = useState(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   // Unified Dashboard Data Fetching
   useEffect(() => {
@@ -304,7 +307,7 @@ const DashboardPage = () => {
     const fetchMarketplaceListings = async () => {
       try {
         setMarketplaceLoading(true);
-        const response = await listingsAPI.getAll({ limit: 50 });
+        const response = await listingsAPI.getAll({ status: 'active', limit: 50 });
         // Filter out current user's own listings
         const filteredListings = response.data.data.filter(
           listing => listing.userId?._id !== user?._id && listing.userId !== user?._id
@@ -329,19 +332,33 @@ const DashboardPage = () => {
     setShowBidModal(true);
   };
 
-  const handleAccept = async (listing) => {
+  const handleAccept = (listing) => {
+    // Show confirmation modal
+    setListingToAccept(listing);
+    setShowAcceptConfirmation(true);
+    setAcceptedTerms(false);
+  };
+
+  const handleConfirmPurchase = async () => {
+    if (!listingToAccept || !acceptedTerms) return;
+
     try {
       // Place bid/offer at listing price (accepting the listing)
-      await listingsAPI.placeBid(listing._id, {
-        price: listing.price,
-        quantity: listing.quantity,
+      await listingsAPI.placeBid(listingToAccept._id, {
+        price: listingToAccept.price,
+        quantity: listingToAccept.quantity,
         message: 'Accepted listing at asking price'
       });
       
       toast.success('Order placed successfully! The seller will be notified.');
       
+      // Close modal
+      setShowAcceptConfirmation(false);
+      setListingToAccept(null);
+      setAcceptedTerms(false);
+      
       // Refresh marketplace listings
-      const response = await listingsAPI.getAll({ limit: 50 });
+      const response = await listingsAPI.getAll({ status: 'active', limit: 50 });
       const filteredListings = response.data.data.filter(
         l => l.userId?._id !== user?._id && l.userId !== user?._id
       );
@@ -399,7 +416,7 @@ const DashboardPage = () => {
     const fetchMarketplaceListings = async () => {
       try {
         setMarketplaceLoading(true);
-        const response = await listingsAPI.getAll({ limit: 50 });
+        const response = await listingsAPI.getAll({ status: 'active', limit: 50 });
         const filteredListings = response.data.data.filter(
           listing => listing.userId?._id !== user?._id && listing.userId !== user?._id
         );
@@ -1411,6 +1428,151 @@ const DashboardPage = () => {
             toast.success('Listing created successfully!');
           }}
         />
+      )}
+
+      {/* Accept Confirmation Modal */}
+      {showAcceptConfirmation && listingToAccept && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl animate-fadeIn">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900">Confirm Purchase</h3>
+              <button
+                onClick={() => {
+                  setShowAcceptConfirmation(false);
+                  setListingToAccept(null);
+                  setAcceptedTerms(false);
+                }}
+                className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors"
+              >
+                <XCircle size={18} className="text-gray-600" />
+              </button>
+            </div>
+
+            {/* Company Info */}
+            <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-xl">
+              {listingToAccept.companyId?.logo ? (
+                <img
+                  src={listingToAccept.companyId.logo}
+                  alt={listingToAccept.companyName}
+                  className="w-16 h-16 rounded-lg object-contain bg-white border border-gray-200"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                  <span className="text-white font-bold text-2xl">
+                    {listingToAccept.companyName?.[0] || 'C'}
+                  </span>
+                </div>
+              )}
+              <div>
+                <h4 className="font-bold text-gray-900 text-lg">
+                  {listingToAccept.companyId?.scriptName || listingToAccept.companyId?.name || listingToAccept.companyName}
+                </h4>
+                <p className="text-sm text-gray-500">
+                  Seller: @{listingToAccept.userId?.username || listingToAccept.username}
+                </p>
+              </div>
+            </div>
+
+            {/* Order Summary */}
+            <div className="bg-gray-50 rounded-xl p-4 mb-6 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Price per Share</span>
+                <span className="font-semibold text-gray-900">
+                  {formatCurrency(listingToAccept.type === 'sell' 
+                    ? calculateBuyerPays(listingToAccept.price) 
+                    : listingToAccept.price)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Quantity</span>
+                <span className="font-semibold text-gray-900">
+                  {listingToAccept.quantity?.toLocaleString('en-IN')} shares
+                </span>
+              </div>
+              <div className="h-px bg-gray-200"></div>
+              <div className="flex items-center justify-between text-lg">
+                <span className="font-bold text-gray-900">Total Amount</span>
+                <span className="font-bold text-emerald-600">
+                  {formatCurrency(
+                    (listingToAccept.type === 'sell' 
+                      ? calculateBuyerPays(listingToAccept.price) 
+                      : listingToAccept.price) * listingToAccept.quantity
+                  )}
+                </span>
+              </div>
+            </div>
+
+            {/* Confirmation Message */}
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+              <p className="text-blue-800 text-sm text-center leading-relaxed">
+                By proceeding, you confirm that you agree to purchase{' '}
+                <span className="font-bold">{listingToAccept.quantity?.toLocaleString('en-IN')} shares</span> of{' '}
+                <span className="font-bold">
+                  {listingToAccept.companyId?.scriptName || listingToAccept.companyName}
+                </span>{' '}
+                at{' '}
+                <span className="font-bold">
+                  {formatCurrency(listingToAccept.type === 'sell' 
+                    ? calculateBuyerPays(listingToAccept.price) 
+                    : listingToAccept.price)}
+                </span>{' '}
+                per share.
+              </p>
+            </div>
+
+            {/* Terms & Conditions Checkbox */}
+            <label className="flex items-start gap-3 mb-6 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="w-5 h-5 mt-0.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+              />
+              <span className="text-sm text-gray-700 leading-relaxed">
+                I have read and agree to the{' '}
+                <a href="/terms" target="_blank" className="text-emerald-600 font-medium hover:underline">
+                  Terms & Conditions
+                </a>
+                ,{' '}
+                <a href="/privacy" target="_blank" className="text-emerald-600 font-medium hover:underline">
+                  Privacy Policy
+                </a>
+                , and{' '}
+                <a href="/disclaimer" target="_blank" className="text-emerald-600 font-medium hover:underline">
+                  Risk Disclaimer
+                </a>
+                . I understand that unlisted shares carry higher risk and the transaction is final once confirmed.
+              </span>
+            </label>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowAcceptConfirmation(false);
+                  setListingToAccept(null);
+                  setAcceptedTerms(false);
+                }}
+                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmPurchase}
+                disabled={!acceptedTerms}
+                className={`flex-1 py-3 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                  acceptedTerms
+                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                <CheckCircle size={18} />
+                Confirm & Buy
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
