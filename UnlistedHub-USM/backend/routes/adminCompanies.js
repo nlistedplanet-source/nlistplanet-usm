@@ -3,6 +3,7 @@ import multer from 'multer';
 import Tesseract from 'tesseract.js';
 import { protect, authorize } from '../middleware/auth.js';
 import Company from '../models/Company.js';
+import { generateCompanyHighlights, batchGenerateHighlights } from '../utils/companyAI.js';
 
 const router = express.Router();
 
@@ -613,6 +614,166 @@ router.post('/companies/bulk-delete', protect, authorize('admin'), async (req, r
     res.json({ success: true, message: 'Bulk delete processed', results });
   } catch (error) {
     next(error);
+  }
+});
+
+// @route   POST /api/admin/companies/:id/generate-highlights
+// @desc    Generate AI highlights and description for a single company
+// @access  Admin
+router.post('/:id/generate-highlights', protect, authorize('admin'), async (req, res) => {
+  try {
+    const company = await Company.findById(req.params.id);
+    
+    if (!company) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Company not found' 
+      });
+    }
+
+    console.log(`\n🤖 Admin triggered AI highlights generation for: ${company.name}`);
+
+    // Generate with OpenAI
+    const { highlights, description } = await generateCompanyHighlights({
+      name: company.name,
+      scriptName: company.scriptName,
+      sector: company.sector,
+      description: company.description
+    });
+
+    // Update company
+    company.highlights = highlights;
+    if (description) {
+      company.description = description;
+    }
+    await company.save();
+
+    res.json({
+      success: true,
+      message: 'Highlights generated successfully',
+      data: {
+        _id: company._id,
+        name: company.name,
+        scriptName: company.scriptName,
+        highlights: company.highlights,
+        description: company.description
+      }
+    });
+
+  } catch (error) {
+    console.error('Generate highlights error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to generate highlights',
+      error: error.message 
+    });
+  }
+});
+
+// @route   POST /api/admin/companies/batch-generate-highlights
+// @desc    Generate AI highlights for multiple companies
+// @access  Admin
+router.post('/batch-generate-highlights', protect, authorize('admin'), async (req, res) => {
+  try {
+    const { companyIds, includeAll } = req.body;
+
+    let companies;
+    
+    if (includeAll) {
+      // Generate for all companies without highlights
+      companies = await Company.find({
+        $or: [
+          { highlights: { $exists: false } },
+          { highlights: { $size: 0 } },
+          { description: { $exists: false } },
+          { description: '' }
+        ]
+      }).limit(50); // Limit to avoid timeout
+    } else if (companyIds && Array.isArray(companyIds)) {
+      // Generate for specific companies
+      companies = await Company.find({ _id: { $in: companyIds } });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide companyIds array or set includeAll: true'
+      });
+    }
+
+    if (companies.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No companies found needing highlights',
+        processed: 0
+      });
+    }
+
+    console.log(`\n🤖 Batch generating highlights for ${companies.length} companies...`);
+
+    // Generate highlights
+    const results = await batchGenerateHighlights(companies);
+
+    // Update companies in database
+    let successCount = 0;
+    for (const result of results) {
+      if (result.success) {
+        try {
+          await Company.findByIdAndUpdate(result.companyId, {
+            highlights: result.highlights,
+            description: result.description
+          });
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to update ${result.name}:`, error.message);
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Generated highlights for ${successCount}/${companies.length} companies`,
+      processed: successCount,
+      total: companies.length,
+      results: results
+    });
+
+  } catch (error) {
+    console.error('Batch generate error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to batch generate highlights',
+      error: error.message
+    });
+  }
+});
+
+// @route   GET /api/admin/companies/missing-highlights
+// @desc    Get list of companies missing highlights
+// @access  Admin
+router.get('/missing-highlights', protect, authorize('admin'), async (req, res) => {
+  try {
+    const companies = await Company.find({
+      $or: [
+        { highlights: { $exists: false } },
+        { highlights: { $size: 0 } }
+      ]
+    })
+    .select('name scriptName sector highlights description')
+    .limit(100)
+    .sort({ totalListings: -1 });
+
+    res.json({
+      success: true,
+      count: companies.length,
+      data: companies
+    });
+
+  } catch (error) {
+    console.error('Missing highlights query error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch companies',
+      error: error.message
+    });
   }
 });
 
