@@ -614,8 +614,35 @@ const DashboardPage = () => {
           </div>
         </div>
 
+        {/* Return to Admin Dashboard - Only shown when viewing another user */}
+        {isViewingAsAdmin && (
+          <div className="p-3 border-b border-orange-200 bg-gradient-to-r from-orange-50 to-red-50 flex-shrink-0">
+            <button
+              onClick={() => {
+                searchParams.delete('viewAs');
+                setSearchParams(searchParams);
+              }}
+              className="w-full bg-white hover:bg-orange-50 border-2 border-orange-300 rounded-lg p-2.5 transition-all hover:shadow-md group"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center flex-shrink-0 ring-2 ring-blue-200">
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.username} className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    <span className="text-white font-bold text-xs">{user.username?.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-[10px] text-orange-600 font-semibold mb-0.5">← Return to Admin</p>
+                  <p className="text-xs font-bold text-gray-900 truncate">@{user.username}</p>
+                </div>
+              </div>
+            </button>
+          </div>
+        )}
+
         {/* Admin View Mode Toggle */}
-        {user?.role === 'admin' && (
+        {user?.role === 'admin' && !isViewingAsAdmin && (
           <div className="p-3 border-b border-gray-100 flex-shrink-0">
             <div className="bg-blue-50 rounded-lg p-2 flex items-center justify-between">
               <button
