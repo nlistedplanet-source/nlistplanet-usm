@@ -100,7 +100,7 @@ const ShareCardGenerator = ({ listing, onClose }) => {
         // Fallback: Download image and copy caption
         const link = document.createElement('a');
         link.href = imageDataUrl;
-        link.download = `nlistplanet-${listing.company?.name || 'share'}.png`;
+        link.download = `nlistplanet-${listing.companyId?.name || listing.companyName || 'share'}.png`;
         link.click();
         
         // Copy caption to clipboard
@@ -127,7 +127,7 @@ const ShareCardGenerator = ({ listing, onClose }) => {
 
       const link = document.createElement('a');
       link.href = imageDataUrl;
-      link.download = `nlistplanet-${listing.company?.name || 'share'}.png`;
+      link.download = `nlistplanet-${listing.companyId?.name || listing.companyName || 'share'}.png`;
       link.click();
 
       toast.success('Card downloaded!');
