@@ -198,6 +198,7 @@ function parseCompanyData(text) {
 // @access  Admin
 router.post('/companies', protect, authorize('admin'), upload.single('logo'), async (req, res, next) => {
   try {
+    console.log('📝 [SINGLE COMPANY CREATE] Route hit - POST /api/admin/companies');
     const { name, sector, scriptName, isin, cin, pan, registrationDate, description, highlights, foundedYear, website, ...otherData } = req.body;
 
     console.log('Create Company Request:', {
@@ -451,6 +452,7 @@ Zepto,Zepto,INE143401029,AAICK4821A,U46909MH2020PTC351333,eCommerce,01/07/2020,h
 // @access  Admin
 router.post('/companies/bulk-csv', protect, authorize('admin'), uploadCsv.single('csv'), async (req, res, next) => {
   try {
+    console.log('📦 [BULK CSV UPLOAD] Route hit - POST /api/admin/companies/bulk-csv');
     if (!req.file) {
       return res.status(400).json({
         success: false,
