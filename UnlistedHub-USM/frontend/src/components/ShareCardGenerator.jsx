@@ -257,14 +257,11 @@ const ShareCardGenerator = ({ listing, onClose }) => {
                 <div className="flex items-start gap-4">
                   <span className="text-5xl">{isBuyListing ? '💰' : '🚀'}</span>
                   <div className="flex-1">
-                    <p className="text-3xl text-gray-900 font-bold leading-relaxed mb-3">
-                      {isBuyListing ? '🔍 Looking to Buy!' : '💎 Exclusive Opportunity!'}
-                    </p>
-                    <p className="text-2xl text-gray-700 leading-relaxed">
+                    <p className="text-2xl text-gray-800 leading-relaxed font-medium">
                       {isBuyListing ? (
-                        <>Seeking <span className={`font-bold ${cardTheme.accentColor}`}>{listing.companyId?.scriptName || listing.companyId?.name || listing.companyName}</span> shares for my portfolio. Serious sellers, let's connect!</>
+                        <>Hi! I am looking to buy <span className={`font-bold ${cardTheme.accentColor}`}>{listing.companyId?.scriptName || listing.companyId?.name || listing.companyName}</span> unlisted shares. Sellers can contact me on <span className="font-bold text-blue-600">NListPlanet.com</span></>
                       ) : (
-                        <>Premium <span className={`font-bold ${cardTheme.accentColor}`}>{listing.companyId?.scriptName || listing.companyId?.name || listing.companyName}</span> shares available. Ready to exit? Connect with serious investors!</>
+                        <>Hi! I am selling <span className={`font-bold ${cardTheme.accentColor}`}>{listing.companyId?.scriptName || listing.companyId?.name || listing.companyName}</span> unlisted shares. Interested buyers can contact me on <span className="font-bold text-blue-600">NListPlanet.com</span></>
                       )}
                     </p>
                     <div className="flex items-center gap-3 mt-5 pt-4 border-t border-gray-300">
@@ -278,7 +275,7 @@ const ShareCardGenerator = ({ listing, onClose }) => {
               {/* Company Highlights */}
               <div className={`bg-white rounded-3xl p-12 mb-12 border-2 border-gray-200 shadow-lg`}>
                 <div className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-                  <span>✨</span> Investment Highlights
+                  <span>🚀</span> Growth & Brand Focused
                 </div>
                 <div className="space-y-5">
                   {/* Company Description/Analysis */}
