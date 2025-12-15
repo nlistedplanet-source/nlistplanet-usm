@@ -83,9 +83,12 @@ router.get('/', optionalAuth, async (req, res, next) => {
 // @access  Private
 router.get('/my', protect, async (req, res, next) => {
   try {
-    const { type, status } = req.query;
+    const { type, status, userId: requestedUserId } = req.query;
 
-    const query = { userId: req.user._id };
+    // Allow admin to view other users' listings
+    const targetUserId = (req.user.role === 'admin' && requestedUserId) ? requestedUserId : req.user._id;
+
+    const query = { userId: targetUserId };
     
     if (type) query.type = type;
     if (status) query.status = status;  // Only filter by status if explicitly provided
@@ -109,11 +112,16 @@ router.get('/my', protect, async (req, res, next) => {
 // @access  Private
 router.get('/my-placed-bids', protect, async (req, res, next) => {
   try {
-    // Find all listings where current user has placed a bid or offer
+    const { userId: requestedUserId } = req.query;
+
+    // Allow admin to view other users' bids
+    const targetUserId = (req.user.role === 'admin' && requestedUserId) ? requestedUserId : req.user._id;
+
+    // Find all listings where target user has placed a bid or offer
     const listings = await Listing.find({
       $or: [
-        { 'bids.userId': req.user._id },
-        { 'offers.userId': req.user._id }
+        { 'bids.userId': targetUserId },
+        { 'offers.userId': targetUserId }
       ]
     })
       .sort('-createdAt')
@@ -127,7 +135,7 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
       // Check bids array (for sell posts)
       if (listing.bids && listing.bids.length > 0) {
         listing.bids.forEach(bid => {
-          if (bid.userId.toString() === req.user._id.toString()) {
+          if (bid.userId.toString() === targetUserId.toString()) {
             myActivity.push({
               _id: bid._id,
               type: 'bid',
@@ -158,7 +166,7 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
       // Check offers array (for buy posts)
       if (listing.offers && listing.offers.length > 0) {
         listing.offers.forEach(offer => {
-          if (offer.userId.toString() === req.user._id.toString()) {
+          if (offer.userId.toString() === targetUserId.toString()) {
             myActivity.push({
               _id: offer._id,
               type: 'offer',

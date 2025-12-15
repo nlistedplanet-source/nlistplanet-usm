@@ -101,6 +101,33 @@ const DashboardPage = () => {
   const [showAcceptConfirmation, setShowAcceptConfirmation] = useState(false);
   const [listingToAccept, setListingToAccept] = useState(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  
+  // Admin View As functionality
+  const viewAsUserId = searchParams.get('viewAs');
+  const [viewingUser, setViewingUser] = useState(null);
+  const isViewingAsAdmin = user?.role === 'admin' && viewAsUserId;
+  const effectiveUserId = isViewingAsAdmin ? viewAsUserId : user?._id;
+
+  // Fetch viewing user details if admin is viewing another user's dashboard
+  useEffect(() => {
+    const fetchViewingUser = async () => {
+      if (isViewingAsAdmin) {
+        try {
+          const response = await adminAPI.getUserById(viewAsUserId);
+          setViewingUser(response.data.data);
+        } catch (error) {
+          console.error('Failed to fetch viewing user:', error);
+          toast.error('Failed to load user details');
+        }
+      } else {
+        setViewingUser(null);
+      }
+    };
+    
+    if (user?.role === 'admin' && viewAsUserId) {
+      fetchViewingUser();
+    }
+  }, [viewAsUserId, user]);
 
   // Unified Dashboard Data Fetching
   useEffect(() => {
@@ -127,9 +154,11 @@ const DashboardPage = () => {
       // 2. Fetch Action Items (Always fetch on mount/tab change to keep badge updated)
       try {
         // Sequential fetch to avoid race conditions
-        const sellRes = await listingsAPI.getMy({ type: 'sell' });
-        const buyRes = await listingsAPI.getMy({ type: 'buy' });
-        const myBidsRes = await listingsAPI.getMyPlacedBids();
+        // Use effectiveUserId when admin is viewing another user's dashboard
+        const apiParams = isViewingAsAdmin ? { userId: effectiveUserId } : {};
+        const sellRes = await listingsAPI.getMy({ type: 'sell', ...apiParams });
+        const buyRes = await listingsAPI.getMy({ type: 'buy', ...apiParams });
+        const myBidsRes = await listingsAPI.getMyPlacedBids(apiParams.userId);
 
         const actions = [];
 
@@ -520,23 +549,51 @@ const DashboardPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      {/* Admin Viewing Banner */}
+      {isViewingAsAdmin && viewingUser && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 flex items-center justify-between shadow-lg">
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-bold">👁️ Admin View:</span>
+            <span className="text-sm">Viewing dashboard of <strong>@{viewingUser.username}</strong> ({viewingUser.fullName || 'No Name'})</span>
+          </div>
+          <button
+            onClick={() => {
+              searchParams.delete('viewAs');
+              setSearchParams(searchParams);
+            }}
+            className="px-4 py-1.5 bg-white text-orange-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            Exit View
+          </button>
+        </div>
+      )}
       {/* Left Sidebar Navigation - Compact */}
-      <aside id="dashboard-sidebar" className="w-56 bg-white border-r border-gray-200 fixed left-0 top-0 h-full flex flex-col z-30">
+      <aside id="dashboard-sidebar" className={`w-56 bg-white border-r border-gray-200 fixed left-0 h-full flex flex-col z-30 ${isViewingAsAdmin ? 'top-[52px]' : 'top-0'}`}>
         {/* User Profile */}
         <div className="p-3 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.username} className="w-full h-full rounded-full object-cover" />
+              {(isViewingAsAdmin && viewingUser) ? (
+                viewingUser.avatar ? (
+                  <img src={viewingUser.avatar} alt={viewingUser.username} className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  viewingUser.username?.charAt(0).toUpperCase()
+                )
               ) : (
-                user.username?.charAt(0).toUpperCase()
+                user.avatar ? (
+                  <img src={user.avatar} alt={user.username} className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  user.username?.charAt(0).toUpperCase()
+                )
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">{user.fullName || user.username}</p>
+              <p className="text-sm font-semibold text-gray-900 truncate">
+                {isViewingAsAdmin && viewingUser ? (viewingUser.fullName || viewingUser.username) : (user.fullName || user.username)}
+              </p>
               <div className="flex items-center gap-1">
-                <p className="text-xs text-gray-500">@{user.username}</p>
-                {user.role === 'admin' && (
+                <p className="text-xs text-gray-500">@{isViewingAsAdmin && viewingUser ? viewingUser.username : user.username}</p>
+                {(isViewingAsAdmin && viewingUser ? viewingUser.role : user.role) === 'admin' && (
                   <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-600 text-white">ADM</span>
                 )}
               </div>
@@ -665,7 +722,7 @@ const DashboardPage = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 ml-56 overflow-x-auto">
+      <main className={`flex-1 ml-56 overflow-x-auto ${isViewingAsAdmin ? 'mt-[52px]' : ''}`}>
         <div className="p-6 min-w-0">
         
         {/* Tab Content */}

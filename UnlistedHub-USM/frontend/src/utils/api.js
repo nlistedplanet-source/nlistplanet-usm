@@ -18,7 +18,7 @@ if (process.env.NODE_ENV === 'production' && process.env.REACT_APP_API_URL && pr
 export const listingsAPI = {
   getAll: (params) => axios.get('/listings', { params }),
   getMy: (params) => axios.get('/listings/my', { params }),
-  getMyPlacedBids: () => axios.get('/listings/my-placed-bids'),
+  getMyPlacedBids: (userId = null) => axios.get('/listings/my-placed-bids', userId ? { params: { userId } } : {}),
   create: (data) => axios.post('/listings', data),
   update: (id, data) => axios.put(`/listings/${id}`, data),
   placeBid: (id, data) => axios.post(`/listings/${id}/bid`, data),
@@ -80,6 +80,7 @@ export const kycAPI = {
 export const adminAPI = {
   getStats: () => axios.get('/admin/stats'),
   getUsers: (params) => axios.get('/admin/users', { params }),
+  getUserById: (id) => axios.get(`/admin/users/${id}`),
   banUser: (id, isBanned) => axios.put(`/admin/users/${id}/ban`, { isBanned }),
   deleteUser: (id) => axios.delete(`/admin/users/${id}`),
   getListings: (params) => axios.get('/admin/listings', { params }),
