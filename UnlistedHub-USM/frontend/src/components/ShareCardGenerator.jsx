@@ -56,7 +56,22 @@ const ShareCardGenerator = ({ listing, onClose }) => {
         scale: 2,
         backgroundColor: '#ffffff',
         logging: false,
-        useCORS: true
+        useCORS: true,
+        allowTaint: false,
+        foreignObjectRendering: false,
+        ignoreElements: (element) => {
+          // Ignore external stylesheets to avoid CORS issues
+          return element.tagName === 'LINK' && element.rel === 'stylesheet';
+        },
+        onclone: (clonedDoc) => {
+          // Remove external fonts to avoid CORS issues
+          const links = clonedDoc.querySelectorAll('link[rel="stylesheet"]');
+          links.forEach(link => {
+            if (link.href.includes('fonts.googleapis.com')) {
+              link.remove();
+            }
+          });
+        }
       });
 
       return canvas.toDataURL('image/png');
