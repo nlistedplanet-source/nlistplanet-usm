@@ -91,6 +91,7 @@ export const adminAPI = {
   getSettings: () => axios.get('/admin/settings'),
   updateSettings: (data) => axios.put('/admin/settings', data),
   createCompany: (data) => axios.post('/admin/companies', data),
+  createCompanySingle: (data) => axios.post('/admin/companies/add-single', data), // New clean endpoint for single company
   downloadSampleCsv: () => axios.get('/admin/companies/sample-csv', { responseType: 'blob' }),
   bulkUploadCsv: (file) => {
     const formData = new FormData();

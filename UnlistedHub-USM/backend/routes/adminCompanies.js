@@ -193,6 +193,91 @@ function parseCompanyData(text) {
   return data;
 }
 
+// @route   POST /api/admin/companies/add-single
+// @desc    Create single company (JSON only, no file upload)
+// @access  Admin
+router.post('/companies/add-single', protect, authorize('admin'), async (req, res, next) => {
+  try {
+    console.log('✨ [ADD SINGLE COMPANY] Route hit - POST /api/admin/companies/add-single');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+
+    const { name, sector, scriptName, isin, cin, pan, registrationDate, description, highlights, foundedYear, website, logo } = req.body;
+
+    // Validate required fields
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Company name is required'
+      });
+    }
+
+    // Check if company already exists
+    const existingCompany = await Company.findOne({ 
+      $or: [
+        { name: name.trim() },
+        ...(isin && isin.trim() ? [{ isin: isin.trim().toUpperCase() }] : []),
+        ...(cin && cin.trim() ? [{ cin: cin.trim().toUpperCase() }] : [])
+      ]
+    });
+
+    if (existingCompany) {
+      return res.status(400).json({
+        success: false,
+        message: `Company already exists: ${existingCompany.name}`
+      });
+    }
+
+    // Parse highlights - handle both string and array
+    let highlightsArray = [];
+    if (highlights) {
+      if (typeof highlights === 'string') {
+        highlightsArray = highlights
+          .split('\n')
+          .map(line => line.trim().replace(/^[#\-\*]\s*/, ''))
+          .filter(line => line.length > 0)
+          .slice(0, 5);
+      } else if (Array.isArray(highlights)) {
+        highlightsArray = highlights.slice(0, 5);
+      }
+    }
+
+    // Create company object
+    const companyData = {
+      name: name.trim(),
+      scriptName: scriptName?.trim() || '',
+      sector: sector?.trim() || '',
+      logo: logo?.trim() || '',
+      isin: isin?.trim().toUpperCase() || '',
+      cin: cin?.trim().toUpperCase() || '',
+      pan: pan?.trim().toUpperCase() || '',
+      registrationDate: registrationDate || null,
+      description: description?.trim() || '',
+      highlights: highlightsArray,
+      foundedYear: foundedYear ? parseInt(foundedYear) : null,
+      website: website?.trim() || ''
+    };
+
+    console.log('Creating company with data:', JSON.stringify(companyData, null, 2));
+
+    const company = await Company.create(companyData);
+
+    console.log('✅ Company created successfully:', company.name);
+
+    res.status(201).json({
+      success: true,
+      message: 'Company created successfully',
+      company
+    });
+  } catch (error) {
+    console.error('❌ Error creating company:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to create company',
+      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
 // @route   POST /api/admin/companies
 // @desc    Create new company (with logo upload)
 // @access  Admin

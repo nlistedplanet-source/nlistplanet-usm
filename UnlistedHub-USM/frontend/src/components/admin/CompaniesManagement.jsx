@@ -216,8 +216,14 @@ const CompaniesManagement = () => {
         await axios.put(`${BASE_API_URL}/admin/companies/${editingCompany._id}`, submitData, { headers });
         toast.success('Company updated successfully!');
       } else {
-        // Add new company
-        await axios.post(`${BASE_API_URL}/admin/companies`, submitData, { headers });
+        // Add new company - use separate clean endpoint for JSON-only add
+        if (logoFile) {
+          // If file upload, use multipart endpoint
+          await axios.post(`${BASE_API_URL}/admin/companies`, submitData, { headers });
+        } else {
+          // If JSON only, use new clean endpoint
+          await adminAPI.createCompanySingle(submitData);
+        }
         toast.success('Company added successfully!');
       }
 
