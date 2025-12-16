@@ -15,6 +15,7 @@ const CompaniesManagement = () => {
   const [logoPreview, setLogoPreview] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSector, setFilterSector] = useState('');
+  const [activeTab, setActiveTab] = useState('verified'); // 'verified' or 'manual-entries'
   const [formData, setFormData] = useState({
     name: '',
     scriptName: '',
@@ -97,7 +98,7 @@ const CompaniesManagement = () => {
 
   // Filter companies based on search and sector
   const filteredCompanies = useMemo(() => {
-    return companies.filter(company => {
+    return filteredByTab.filter(company => {
       const matchesSearch = searchTerm === '' || 
         company.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         company.scriptName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -109,7 +110,7 @@ const CompaniesManagement = () => {
       
       return matchesSearch && matchesSector;
     });
-  }, [companies, searchTerm, filterSector]);
+  }, [filteredByTab, searchTerm, filterSector]);
 
   // Handle logo file selection
   const handleLogoChange = (e) => {
@@ -260,6 +261,42 @@ const CompaniesManagement = () => {
     }
   };
 
+  // Filter companies based on active tab
+  const filteredByTab = useMemo(() => {
+    if (activeTab === 'manual-entries') {
+      return companies.filter(c => c.addedBy === 'user' && c.verificationStatus === 'pending');
+    }
+    return companies.filter(c => c.verificationStatus === 'verified' || c.addedBy === 'admin');
+  }, [companies, activeTab]);
+
+  // Approve/Reject manual entry
+  const handleApproveManualEntry = async (companyId) => {
+    try {
+      await axios.put(`${BASE_API_URL}/admin/companies/${companyId}/verify`, {
+        status: 'verified',
+        notes: 'Approved by admin'
+      });
+      toast.success('Company verified and approved!');
+      fetchCompanies();
+    } catch (error) {
+      toast.error('Failed to approve company');
+    }
+  };
+
+  const handleRejectManualEntry = async (companyId) => {
+    const reason = prompt('Rejection reason (optional):');
+    try {
+      await axios.put(`${BASE_API_URL}/admin/companies/${companyId}/verify`, {
+        status: 'rejected',
+        notes: reason || 'Rejected by admin'
+      });
+      toast.success('Company rejected');
+      fetchCompanies();
+    } catch (error) {
+      toast.error('Failed to reject company');
+    }
+  };
+
   return (
     <div className="p-3">
       {/* Header */}
@@ -322,6 +359,36 @@ const CompaniesManagement = () => {
             Delete Selected
           </button>
         </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 mb-4 border-b border-gray-200">
+        <button
+          onClick={() => setActiveTab('verified')}
+          className={`px-4 py-2 text-sm font-semibold transition-colors ${
+            activeTab === 'verified'
+              ? 'border-b-2 border-emerald-500 text-emerald-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Verified Companies
+          <span className="ml-2 px-2 py-0.5 text-xs bg-gray-200 rounded-full">
+            {companies.filter(c => c.verificationStatus === 'verified' || c.addedBy === 'admin').length}
+          </span>
+        </button>
+        <button
+          onClick={() => setActiveTab('manual-entries')}
+          className={`px-4 py-2 text-sm font-semibold transition-colors ${
+            activeTab === 'manual-entries'
+              ? 'border-b-2 border-orange-500 text-orange-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Manual Entries (Pending)
+          <span className="ml-2 px-2 py-0.5 text-xs bg-orange-100 text-orange-700 rounded-full">
+            {companies.filter(c => c.addedBy === 'user' && c.verificationStatus === 'pending').length}
+          </span>
+        </button>
       </div>
 
       {/* Search & Filter Bar */}
@@ -400,7 +467,10 @@ const CompaniesManagement = () => {
                   <th style={{ width: '220px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">CIN</th>
                   <th style={{ width: '140px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Sector</th>
                   <th style={{ width: '100px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Reg. Date</th>
-                  <th style={{ width: '80px' }} className="px-3 py-2 text-center text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Actions</th>
+                  {activeTab === 'manual-entries' && (
+                    <th style={{ width: '120px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Added By</th>
+                  )}
+                  <th style={{ width: activeTab === 'manual-entries' ? '120px' : '80px' }} className="px-3 py-2 text-center text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -448,23 +518,49 @@ const CompaniesManagement = () => {
                     <td className="px-3 py-2 text-gray-600 text-[10px] whitespace-nowrap">
                       {company.registrationDate ? new Date(company.registrationDate).toLocaleDateString('en-GB') : '-'}
                     </td>
+                    {activeTab === 'manual-entries' && (
+                      <td className="px-3 py-2 text-gray-600 text-[10px] whitespace-nowrap">
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                          User Added
+                        </span>
+                      </td>
+                    )}
                     <td className="px-3 py-2">
-                      <div className="flex items-center justify-center gap-1">
-                        <button
-                          onClick={() => handleEdit(company)}
-                          className="p-1 text-blue-500 hover:bg-blue-50 rounded transition-colors"
-                          title="Edit"
-                        >
-                          <Edit2 size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(company._id)}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
+                      {activeTab === 'manual-entries' ? (
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => handleApproveManualEntry(company._id)}
+                            className="px-2 py-1 text-[10px] bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                            title="Approve & Publish"
+                          >
+                            ✓ Approve
+                          </button>
+                          <button
+                            onClick={() => handleRejectManualEntry(company._id)}
+                            className="px-2 py-1 text-[10px] bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                            title="Reject"
+                          >
+                            ✗ Reject
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => handleEdit(company)}
+                            className="p-1 text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                            title="Edit"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(company._id)}
+                            className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                   ))

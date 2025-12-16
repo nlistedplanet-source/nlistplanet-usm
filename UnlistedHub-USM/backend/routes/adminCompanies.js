@@ -894,4 +894,57 @@ router.get('/missing-highlights', protect, authorize('admin'), async (req, res) 
   }
 });
 
+// @route   PUT /api/admin/companies/:id/verify
+// @desc    Verify/Reject user-added company (manual entry approval)
+// @access  Admin
+router.put('/companies/:id/verify', protect, authorize('admin'), async (req, res, next) => {
+  try {
+    const { status, notes } = req.body; // status: 'verified' or 'rejected'
+    const companyId = req.params.id;
+
+    const company = await Company.findById(companyId);
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found'
+      });
+    }
+
+    // Update verification status
+    company.verificationStatus = status;
+    company.verificationNotes = notes || '';
+    company.verifiedBy = req.user._id;
+    company.verifiedAt = new Date();
+
+    await company.save();
+
+    // Notify the user who added the company
+    if (company.addedByUser) {
+      const Notification = (await import('../models/Notification.js')).default;
+      await Notification.create({
+        userId: company.addedByUser,
+        type: status === 'verified' ? 'success' : 'warning',
+        title: status === 'verified' ? '✅ Company Verified' : '❌ Company Rejected',
+        message: status === 'verified' 
+          ? `Your company "${company.name}" has been verified and is now live on marketplace!`
+          : `Your company "${company.name}" was rejected. ${notes || 'Contact admin for details.'}`,
+        data: { companyId: company._id }
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Company ${status === 'verified' ? 'approved' : 'rejected'} successfully`,
+      company
+    });
+  } catch (error) {
+    console.error('Company verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update company status',
+      error: error.message
+    });
+  }
+});
+
 export default router;

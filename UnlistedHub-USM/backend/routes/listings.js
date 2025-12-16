@@ -54,12 +54,20 @@ router.get('/', optionalAuth, async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     // Fetch listings with boosted ones first
-    const listings = await Listing.find(query)
+    let listings = await Listing.find(query)
       .sort({ isBoosted: -1, [sort]: 1 })
       .skip(skip)
       .limit(parseInt(limit))
       .populate('userId', 'username avatar fullName')
       .populate('companyId', 'CompanyName ScripName scriptName Logo Sector name logo sector PAN ISIN CIN pan isin cin highlights');
+
+    // Filter out listings with unverified companies (manual entries pending approval)
+    listings = listings.filter(listing => {
+      // If no companyId, allow (manual companyName only)
+      if (!listing.companyId) return true;
+      // If companyId exists, only show verified companies or admin-added
+      return listing.companyId.verificationStatus === 'verified' || listing.companyId.addedBy === 'admin';
+    });
 
     const total = await Listing.countDocuments(query);
 
