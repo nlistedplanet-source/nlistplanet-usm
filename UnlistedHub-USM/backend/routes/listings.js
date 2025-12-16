@@ -59,13 +59,15 @@ router.get('/', optionalAuth, async (req, res, next) => {
       .skip(skip)
       .limit(parseInt(limit))
       .populate('userId', 'username avatar fullName')
-      .populate('companyId', 'CompanyName ScripName scriptName Logo Sector name logo sector PAN ISIN CIN pan isin cin highlights');
+      .populate('companyId', 'CompanyName ScripName scriptName Logo Sector name logo sector PAN ISIN CIN pan isin cin highlights verificationStatus addedBy addedByUser');
 
     // Filter out listings with unverified companies (manual entries pending approval)
     listings = listings.filter(listing => {
       // If no companyId, allow (manual companyName only)
       if (!listing.companyId) return true;
-      // If companyId exists, only show verified companies or admin-added
+      // If verificationStatus field doesn't exist (old companies), treat as verified
+      if (!listing.companyId.verificationStatus) return true;
+      // Only show verified companies or admin-added companies
       return listing.companyId.verificationStatus === 'verified' || listing.companyId.addedBy === 'admin';
     });
 
