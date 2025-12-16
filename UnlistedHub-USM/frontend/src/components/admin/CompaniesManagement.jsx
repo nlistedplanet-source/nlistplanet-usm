@@ -95,7 +95,13 @@ const CompaniesManagement = () => {
     const sectors = companies.map(c => c.sector).filter(Boolean);
     return [...new Set(sectors)].sort();
   }, [companies]);
-
+  // Filter companies based on active tab
+  const filteredByTab = useMemo(() => {
+    if (activeTab === 'manual-entries') {
+      return companies.filter(c => c.addedBy === 'user' && c.verificationStatus === 'pending');
+    }
+    return companies.filter(c => c.verificationStatus === 'verified' || c.addedBy === 'admin');
+  }, [companies, activeTab]);
   // Filter companies based on search and sector
   const filteredCompanies = useMemo(() => {
     return filteredByTab.filter(company => {
@@ -260,14 +266,6 @@ const CompaniesManagement = () => {
       toast.error(error.response?.data?.message || 'Failed to delete company');
     }
   };
-
-  // Filter companies based on active tab
-  const filteredByTab = useMemo(() => {
-    if (activeTab === 'manual-entries') {
-      return companies.filter(c => c.addedBy === 'user' && c.verificationStatus === 'pending');
-    }
-    return companies.filter(c => c.verificationStatus === 'verified' || c.addedBy === 'admin');
-  }, [companies, activeTab]);
 
   // Approve/Reject manual entry
   const handleApproveManualEntry = async (companyId) => {
