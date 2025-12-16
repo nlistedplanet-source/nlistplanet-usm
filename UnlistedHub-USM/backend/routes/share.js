@@ -25,8 +25,8 @@ router.post('/create', protect, async (req, res) => {
   try {
     const { listingId } = req.body;
 
-    // Fetch listing details - populate companyId field
-    const listing = await Listing.findById(listingId).populate('companyId');
+    // Fetch listing details - populate companyId field with highlights
+    const listing = await Listing.findById(listingId).populate('companyId', 'name scriptName logo sector highlights');
     if (!listing) {
       return res.status(404).json({
         success: false,

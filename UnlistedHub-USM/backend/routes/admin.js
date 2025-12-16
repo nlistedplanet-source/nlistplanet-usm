@@ -141,6 +141,40 @@ router.get('/users', async (req, res, next) => {
   }
 });
 
+// @route   GET /api/admin/users/:id
+// @desc    Get single user by ID
+// @access  Admin
+router.get('/users/:id', async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Get user stats
+    const listingsCount = await Listing.countDocuments({ userId: user._id });
+    const tradesCount = await Listing.countDocuments({ 
+      userId: user._id, 
+      status: 'sold' 
+    });
+
+    res.json({
+      success: true,
+      data: {
+        ...user.toObject(),
+        listingsCount,
+        tradesCount
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // @route   GET /api/admin/listings
 // @desc    Get all listings for admin with filters
 // @access  Admin

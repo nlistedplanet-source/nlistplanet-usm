@@ -59,7 +59,7 @@ router.get('/', optionalAuth, async (req, res, next) => {
       .skip(skip)
       .limit(parseInt(limit))
       .populate('userId', 'username avatar fullName')
-      .populate('companyId', 'CompanyName ScripName scriptName Logo Sector name logo sector PAN ISIN CIN pan isin cin');
+      .populate('companyId', 'CompanyName ScripName scriptName Logo Sector name logo sector PAN ISIN CIN pan isin cin highlights');
 
     const total = await Listing.countDocuments(query);
 
@@ -126,7 +126,7 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
     })
       .sort('-createdAt')
       .populate('userId', 'username avatar fullName')
-      .populate('companyId', 'CompanyName ScripName scriptName Logo Sector name logo sector PAN ISIN CIN pan isin cin');
+      .populate('companyId', 'CompanyName ScripName scriptName Logo Sector name logo sector PAN ISIN CIN pan isin cin highlights');
 
     // Extract user's bids and offers from listings
     const myActivity = [];
