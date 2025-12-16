@@ -193,7 +193,7 @@ const CompaniesManagement = () => {
         submitData.append('logo', logoFile);
         headers['Content-Type'] = 'multipart/form-data';
       } else {
-        // Use JSON for text-only updates (more reliable for logoUrl)
+        // Use JSON for text-only updates (backend expects 'logo' field)
         submitData = {
           name: formData.name,
           scriptName: formData.scriptName || '',
@@ -203,7 +203,7 @@ const CompaniesManagement = () => {
           pan: formData.pan || '',
           registrationDate: formData.registrationDate || '',
           description: formData.description || '',
-          logoUrl: formData.logoUrl || '', // Explicitly send logoUrl
+          logo: formData.logoUrl || '', // Backend expects 'logo', not 'logoUrl'
           website: formData.website || '',
           foundedYear: formData.foundedYear || '',
           highlights: formData.highlights || ''
