@@ -160,7 +160,8 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
                 // Bidder is BUYER on SELL listing, so they pay +2%
                 displayPrice: listing.type === 'sell' ? listing.price * 1.02 : listing.price * 0.98,
                 listingQuantity: listing.quantity,
-                isActive: listing.status === 'active',
+                status: listing.status, // NEW: Include actual status
+                isActive: listing.status === 'active' || listing.status === 'deal_pending',
                 owner: listing.userId
               },
               price: bid.price,
@@ -191,7 +192,8 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
                 // Offerer is SELLER on BUY listing, so they receive -2%
                 displayPrice: listing.type === 'buy' ? listing.price * 0.98 : listing.price * 1.02,
                 listingQuantity: listing.quantity,
-                isActive: listing.status === 'active',
+                status: listing.status, // NEW: Include actual status
+                isActive: listing.status === 'active' || listing.status === 'deal_pending',
                 owner: listing.userId
               },
               price: offer.price,

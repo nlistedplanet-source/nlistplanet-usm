@@ -147,9 +147,8 @@ const MyBidsOffersTab = () => {
     
     if (!typeMatch) return false;
     
-    // NEW MODEL: listing status can be 'deal_pending' when accepted - that's NOT deleted
-    const isListingDeleted = !activity.listing || 
-      (activity.listing.status !== 'active' && activity.listing.status !== 'deal_pending');
+    // Check if listing is deleted - use isActive from backend (already handles deal_pending)
+    const isListingDeleted = !activity.listing || activity.listing.isActive === false;
     const isActive = activeStatuses.includes(activity.status) && !isListingDeleted;
     
     if (statusFilter === 'active') {
@@ -173,8 +172,7 @@ const MyBidsOffersTab = () => {
       type === 'bids' ? a.type === 'bid' : a.type === 'offer'
     );
     const activeCount = typeActivities.filter(a => {
-      const isListingDeleted = !a.listing || 
-        (a.listing.status !== 'active' && a.listing.status !== 'deal_pending');
+      const isListingDeleted = !a.listing || a.listing.isActive === false;
       return activeStatuses.includes(a.status) && !isListingDeleted;
     }).length;
     const expiredCount = typeActivities.length - activeCount;
@@ -196,8 +194,7 @@ const MyBidsOffersTab = () => {
     const isBid = activity.type === 'bid';
     const counterHistory = activity.counterHistory || [];
     const listingPrice = activity.listing?.displayPrice || activity.listing?.listingPrice || activity.listing?.price || 0;
-    const isListingDeleted = !activity.listing || 
-      (activity.listing.status !== 'active' && activity.listing.status !== 'deal_pending');
+    const isListingDeleted = !activity.listing || activity.listing.isActive === false;
     
     // Determine the "Current Price" to show in the header
     // If countered, show the latest counter price. If pending, show original bid.
