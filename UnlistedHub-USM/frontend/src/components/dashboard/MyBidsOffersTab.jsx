@@ -17,8 +17,9 @@ const MyBidsOffersTab = () => {
   const [dealDetails, setDealDetails] = useState({}); // Store deal details by dealId
 
   // Define which statuses are "active" vs "expired"
-  const activeStatuses = ['pending', 'countered', 'pending_seller_confirmation'];
-  const expiredStatuses = ['pending_confirmation', 'accepted', 'rejected', 'expired', 'completed', 'cancelled', 'confirmed', 'sold', 'rejected_by_seller'];
+  // NEW MODEL: pending_confirmation means buyer accepted, waiting for seller
+  const activeStatuses = ['pending', 'pending_confirmation', 'countered', 'pending_seller_confirmation'];
+  const expiredStatuses = ['accepted', 'rejected', 'expired', 'completed', 'cancelled', 'confirmed', 'sold', 'rejected_by_seller'];
 
   useEffect(() => {
     fetchMyActivity();
@@ -146,7 +147,9 @@ const MyBidsOffersTab = () => {
     
     if (!typeMatch) return false;
     
-    const isListingDeleted = !activity.listing || activity.listing.isActive === false;
+    // NEW MODEL: listing status can be 'deal_pending' when accepted - that's NOT deleted
+    const isListingDeleted = !activity.listing || 
+      (activity.listing.status !== 'active' && activity.listing.status !== 'deal_pending');
     const isActive = activeStatuses.includes(activity.status) && !isListingDeleted;
     
     if (statusFilter === 'active') {
@@ -170,7 +173,8 @@ const MyBidsOffersTab = () => {
       type === 'bids' ? a.type === 'bid' : a.type === 'offer'
     );
     const activeCount = typeActivities.filter(a => {
-      const isListingDeleted = !a.listing || a.listing.isActive === false;
+      const isListingDeleted = !a.listing || 
+        (a.listing.status !== 'active' && a.listing.status !== 'deal_pending');
       return activeStatuses.includes(a.status) && !isListingDeleted;
     }).length;
     const expiredCount = typeActivities.length - activeCount;
@@ -192,7 +196,8 @@ const MyBidsOffersTab = () => {
     const isBid = activity.type === 'bid';
     const counterHistory = activity.counterHistory || [];
     const listingPrice = activity.listing?.displayPrice || activity.listing?.listingPrice || activity.listing?.price || 0;
-    const isListingDeleted = !activity.listing || activity.listing.isActive === false;
+    const isListingDeleted = !activity.listing || 
+      (activity.listing.status !== 'active' && activity.listing.status !== 'deal_pending');
     
     // Determine the "Current Price" to show in the header
     // If countered, show the latest counter price. If pending, show original bid.
