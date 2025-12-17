@@ -1139,7 +1139,13 @@ const DashboardPage = () => {
             
             <div className="p-6 flex-1 overflow-y-auto">
               <div className="space-y-4">
-                {recentActivities.slice(0, 5).map((activity, index) => {
+                {recentActivities.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <Activity size={48} className="text-gray-300 mb-4" />
+                    <p className="text-gray-500 font-medium">No recent activity</p>
+                    <p className="text-sm text-gray-400 mt-1">Your bids, offers and transactions will appear here</p>
+                  </div>
+                ) : recentActivities.slice(0, 5).map((activity, index) => {
                   let icon = <Activity size={20} />;
                   let colorClass = 'bg-gray-100 text-gray-600';
                   let title = 'Activity';
