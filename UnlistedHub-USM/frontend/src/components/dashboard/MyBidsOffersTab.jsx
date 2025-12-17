@@ -273,7 +273,7 @@ const MyBidsOffersTab = () => {
               activity.status === 'pending_buyer_confirmation' ? 'bg-rose-100 text-rose-800 border border-rose-200 animate-pulse' :
               activity.status === 'confirmed' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
               activity.status === 'sold' ? 'bg-green-100 text-green-800 border border-green-200' :
-              (activity.status === 'pending_confirmation' || activity.status === 'accepted') ? 'bg-teal-100 text-teal-800 border border-teal-200' :
+              (activity.status === 'pending_confirmation' || activity.status === 'accepted') ? 'bg-green-100 text-green-800 border border-green-200' :
               activity.status === 'rejected' ? 'bg-red-100 text-red-800 border border-red-200' :
               activity.status === 'countered' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
               'bg-gray-100 text-gray-700'
