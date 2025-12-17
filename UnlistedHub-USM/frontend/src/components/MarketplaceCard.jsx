@@ -91,7 +91,9 @@ const MarketplaceCard = ({
             Unlisted
           </span>
         </div>
-        <span className="text-[10px] text-gray-500 font-semibold">21 Nov</span>
+        <span className="text-[10px] text-gray-500 font-semibold">
+          {new Date(createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+        </span>
       </div>
       
       {/* Company Row */}
