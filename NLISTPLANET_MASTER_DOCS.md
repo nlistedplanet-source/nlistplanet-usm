@@ -1131,9 +1131,245 @@ export const formatShortNumber = (num) => {
 
 ---
 
+## 12. Recent Fixes & Implementation Details
+
+### 12.1 Marketplace Date Display Fix (Dec 17, 2025)
+
+**Problem:** All marketplace cards showed hardcoded "21 Nov" instead of actual listing dates.
+
+**Solution:**
+- **File:** `UnlistedHub-USM/frontend/src/components/MarketplaceCard.jsx`
+  - Added `createdAt` prop to component parameters
+  - Replaced hardcoded date with dynamic formatting: `new Date(createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })`
+  
+- **File:** `UnlistedHub-USM/frontend/src/pages/DashboardPage.jsx`
+  - Pass `listing.createdAt` to MarketplaceCard component
+
+**Result:** Each listing now displays its actual creation date (e.g., "15 Dec", "1 Jan")
+
+**Commits:** 
+- `2b49e32` - Fixed hardcoded date
+- `4ce44bd` - Added missing createdAt prop
+
+---
+
+### 12.2 Accepted Deals Display Fix (Dec 17, 2025)
+
+**Problem:** Accepted PPFAS deal showing incorrect status, price, and missing from Recent Activity.
+
+**Root Cause:** Mongoose schema missing `pending_confirmation` and `deal_pending` enum values.
+
+**Solution:**
+1. **Schema Fix** (`UnlistedHub-USM/backend/models/Listing.js`):
+   ```javascript
+   // Line 43: Bid status enum
+   status: {
+     type: String,
+     enum: ['pending', 'pending_confirmation', 'accepted', 'rejected', 'countered'],
+     default: 'pending'
+   }
+   
+   // Line 148: Listing status enum
+   status: {
+     type: String,
+     enum: ['active', 'inactive', 'completed', 'cancelled', 'deal_pending'],
+     default: 'active'
+   }
+   ```
+
+2. **Desktop UI** (`UnlistedHub-USM/frontend/src/components/dashboard/MyBidsOffersTab.jsx`):
+   - Shows "✅ You Accepted" for `pending_confirmation` status
+   - Green 4px left border for accepted deals
+   - Green status badge
+   - Uses `buyerOfferedPrice` for correct pricing
+
+3. **Mobile UI** (`nlistplanet-mobile/frontend/src/pages/trading/BidsPage.jsx`):
+   - Same updates as desktop for consistency
+
+**Color Coding System:**
+- 🟢 Green: Accepted (pending_confirmation)
+- 🟢 Emerald: Confirmed (both parties accepted)
+- 🔴 Red: Rejected
+- 🟣 Purple: Counter Offers
+- 🟡 Amber: Action Required
+- ⚪ Gray: Expired
+
+**Testing:** Manual DB update of one PPFAS bid (ID: `69421923d7b34f9e60c4e945`) to `pending_confirmation` proved fix works correctly.
+
+**Commits:** `acb383f` - Schema enum fix
+
+---
+
+### 12.3 Two-Step Accept Flow (Unified)
+
+**Current Status:** When buyer clicks "Accept" from marketplace:
+
+1. **Step 1:** Bid created with status `pending_confirmation`, listing becomes hidden
+2. **Step 2:** Seller accepts → status becomes `confirmed`, verification codes generated
+3. **Step 3:** Admin manually closes transaction
+
+**Key Files:**
+- `UnlistedHub-USM/backend/routes/listings.js` - Accept endpoints
+- `UnlistedHub-USM/backend/routes/portfolio.js` - Recent activity tracking
+- Desktop: `UnlistedHub-USM/frontend/src/components/dashboard/MyBidsOffersTab.jsx`
+- Mobile: `nlistplanet-mobile/frontend/src/pages/trading/BidsPage.jsx`
+
+**Dashboard Display Rules:**
+- **Buyer (who accepted):** "✅ You Accepted" + green border
+- **Seller (waiting):** "Seller's Turn" + amber badge
+- **Both accepted:** "✅ Confirmed" + emerald badge + verification codes
+
+**Price Display Logic:**
+- SELL listing owner: sees base price
+- SELL listing viewers: see buyer-pays price (base × 1.02)
+- BUY listing owner: sees base price
+- BUY listing viewers: see seller-gets price (base × 0.98)
+
+---
+
+### 12.4 Admin Accepted Deals Management
+
+**Admin Dashboard Features:**
+- View all accepted deals (status: `pending_confirmation`, `confirmed`)
+- See both buyer and seller details (identity revealed to admin only)
+- Generate verification codes for confirmed deals
+- Close/complete transactions manually
+- Track deal timeline and status changes
+
+**Admin Routes:** `/api/admin/accepted-deals`
+
+**Access Control:** 
+- Requires `protect` + `authorize(['admin'])` middleware
+- Admin username: `@nlistplanet_admin`
+
+---
+
+### 12.5 Marketplace Accept Flow (Complete)
+
+**Buyer Flow (Accepting from Marketplace):**
+
+1. Browse marketplace → Find PPFAS sell listing at ₹16,500
+2. Click green "Accept" button
+3. Backend creates bid with:
+   - `status: 'pending_confirmation'`
+   - `buyerOfferedPrice: 16830` (16500 × 1.02)
+   - `sellerReceivesPrice: 16170` (16500 × 0.98)
+   - `platformFee: 330`
+   - `buyerAcceptedAt: Date.now()`
+4. Listing hidden from marketplace (status changes to `deal_pending`)
+5. Notification sent to seller: "New bid accepted on your PPFAS listing"
+6. My Bids tab shows:
+   - Green left border (4px)
+   - "✅ You Accepted" in Action By
+   - Price: ₹16,830 (buyer pays)
+   - Status: "✅ Accepted"
+7. Recent Activity: "You accepted a bid on PPFAS"
+
+**Seller Flow (Receiving Acceptance):**
+
+1. Dashboard notification: "Divyansh accepted your PPFAS listing"
+2. My Listings shows:
+   - Hidden from marketplace
+   - Bid with "Seller's Turn" amber badge
+   - Price: ₹16,500 (seller receives)
+3. Click "Accept" → Bid status becomes `confirmed`
+4. Verification codes generated (buyer + seller codes)
+5. Both parties can see codes in their dashboards
+6. Admin closes transaction manually after verification
+
+**Files Modified:**
+- Desktop: `UnlistedHub-USM/frontend/src/components/MarketplaceCard.jsx`
+- Desktop: `UnlistedHub-USM/frontend/src/pages/DashboardPage.jsx`
+- Backend: `UnlistedHub-USM/backend/routes/listings.js`
+- Backend: `UnlistedHub-USM/backend/routes/portfolio.js`
+
+---
+
+### 12.6 ShareCard Generator Updates
+
+**Purpose:** Generate investment highlight cards for social sharing.
+
+**Components (Update BOTH):**
+- Desktop: `UnlistedHub-USM/frontend/src/components/ShareCardGenerator.jsx`
+- Mobile: `nlistplanet-mobile/frontend/src/components/ShareCardGenerator.jsx`
+
+**Technology:** Uses `html2canvas` to render company logo + metrics into shareable image.
+
+**When Making Changes:** Always update both desktop and mobile versions to maintain feature parity.
+
+---
+
+### 12.7 AI News Features (Inshorts-Style)
+
+**Automated Pipeline:**
+- Runs every 30 minutes via `UnlistedHub-USM/backend/utils/newsScheduler.js`
+- Generates Hindi summaries (40-60 words) using GPT-4
+- Creates DALL-E 3 images for news without thumbnails
+- Stores in MongoDB `News` collection
+
+**Manual Admin Controls:**
+- Process AI summaries: `POST /api/admin/news-ai/process-ai`
+- Batch process: `POST /api/admin/news-ai/batch-process-ai`
+- Generate image: `POST /api/admin/news-ai/generate-image`
+- Generate Hindi: `POST /api/admin/news-ai/generate-hindi`
+
+**Environment Required:**
+- `OPENAI_API_KEY` - For GPT-4 and DALL-E 3
+- `CLOUDINARY_*` - Optional, for permanent image storage
+
+**Files:**
+- `UnlistedHub-USM/backend/utils/newsAI.js` - Core AI logic
+- `UnlistedHub-USM/backend/routes/adminNewsAI.js` - Admin endpoints
+
+---
+
+### 12.8 Username History Tracking
+
+**Purpose:** Track all username changes for users.
+
+**Model:** `UnlistedHub-USM/backend/models/UsernameHistory.js`
+
+**Schema:**
+```javascript
+{
+  userId: ObjectId,
+  oldUsername: String,
+  newUsername: String,
+  changedAt: Date,
+  changedBy: 'user' | 'admin'
+}
+```
+
+**Migration Script:** `node scripts/migrateUsernameHistory.js`
+
+**Usage:** Admin can view user's complete username history for support/verification.
+
+---
+
+### 12.9 Known Issues & Pending Items
+
+#### Fixed ✅
+- ✅ Marketplace date showing hardcoded "21 Nov"
+- ✅ Accepted deals not showing "You Accepted"
+- ✅ Wrong price display (₹16,500 vs ₹16,830)
+- ✅ Mongoose validation error for `pending_confirmation`
+- ✅ Company creation with logo URL failing
+
+#### Pending 🔄
+- 🔄 Render auto-deployment (commit `acb383f` schema fix)
+- 🔄 Full end-to-end accept flow testing with real seller
+- 🔄 Mobile PWA updates deployment
+
+#### Notes
+- Hero Motors bid shows "You (Bid)" - CORRECT behavior (status is 'pending', not accepted)
+- Only one PPFAS bid was manually updated to demonstrate fix works
+- Other pending bids will show correct status once sellers accept
+
+---
+
 **End of Master Documentation**
 
 *For questions or updates, contact the development team.*
 
-**Last Updated:** December 14, 2025  
-**Document Version:** 2.0.0
+**Last Updated:** December 17, 2025  
+**Document Version:** 2.1.0
