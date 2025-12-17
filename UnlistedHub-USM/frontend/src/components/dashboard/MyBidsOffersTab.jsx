@@ -355,7 +355,11 @@ const MyBidsOffersTab = () => {
                   'bg-white'
                 }`}>
                   <td className="px-3 py-2 text-xs text-gray-500">Round 1</td>
-                  <td className="px-3 py-2 font-medium text-gray-900">You ({isBid ? 'Bid' : 'Offer'})</td>
+                  <td className="px-3 py-2 font-medium text-gray-900">
+                    {activity.status === 'accepted' || activity.status === 'confirmed' || activity.status === 'sold' 
+                      ? 'You Accepted' 
+                      : `You (${isBid ? 'Bid' : 'Offer'})`}
+                  </td>
                   <td className="px-3 py-2 text-right font-mono text-gray-700">
                     {formatCurrency(isBid ? (activity.buyerOfferedPrice || activity.originalPrice || activity.price) : (activity.sellerReceivesPrice || activity.originalPrice || activity.price))}
                   </td>
@@ -363,6 +367,9 @@ const MyBidsOffersTab = () => {
                   <td className="px-3 py-2 text-center">
                     {activity.status === 'pending' && !counterHistory.length && (
                       <span className="text-xs bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">⏳ Waiting</span>
+                    )}
+                    {activity.status === 'accepted' && (
+                      <span className="text-xs bg-teal-200 text-teal-900 px-2 py-0.5 rounded-full font-bold">✅ Accepted</span>
                     )}
                   </td>
                 </tr>

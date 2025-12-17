@@ -32,7 +32,9 @@ router.get('/', optionalAuth, async (req, res, next) => {
       limit = 20
     } = req.query;
 
-    const query = { status: 'active' };
+    const query = { 
+      status: 'active' // Only show active listings (exclude 'negotiating', 'sold', 'cancelled')
+    };
 
     // Filter by type
     if (type) query.type = type;
