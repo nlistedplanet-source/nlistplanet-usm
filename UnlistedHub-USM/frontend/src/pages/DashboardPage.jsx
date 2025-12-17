@@ -392,7 +392,19 @@ const DashboardPage = () => {
       setAcceptedTerms(false);
     } catch (error) {
       console.error('Failed to accept listing:', error);
-      toast.error(error.response?.data?.message || 'Failed to accept listing. Please try again.');
+      const errorMsg = error.response?.data?.message || 'Failed to accept listing. Please try again.';
+      toast.error(errorMsg);
+      
+      // If listing is not active, remove it from marketplace
+      if (errorMsg.includes('not active') || errorMsg.includes('Listing is not active')) {
+        setMarketplaceListings(prev => prev.filter(l => l._id !== listingToAccept._id));
+        toast.info('This listing has been removed (no longer available)');
+      }
+      
+      // Close modal
+      setShowAcceptConfirmation(false);
+      setListingToAccept(null);
+      setAcceptedTerms(false);
     }
   };
 
