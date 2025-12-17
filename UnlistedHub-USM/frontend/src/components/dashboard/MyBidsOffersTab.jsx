@@ -234,10 +234,11 @@ const MyBidsOffersTab = () => {
 
     const getBorderClass = () => {
       if (isActionable) return 'border-l-4 border-l-amber-500 border-y-amber-200 border-r-amber-200 shadow-md ring-1 ring-amber-100';
-      if (activity.status === 'confirmed' || activity.status === 'sold') return 'border-emerald-200';
+      if (activity.status === 'confirmed' || activity.status === 'sold') return 'border-l-4 border-l-emerald-500 border-y-emerald-200 border-r-emerald-200';
       if (activity.status === 'pending_buyer_confirmation') return 'border-rose-200 shadow-md';
-      if (activity.status === 'rejected') return 'border-red-200';
-      if (activity.status === 'pending_confirmation' || activity.status === 'accepted') return 'border-teal-200';
+      if (activity.status === 'rejected') return 'border-l-4 border-l-red-500 border-y-red-200 border-r-red-200';
+      if (activity.status === 'pending_confirmation' || activity.status === 'accepted') return 'border-l-4 border-l-green-500 border-y-green-200 border-r-green-200';
+      if (activity.status === 'countered') return 'border-l-4 border-l-purple-500 border-y-purple-200 border-r-purple-200';
       return 'border-gray-200';
     };
 
@@ -277,11 +278,11 @@ const MyBidsOffersTab = () => {
               activity.status === 'countered' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
               'bg-gray-100 text-gray-700'
             }`}>
-              {activity.status === 'pending' ? (isBid ? 'Seller Reviewing Your Bid' : 'Buyer Reviewing Your Offer') :
-               activity.status === 'pending_seller_confirmation' ? 'Waiting for Seller to Accept' :
+              {activity.status === 'pending' ? (isBid ? 'Seller\'s Turn' : 'Buyer\'s Turn') :
+               activity.status === 'pending_seller_confirmation' ? 'Waiting for Seller\'s Acceptance' :
                activity.status === 'pending_buyer_confirmation' ? '🔔 Action Required: Accept Deal' :
                activity.status === 'countered' ? 'New Counter Offer Available' :
-               (activity.status === 'pending_confirmation' || activity.status === 'accepted') ? '⚠️ Deal Accepted - Confirm or Reject' :
+               (activity.status === 'pending_confirmation' || activity.status === 'accepted') ? '⚠️ Waiting for Seller\'s Acceptance' :
                activity.status === 'confirmed' ? '🎉 Deal Confirmed by Both Parties' :
                activity.status === 'rejected' ? (isBid ? 'Your Bid was Declined' : 'Your Offer was Declined') :
                activity.status}
@@ -347,17 +348,17 @@ const MyBidsOffersTab = () => {
               <tbody className="divide-y divide-gray-100">
                 {/* Round 1: Initial */}
                 <tr className={`${
-                  activity.status === 'confirmed' || activity.status === 'sold' ? 'bg-emerald-50' :
+                  activity.status === 'confirmed' || activity.status === 'sold' ? 'bg-emerald-50 border-l-4 border-l-emerald-500' :
                   activity.status === 'pending_buyer_confirmation' ? 'bg-rose-50' :
-                  activity.status === 'rejected' ? 'bg-red-50' :
-                  (activity.status === 'pending_confirmation' || activity.status === 'accepted') ? 'bg-teal-50' :
-                  activity.status === 'pending' && !counterHistory.length ? 'bg-amber-50' :
+                  activity.status === 'rejected' ? 'bg-red-50 border-l-4 border-l-red-500' :
+                  (activity.status === 'pending_confirmation' || activity.status === 'accepted') ? 'bg-green-50 border-l-4 border-l-green-500' :
+                  activity.status === 'pending' && !counterHistory.length ? 'bg-amber-50 border-l-4 border-l-amber-500' :
                   'bg-white'
                 }`}>
                   <td className="px-3 py-2 text-xs text-gray-500">Round 1</td>
                   <td className="px-3 py-2 font-medium text-gray-900">
                     {(activity.status === 'pending_confirmation' || activity.status === 'accepted' || activity.status === 'confirmed' || activity.status === 'sold') 
-                      ? 'You Accepted' 
+                      ? <span className="flex items-center gap-1"><CheckCircle size={14} className="text-green-600" /> You Accepted</span>
                       : `You (${isBid ? 'Bid' : 'Offer'})`}
                   </td>
                   <td className="px-3 py-2 text-right font-mono text-gray-700">
@@ -369,7 +370,7 @@ const MyBidsOffersTab = () => {
                       <span className="text-xs bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">⏳ Waiting</span>
                     )}
                     {(activity.status === 'pending_confirmation' || activity.status === 'accepted') && (
-                      <span className="text-xs bg-teal-200 text-teal-900 px-2 py-0.5 rounded-full font-bold">✅ Accepted</span>
+                      <span className="text-xs bg-green-200 text-green-900 px-2 py-0.5 rounded-full font-bold">✅ Accepted</span>
                     )}
                   </td>
                 </tr>
@@ -390,8 +391,8 @@ const MyBidsOffersTab = () => {
                   
                   const isLatestRound = idx === counterHistory.length - 1;
                   const rowBgClass = isLatestRound 
-                    ? (isMe ? 'bg-blue-100 border-l-4 border-l-blue-500' : 'bg-orange-100 border-l-4 border-l-orange-500')
-                    : (isMe ? 'bg-blue-50/40' : 'bg-orange-50/40');
+                    ? (isMe ? 'bg-purple-100 border-l-4 border-l-purple-500' : 'bg-orange-100 border-l-4 border-l-orange-500')
+                    : (isMe ? 'bg-purple-50/40 border-l-2 border-l-purple-300' : 'bg-orange-50/40 border-l-2 border-l-orange-300');
                   
                   return (
                     <tr key={idx} className={`${rowBgClass} transition-all hover:shadow-sm`}>

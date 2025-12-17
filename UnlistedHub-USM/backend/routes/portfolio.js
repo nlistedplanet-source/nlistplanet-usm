@@ -251,6 +251,22 @@ router.get('/activities', protect, async (req, res, next) => {
           description: `Placed bid for ${bid.quantity} shares of ${listing.companyName} at ₹${bid.price}`
         });
 
+        // If I accepted my own bid (buyer accepts their bid)
+        if (bid.status === 'pending_confirmation' || bid.status === 'accepted' || bid.status === 'confirmed') {
+          if (bid.buyerAcceptedAt) {
+            activities.push({
+              type: 'action',
+              action: 'accepted_bid',
+              companyName: listing.companyName || 'Unknown',
+              quantity: bid.quantity,
+              price: bid.price,
+              status: bid.status,
+              date: bid.buyerAcceptedAt,
+              description: `Accepted deal for ${bid.quantity} shares of ${listing.companyName} at ₹${bid.price}`
+            });
+          }
+        }
+
         // Countered by me (as buyer)
         bid.counterHistory?.forEach(counter => {
           if (counter.by === 'buyer') {
@@ -280,6 +296,22 @@ router.get('/activities', protect, async (req, res, next) => {
           date: offer.createdAt,
           description: `Placed offer for ${offer.quantity} shares of ${listing.companyName} at ₹${offer.price}`
         });
+
+        // If I accepted my own offer (seller accepts their offer on a buy listing)
+        if (offer.status === 'pending_confirmation' || offer.status === 'accepted' || offer.status === 'confirmed') {
+          if (offer.sellerAcceptedAt) {
+            activities.push({
+              type: 'action',
+              action: 'accepted_offer',
+              companyName: listing.companyName || 'Unknown',
+              quantity: offer.quantity,
+              price: offer.price,
+              status: offer.status,
+              date: offer.sellerAcceptedAt,
+              description: `Accepted deal for ${offer.quantity} shares of ${listing.companyName} at ₹${offer.price}`
+            });
+          }
+        }
 
         // Countered by me (as buyer/offerer)
         offer.counterHistory?.forEach(counter => {
