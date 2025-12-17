@@ -18,7 +18,7 @@ const MyBidsOffersTab = () => {
 
   // Define which statuses are "active" vs "expired"
   const activeStatuses = ['pending', 'countered', 'pending_seller_confirmation'];
-  const expiredStatuses = ['accepted', 'rejected', 'expired', 'completed', 'cancelled', 'confirmed', 'sold', 'rejected_by_seller'];
+  const expiredStatuses = ['pending_confirmation', 'accepted', 'rejected', 'expired', 'completed', 'cancelled', 'confirmed', 'sold', 'rejected_by_seller'];
 
   useEffect(() => {
     fetchMyActivity();
@@ -66,8 +66,8 @@ const MyBidsOffersTab = () => {
       
       if (status === 'confirmed') {
         toast.success('Deal confirmed! 🎉');
-      } else if (status === 'accepted') {
-        toast.success('Accepted! Waiting for other party to confirm. ⏳');
+      } else if (status === 'pending_confirmation' || status === 'accepted') {
+        toast.success('Deal accepted! Waiting for other party to confirm or reject. ⏳');
       }
       fetchMyActivity();
     } catch (error) {
@@ -227,7 +227,7 @@ const MyBidsOffersTab = () => {
       if (activity.status === 'confirmed' || activity.status === 'sold') return 'bg-emerald-50';
       if (activity.status === 'pending_buyer_confirmation') return 'bg-rose-50';
       if (activity.status === 'rejected') return 'bg-red-50';
-      if (activity.status === 'accepted') return 'bg-teal-50';
+      if (activity.status === 'pending_confirmation' || activity.status === 'accepted') return 'bg-teal-50';
       if (statusFilter === 'expired') return 'bg-gray-50 opacity-75';
       return 'bg-white';
     };
@@ -237,7 +237,7 @@ const MyBidsOffersTab = () => {
       if (activity.status === 'confirmed' || activity.status === 'sold') return 'border-emerald-200';
       if (activity.status === 'pending_buyer_confirmation') return 'border-rose-200 shadow-md';
       if (activity.status === 'rejected') return 'border-red-200';
-      if (activity.status === 'accepted') return 'border-teal-200';
+      if (activity.status === 'pending_confirmation' || activity.status === 'accepted') return 'border-teal-200';
       return 'border-gray-200';
     };
 
@@ -272,7 +272,7 @@ const MyBidsOffersTab = () => {
               activity.status === 'pending_buyer_confirmation' ? 'bg-rose-100 text-rose-800 border border-rose-200 animate-pulse' :
               activity.status === 'confirmed' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
               activity.status === 'sold' ? 'bg-green-100 text-green-800 border border-green-200' :
-              activity.status === 'accepted' ? 'bg-teal-100 text-teal-800 border border-teal-200' :
+              (activity.status === 'pending_confirmation' || activity.status === 'accepted') ? 'bg-teal-100 text-teal-800 border border-teal-200' :
               activity.status === 'rejected' ? 'bg-red-100 text-red-800 border border-red-200' :
               activity.status === 'countered' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
               'bg-gray-100 text-gray-700'
@@ -281,7 +281,7 @@ const MyBidsOffersTab = () => {
                activity.status === 'pending_seller_confirmation' ? 'Waiting for Seller to Accept' :
                activity.status === 'pending_buyer_confirmation' ? '🔔 Action Required: Accept Deal' :
                activity.status === 'countered' ? 'New Counter Offer Available' :
-               activity.status === 'accepted' ? 'Other Party Accepted - Your Turn' :
+               (activity.status === 'pending_confirmation' || activity.status === 'accepted') ? '⚠️ Deal Accepted - Confirm or Reject' :
                activity.status === 'confirmed' ? '🎉 Deal Confirmed by Both Parties' :
                activity.status === 'rejected' ? (isBid ? 'Your Bid was Declined' : 'Your Offer was Declined') :
                activity.status}
@@ -350,13 +350,13 @@ const MyBidsOffersTab = () => {
                   activity.status === 'confirmed' || activity.status === 'sold' ? 'bg-emerald-50' :
                   activity.status === 'pending_buyer_confirmation' ? 'bg-rose-50' :
                   activity.status === 'rejected' ? 'bg-red-50' :
-                  activity.status === 'accepted' ? 'bg-teal-50' :
+                  (activity.status === 'pending_confirmation' || activity.status === 'accepted') ? 'bg-teal-50' :
                   activity.status === 'pending' && !counterHistory.length ? 'bg-amber-50' :
                   'bg-white'
                 }`}>
                   <td className="px-3 py-2 text-xs text-gray-500">Round 1</td>
                   <td className="px-3 py-2 font-medium text-gray-900">
-                    {activity.status === 'accepted' || activity.status === 'confirmed' || activity.status === 'sold' 
+                    {(activity.status === 'pending_confirmation' || activity.status === 'accepted' || activity.status === 'confirmed' || activity.status === 'sold') 
                       ? 'You Accepted' 
                       : `You (${isBid ? 'Bid' : 'Offer'})`}
                   </td>
@@ -368,7 +368,7 @@ const MyBidsOffersTab = () => {
                     {activity.status === 'pending' && !counterHistory.length && (
                       <span className="text-xs bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">⏳ Waiting</span>
                     )}
-                    {activity.status === 'accepted' && (
+                    {(activity.status === 'pending_confirmation' || activity.status === 'accepted') && (
                       <span className="text-xs bg-teal-200 text-teal-900 px-2 py-0.5 rounded-full font-bold">✅ Accepted</span>
                     )}
                   </td>

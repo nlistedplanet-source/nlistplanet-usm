@@ -33,7 +33,7 @@ router.get('/', optionalAuth, async (req, res, next) => {
     } = req.query;
 
     const query = { 
-      status: 'active' // Only show active listings (exclude 'negotiating', 'sold', 'cancelled')
+      status: 'active' // Only show active listings (exclude 'deal_pending', 'negotiating', 'sold', 'cancelled')
     };
 
     // Filter by type
@@ -537,9 +537,9 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
       });
     }
 
-    // Check if user already accepted
-    if (bid.status === 'accepted') {
-      // Someone already accepted, now checking who is accepting now
+    // Check if user already accepted (deal pending confirmation)
+    if (bid.status === 'pending_confirmation' || bid.status === 'accepted') {
+      // Someone already accepted, now checking who is accepting now (this is CONFIRM action)
       const isSellListing = listing.type === 'sell';
       const buyerId = isSellListing ? bid.userId : listing.userId._id;
       const sellerId = isSellListing ? listing.userId._id : bid.userId;
@@ -551,18 +551,18 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
       if (buyerAcceptedFirst && isBidder) {
         return res.status(400).json({
           success: false,
-          message: 'You have already accepted this. Waiting for other party to confirm.'
+          message: 'You have already accepted this deal. Waiting for other party to confirm.'
         });
       }
       
       if (sellerAcceptedFirst && isOwner) {
         return res.status(400).json({
           success: false,
-          message: 'You have already accepted this. Waiting for other party to confirm.'
+          message: 'You have already accepted this deal. Waiting for other party to confirm.'
         });
       }
       
-      // Second party is accepting → Status becomes 'confirmed'
+      // Second party is CONFIRMING the accepted deal → Status becomes 'confirmed'
       bid.status = 'confirmed';
       if (isBidder) {
         bid.buyerAcceptedAt = new Date();
@@ -570,8 +570,8 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
         bid.sellerAcceptedAt = new Date();
       }
     } else {
-      // First acceptance → Status becomes 'accepted'
-      bid.status = 'accepted';
+      // First party ACCEPTING the deal → Status becomes 'pending_confirmation'
+      bid.status = 'pending_confirmation';
       
       // Track who accepted first
       const isSellListing = listing.type === 'sell';
@@ -674,9 +674,9 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
             b.status = 'rejected';
           }
         });
-      } else if (newStatus === 'accepted') {
-        // First acceptance → Hide from marketplace (negotiating)
-        listing.status = 'negotiating';
+      } else if (newStatus === 'pending_confirmation' || newStatus === 'accepted') {
+        // First acceptance → Hide from marketplace (deal pending confirmation)
+        listing.status = 'deal_pending';
       }
       
       await listing.save();
@@ -709,8 +709,8 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
             companyName: listing.companyName
           }
         });
-      } else if (newStatus === 'accepted') {
-        // First party accepted → Waiting for second party
+      } else if (newStatus === 'pending_confirmation' || newStatus === 'accepted') {
+        // First party accepted → Waiting for second party to CONFIRM (not negotiate)
         const acceptorId = isBidder ? buyerId : sellerId;
         const waitingForId = isBidder ? sellerId : buyerId;
         const acceptorUsername = isBidder ? buyerUsername : sellerUsername;
@@ -719,9 +719,9 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
         // Notify the person who accepted
         await Notification.create({
           userId: acceptorId,
-          type: 'acceptance_sent',
-          title: '✅ Acceptance Sent!',
-          message: `Waiting for @${waitingForUsername} to accept the deal for ${listing.companyName}`,
+          type: 'deal_accepted',
+          title: '✅ Deal Accepted!',
+          message: `You accepted the deal for ${listing.companyName}. Waiting for @${waitingForUsername} to confirm.`,
           data: {
             listingId: listing._id,
             bidId: bid._id,
@@ -732,12 +732,12 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
           }
         });
         
-        // Notify the other party about acceptance
+        // Notify the other party to CONFIRM (not accept again - just YES/NO)
         await Notification.create({
           userId: waitingForId,
-          type: 'party_accepted',
-          title: '🔔 Deal Accepted!',
-          message: `@${acceptorUsername} accepted the deal for ${listing.companyName}. Accept to confirm!`,
+          type: 'confirmation_required',
+          title: '⚠️ Confirm Deal!',
+          message: `@${acceptorUsername} accepted your ${isBidder ? 'offer' : 'bid'} for ${listing.companyName}. Confirm or reject this final deal.`,
           data: {
             listingId: listing._id,
             bidId: bid._id,
