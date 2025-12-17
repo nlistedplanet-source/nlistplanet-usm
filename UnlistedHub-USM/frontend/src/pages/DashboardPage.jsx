@@ -373,17 +373,18 @@ const DashboardPage = () => {
     if (!listingToAccept || !acceptedTerms) return;
 
     try {
-      // Place bid/offer at listing price (accepting the listing)
-      await listingsAPI.placeBid(listingToAccept._id, {
-        price: listingToAccept.price,
-        quantity: listingToAccept.quantity,
-        message: 'Accepted listing at asking price'
-      });
+      // Accept listing directly (creates bid with pending_confirmation status)
+      await listingsAPI.acceptListing(listingToAccept._id);
       
-      toast.success('Order placed successfully! The seller will be notified.');
+      toast.success('Listing accepted! Seller will be notified.');
       
-      // Remove this listing from marketplace immediately (user already placed bid)
+      // Remove this listing from marketplace immediately (deal pending)
       setMarketplaceListings(prev => prev.filter(l => l._id !== listingToAccept._id));
+      
+      // Refresh my bids to show the accepted deal
+      if (activeTab === 'bids') {
+        await fetchMyBidsOffers();
+      }
       
       // Close modal
       setShowAcceptConfirmation(false);
@@ -391,7 +392,7 @@ const DashboardPage = () => {
       setAcceptedTerms(false);
     } catch (error) {
       console.error('Failed to accept listing:', error);
-      toast.error(error.response?.data?.message || 'Failed to place order. Please try again.');
+      toast.error(error.response?.data?.message || 'Failed to accept listing. Please try again.');
     }
   };
 

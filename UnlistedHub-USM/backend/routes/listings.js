@@ -333,6 +333,106 @@ router.post('/', protect, async (req, res, next) => {
   }
 });
 
+// @route   POST /api/listings/:id/accept
+// @desc    Accept listing directly from marketplace (creates bid with pending_confirmation status)
+// @access  Private
+router.post('/:id/accept', protect, async (req, res, next) => {
+  try {
+    const listing = await Listing.findById(req.params.id);
+
+    if (!listing) {
+      return res.status(404).json({
+        success: false,
+        message: 'Listing not found'
+      });
+    }
+
+    // Can't accept own listing
+    if (listing.userId.toString() === req.user._id.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot accept your own listing'
+      });
+    }
+
+    // Check if listing is active
+    if (listing.status !== 'active') {
+      return res.status(400).json({
+        success: false,
+        message: 'Listing is not active'
+      });
+    }
+
+    // Use listing's price and quantity for acceptance
+    const price = listing.price;
+    const quantity = listing.quantity;
+
+    // Create bid with pending_confirmation status (buyer has accepted)
+    const bidData = {
+      userId: req.user._id,
+      username: req.user.username,
+      price,
+      originalPrice: price,
+      quantity,
+      message: 'Accepted listing at asking price',
+      status: 'pending_confirmation', // ← KEY: This marks it as accepted
+      buyerAcceptedAt: new Date(),
+      counterHistory: []
+    };
+
+    // Calculate platform fee fields
+    if (listing.type === 'sell') {
+      // Buyer is accepting - buyer pays listing price
+      bidData.buyerOfferedPrice = price;
+      bidData.sellerReceivesPrice = price * 0.98; // Seller gets 2% less
+      bidData.platformFee = price - bidData.sellerReceivesPrice;
+    } else {
+      // Seller is accepting - seller receives listing price
+      bidData.sellerReceivesPrice = price;
+      bidData.buyerOfferedPrice = price / 0.98; // Buyer pays 2% more
+      bidData.platformFee = bidData.buyerOfferedPrice - price;
+    }
+
+    if (listing.type === 'sell') {
+      listing.bids.push(bidData);
+    } else {
+      listing.offers.push(bidData);
+    }
+
+    // Hide listing from marketplace (deal pending)
+    listing.status = 'deal_pending';
+    
+    await listing.save();
+
+    // Create notification for listing owner
+    await Notification.create({
+      userId: listing.userId,
+      type: 'deal_accepted',
+      title: 'Listing Accepted',
+      message: `@${req.user.username} accepted your ${listing.companyName} listing at ₹${price} for ${quantity} shares`,
+      data: {
+        listingId: listing._id,
+        bidId: bidData._id,
+        fromUser: req.user.username,
+        amount: price,
+        quantity,
+        companyName: listing.companyName
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Listing accepted successfully. Seller will be notified.',
+      data: {
+        listingId: listing._id,
+        bidId: bidData._id
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // @route   POST /api/listings/:id/bid
 // @desc    Place bid on sell post or make offer on buy request
 // @access  Private

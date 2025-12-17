@@ -22,6 +22,7 @@ export const listingsAPI = {
   create: (data) => axios.post('/listings', data),
   update: (id, data) => axios.put(`/listings/${id}`, data),
   placeBid: (id, data) => axios.post(`/listings/${id}/bid`, data),
+  acceptListing: (id) => axios.post(`/listings/${id}/accept`), // Accept from marketplace
   boost: (id) => axios.put(`/listings/${id}/boost`),
   acceptBid: (listingId, bidId) => axios.put(`/listings/${listingId}/bids/${bidId}/accept`),
   rejectBid: (listingId, bidId) => axios.put(`/listings/${listingId}/bids/${bidId}/reject`),
