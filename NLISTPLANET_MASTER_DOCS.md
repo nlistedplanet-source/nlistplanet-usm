@@ -1346,24 +1346,75 @@ export const formatShortNumber = (num) => {
 
 ---
 
-### 12.9 Known Issues & Pending Items
+### 12.9 Marketplace Accept Endpoint Fix (Dec 17, 2025)
+
+**Critical Bug Fixed:** Marketplace "Accept" button was creating normal bids instead of accepted bids.
+
+**Root Cause:**
+- Frontend `handleAccept` called `/listings/:id/bid` endpoint
+- This created bids with status `pending` (normal bid flow)
+- Users saw "You (Bid)" instead of "✅ You Accepted"
+- Listing stayed visible in marketplace
+
+**Solution - New Endpoint:** `POST /api/listings/:id/accept`
+
+**Backend Implementation** (`routes/listings.js`):
+```javascript
+router.post('/:id/accept', protect, async (req, res, next) => {
+  // Creates bid with:
+  // - status: 'pending_confirmation' ← KEY DIFFERENCE
+  // - buyerAcceptedAt: Date.now()
+  // - Changes listing.status to 'deal_pending' (hides from marketplace)
+  // - Sends 'deal_accepted' notification to seller
+  // - Uses listing's price and quantity (no negotiation)
+});
+```
+
+**Frontend Changes:**
+
+1. **API Method** (`utils/api.js`):
+   ```javascript
+   acceptListing: (id) => axios.post(`/listings/${id}/accept`)
+   ```
+
+2. **UI Handler** (`pages/DashboardPage.jsx`):
+   ```javascript
+   const handleConfirmPurchase = async () => {
+     await listingsAPI.acceptListing(listingToAccept._id);
+     // Refreshes My Bids automatically
+   };
+   ```
+
+**Result:**
+- ✅ OYO Rooms accept now creates `pending_confirmation` bid
+- ✅ Shows "✅ You Accepted" with green border immediately
+- ✅ Listing hidden from marketplace
+- ✅ Seller gets notification
+- ✅ No manual database fixes needed
+
+**Commit:** `2a882c6` - Complete marketplace accept flow fix
+
+---
+
+### 12.10 Known Issues & Pending Items
 
 #### Fixed ✅
-- ✅ Marketplace date showing hardcoded "21 Nov"
-- ✅ Accepted deals not showing "You Accepted"
+- ✅ Marketplace date showing hardcoded "21 Nov" (commits: 2b49e32, 4ce44bd)
+- ✅ Accepted deals not showing "You Accepted" (commit: acb383f)
 - ✅ Wrong price display (₹16,500 vs ₹16,830)
-- ✅ Mongoose validation error for `pending_confirmation`
+- ✅ Mongoose validation error for `pending_confirmation` (commit: acb383f)
 - ✅ Company creation with logo URL failing
+- ✅ **Marketplace Accept creating wrong bid status** (commit: 2a882c6) ← NEW
 
 #### Pending 🔄
-- 🔄 Render auto-deployment (commit `acb383f` schema fix)
-- 🔄 Full end-to-end accept flow testing with real seller
-- 🔄 Mobile PWA updates deployment
+- 🔄 Render auto-deployment (schema fix + accept endpoint)
+- 🔄 Mobile PWA: Add same accept endpoint
+- 🔄 Test full flow with real seller accepting back
 
 #### Notes
-- Hero Motors bid shows "You (Bid)" - CORRECT behavior (status is 'pending', not accepted)
-- Only one PPFAS bid was manually updated to demonstrate fix works
-- Other pending bids will show correct status once sellers accept
+- Old bids (PPFAS, Hero Motors) created before fix will remain 'pending'
+- New marketplace accepts will work correctly
+- Mobile app needs same `/accept` endpoint implementation
 
 ---
 
@@ -1372,4 +1423,4 @@ export const formatShortNumber = (num) => {
 *For questions or updates, contact the development team.*
 
 **Last Updated:** December 17, 2025  
-**Document Version:** 2.1.0
+**Document Version:** 2.1.1
