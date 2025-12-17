@@ -364,7 +364,10 @@ const MyBidsOffersTab = () => {
                       : `You (${isBid ? 'Bid' : 'Offer'})`}
                   </td>
                   <td className="px-3 py-2 text-right font-mono text-gray-700">
-                    {formatCurrency(isBid ? (activity.buyerOfferedPrice || activity.originalPrice || activity.price) : (activity.sellerReceivesPrice || activity.originalPrice || activity.price))}
+                    {formatCurrency(isBid 
+                      ? calculateBuyerPays(activity.originalPrice || activity.price) 
+                      : calculateSellerGets(activity.originalPrice || activity.price)
+                    )}
                   </td>
                   <td className="px-3 py-2 text-right text-gray-700">{activity.quantity}</td>
                   <td className="px-3 py-2 text-center">
