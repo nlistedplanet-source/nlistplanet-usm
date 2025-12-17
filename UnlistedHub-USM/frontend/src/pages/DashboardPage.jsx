@@ -1357,6 +1357,7 @@ const DashboardPage = () => {
                         price={displayPrice}
                         shares={listing.quantity}
                         user={listing.username}
+                        createdAt={listing.createdAt}
                         isBoosted={listing.isBoosted || (listing.boostExpiresAt && new Date(listing.boostExpiresAt) > new Date())}
                         onPrimary={() => handlePlaceBid(listing)}
                         onAccept={() => handleAccept(listing)}

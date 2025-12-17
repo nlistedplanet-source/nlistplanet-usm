@@ -31,6 +31,7 @@ const MarketplaceCard = ({
   price,
   shares,
   user,
+  createdAt,
   isBoosted = false, // NEW: Premium boosted listing flag
   onPrimary,      // Place Bid / Make Offer
   onAccept,       // Accept price
