@@ -165,7 +165,10 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
                 owner: listing.userId
               },
               price: bid.price,
-              originalPrice: bid.originalPrice || bid.price, // Include original price
+              originalPrice: bid.originalPrice || bid.price,
+              buyerOfferedPrice: bid.buyerOfferedPrice, // Buyer pays this
+              sellerReceivesPrice: bid.sellerReceivesPrice, // Seller gets this
+              platformFee: bid.platformFee,
               quantity: bid.quantity,
               message: bid.message,
               status: bid.status,
@@ -197,7 +200,10 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
                 owner: listing.userId
               },
               price: offer.price,
-              originalPrice: offer.originalPrice || offer.price, // Include original price
+              originalPrice: offer.originalPrice || offer.price,
+              buyerOfferedPrice: offer.buyerOfferedPrice, // Buyer pays this
+              sellerReceivesPrice: offer.sellerReceivesPrice, // Seller gets this
+              platformFee: offer.platformFee,
               quantity: offer.quantity,
               message: offer.message,
               status: offer.status,
