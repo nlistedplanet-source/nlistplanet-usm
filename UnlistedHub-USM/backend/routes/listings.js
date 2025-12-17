@@ -390,15 +390,15 @@ router.post('/:id/accept', protect, async (req, res, next) => {
 
     // Calculate platform fee fields
     if (listing.type === 'sell') {
-      // Buyer is accepting - buyer pays listing price
-      bidData.buyerOfferedPrice = price;
-      bidData.sellerReceivesPrice = price * 0.98; // Seller gets 2% less
-      bidData.platformFee = price - bidData.sellerReceivesPrice;
+      // Buyer is accepting SELL listing - buyer pays base + 2%
+      bidData.buyerOfferedPrice = price * 1.02; // Buyer pays 2% MORE
+      bidData.sellerReceivesPrice = price * 0.98; // Seller gets 2% LESS
+      bidData.platformFee = bidData.buyerOfferedPrice - bidData.sellerReceivesPrice;
     } else {
-      // Seller is accepting - seller receives listing price
-      bidData.sellerReceivesPrice = price;
-      bidData.buyerOfferedPrice = price / 0.98; // Buyer pays 2% more
-      bidData.platformFee = bidData.buyerOfferedPrice - price;
+      // Seller is accepting BUY listing - seller receives base - 2%
+      bidData.sellerReceivesPrice = price * 0.98; // Seller gets 2% LESS
+      bidData.buyerOfferedPrice = price * 1.02; // Buyer pays 2% MORE
+      bidData.platformFee = bidData.buyerOfferedPrice - bidData.sellerReceivesPrice;
     }
 
     if (listing.type === 'sell') {
