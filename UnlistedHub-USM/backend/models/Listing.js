@@ -40,7 +40,7 @@ const bidSchema = new mongoose.Schema({
   message: String,
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'rejected', 'countered', 'expired'],
+    enum: ['pending', 'accepted', 'pending_confirmation', 'rejected', 'countered', 'expired'],
     default: 'pending'
   },
   counterHistory: [{
@@ -147,7 +147,7 @@ const listingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['active', 'sold', 'expired', 'cancelled', 'negotiating'],
+    enum: ['active', 'sold', 'expired', 'cancelled', 'negotiating', 'deal_pending'],
     default: 'active'
   },
   // Sold externally fields
