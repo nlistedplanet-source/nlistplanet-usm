@@ -160,7 +160,17 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
 
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={handleBackdropClick}>
-        <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div
+          className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+          tabIndex={-1}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => {
+            // Prevent scroll jumps when pressing navigation keys
+            if (['PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown', ' '].includes(e.key)) {
+              e.preventDefault();
+            }
+          }}
+        >
           {/* Header */}
           <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-t-2xl flex items-center justify-between z-10 pointer-events-auto">
             <div className="flex items-center gap-3">
@@ -391,7 +401,8 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setNewStatus('completed');
                       setShowDetailsModal(false);
                       setShowCloseModal(true);
@@ -403,7 +414,8 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setNewStatus('cancelled');
                       setShowDetailsModal(false);
                       setShowCloseModal(true);
@@ -416,7 +428,8 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setNewStatus('on_hold');
                     setShowDetailsModal(false);
                     setShowCloseModal(true);
