@@ -509,8 +509,20 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
     const StatusIcon = statusInfo.icon;
 
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl max-w-md w-full p-6">
+      <div 
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setShowCloseModal(false);
+            setStatusRemark('');
+            setNewStatus('completed');
+          }
+        }}
+      >
+        <div 
+          className="bg-white rounded-2xl max-w-md w-full p-6"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="flex items-center gap-3 mb-4">
             <StatusIcon className={`w-6 h-6 ${statusInfo.iconColor}`} />
             <h2 className="text-xl font-bold text-gray-900">{statusInfo.title}</h2>
@@ -548,28 +560,40 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
 
           <div className="flex gap-3">
             <button
-              onClick={() => {
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Cancel clicked');
                 setShowCloseModal(false);
                 setStatusRemark('');
                 setNewStatus('completed');
               }}
+              onMouseDown={(e) => e.stopPropagation()}
               disabled={processing}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 cursor-pointer"
             >
-              Cancel
+              <span className="pointer-events-none">Cancel</span>
             </button>
             <button
-              onClick={handleCloseDeal}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Mark Completed button clicked');
+                handleCloseDeal();
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
               disabled={processing || (newStatus !== 'completed' && !statusRemark.trim())}
-              className={`flex-1 px-4 py-2 bg-gradient-to-r ${statusInfo.buttonColor} text-white rounded-xl font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2`}
+              className={`flex-1 px-4 py-2 bg-gradient-to-r ${statusInfo.buttonColor} text-white rounded-xl font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer`}
             >
               {processing ? (
                 <>
-                  <Loader className="animate-spin" size={16} />
-                  Processing...
+                  <Loader className="animate-spin pointer-events-none" size={16} />
+                  <span className="pointer-events-none">Processing...</span>
                 </>
               ) : (
-                statusInfo.buttonText
+                <span className="pointer-events-none">{statusInfo.buttonText}</span>
               )}
             </button>
           </div>
