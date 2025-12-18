@@ -627,7 +627,7 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
     }
 
     const isBidder = bid.userId.toString() === req.user._id.toString();
-    const isOwner = listing.userId.toString() === req.user._id.toString();
+    const isOwner = listing.userId._id.toString() === req.user._id.toString();
     
     // Authorization check: Either Bidder or Owner can accept
     if (!isBidder && !isOwner) {
