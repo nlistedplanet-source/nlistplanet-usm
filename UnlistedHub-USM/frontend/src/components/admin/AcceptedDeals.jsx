@@ -25,6 +25,19 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
     fetchDeals();
   }, [filterStatus]);
 
+  // Lock body scroll when any modal is open to prevent background scroll/jumps
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    if (showDetailsModal || showCloseModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = originalOverflow;
+    }
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [showDetailsModal, showCloseModal]);
+
   const fetchDeals = async () => {
     try {
       setLoading(true);
