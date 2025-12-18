@@ -1131,12 +1131,12 @@ const DashboardPage = () => {
               </div>
               
               <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
-                  {notifications.filter(n => !n.isRead).length === 0 ? (
+                  {notifications.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-6 text-center">
                       <Bell size={28} className="text-gray-300 mb-2" />
-                      <p className="text-xs text-gray-500 font-medium">No new notifications</p>
+                      <p className="text-xs text-gray-500 font-medium">No notifications</p>
                     </div>
-                  ) : notifications.filter(n => !n.isRead).slice(0, 5).map((notification) => {
+                  ) : notifications.slice(0, 5).map((notification) => {
                     const getNotificationIcon = (type) => {
                       const icons = {
                         new_bid: TrendingUp,
@@ -1172,7 +1172,9 @@ const DashboardPage = () => {
                     return (
                       <div
                         key={notification._id}
-                        className={`flex items-start gap-1.5 p-1.5 rounded-md border transition-all hover:shadow-sm ${colorClass}`}
+                        className={`flex items-start gap-1.5 p-1.5 rounded-md border transition-all hover:shadow-sm ${colorClass} ${
+                          notification.isRead ? 'opacity-50' : ''
+                        }`}
                       >
                         <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${colorClass.replace('50', '100')}`}>
                           <Icon size={12} />
@@ -1182,6 +1184,9 @@ const DashboardPage = () => {
                           <p className="text-[9px] text-gray-600 mt-0.5 line-clamp-1">{notification.message}</p>
                           <p className="text-[8px] text-gray-400 mt-0.5">{formatRelativeTime(notification.createdAt)}</p>
                         </div>
+                        {!notification.isRead && (
+                          <div className="w-1.5 h-1.5 bg-purple-500 rounded-full flex-shrink-0 mt-1"></div>
+                        )}
                       </div>
                     );
                   })}
