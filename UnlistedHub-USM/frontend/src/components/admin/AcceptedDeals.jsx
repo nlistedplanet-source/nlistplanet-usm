@@ -114,19 +114,36 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
       platformFee = buyerPays - sellerReceives;
     }
 
-    const handleClose = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+    const closeModal = () => {
       setShowDetailsModal(false);
       setSelectedDeal(null);
     };
 
+    const handleClose = (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      closeModal();
+    };
+
     const handleBackdropClick = (e) => {
       if (e.target === e.currentTarget) {
-        setShowDetailsModal(false);
-        setSelectedDeal(null);
+        closeModal();
       }
     };
+
+    // Allow closing the modal via Escape key as well
+    useEffect(() => {
+      const handleEsc = (e) => {
+        if (e.key === 'Escape') {
+          closeModal();
+        }
+      };
+
+      window.addEventListener('keydown', handleEsc);
+      return () => window.removeEventListener('keydown', handleEsc);
+    }, []);
 
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={handleBackdropClick}>
