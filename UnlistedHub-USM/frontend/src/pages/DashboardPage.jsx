@@ -913,77 +913,6 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Recent Notifications */}
-        {notifications.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <Bell className="text-purple-600" size={20} />
-                Recent Notifications
-              </h3>
-              <button
-                onClick={() => handleTabChange('notifications')}
-                className="text-purple-600 text-sm font-semibold hover:text-purple-700"
-              >
-                View All →
-              </button>
-            </div>
-            <div className="space-y-3">
-              {notifications.slice(0, 5).map((notification) => {
-                const getNotificationIcon = (type) => {
-                  const icons = {
-                    new_bid: TrendingUp,
-                    new_offer: TrendingUp,
-                    bid_accepted: CheckCircle,
-                    offer_accepted: CheckCircle,
-                    deal_accepted: CheckCircle,
-                    referral_earning: Gift,
-                    boost_activated: Bell
-                  };
-                  return icons[type] || Bell;
-                };
-
-                const getNotificationColor = (type) => {
-                  const colors = {
-                    new_bid: 'bg-blue-100 text-blue-600',
-                    new_offer: 'bg-green-100 text-green-600',
-                    bid_accepted: 'bg-green-100 text-green-600',
-                    offer_accepted: 'bg-green-100 text-green-600',
-                    deal_accepted: 'bg-emerald-100 text-emerald-600',
-                    referral_earning: 'bg-yellow-100 text-yellow-600',
-                    boost_activated: 'bg-purple-100 text-purple-600'
-                  };
-                  return colors[type] || 'bg-gray-100 text-gray-600';
-                };
-
-                const Icon = getNotificationIcon(notification.type);
-                const colorClass = getNotificationColor(notification.type);
-
-                return (
-                  <div
-                    key={notification._id}
-                    className={`flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors ${
-                      !notification.isRead ? 'bg-blue-50 border border-blue-200' : 'border border-gray-200'
-                    }`}
-                  >
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
-                      <Icon size={20} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 text-sm">{notification.title}</p>
-                      <p className="text-xs text-gray-600 mt-0.5">{notification.message}</p>
-                      <p className="text-xs text-gray-400 mt-1">{formatRelativeTime(notification.createdAt)}</p>
-                    </div>
-                    {!notification.isRead && (
-                      <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-2"></div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Quick Actions */}
         <div className="mb-8">
           <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
@@ -1184,74 +1113,148 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          {/* Recent Activity Sidebar */}
+          {/* Notifications & Activity Grid */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 min-h-[500px] flex flex-col">
-            <div className="p-6 border-b border-gray-100 flex-shrink-0">
-              <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
-              <p className="text-sm text-gray-600 mt-1">Your latest transactions</p>
+            <div className="p-4 border-b border-gray-100 flex-shrink-0">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-2">
+                  <Bell className="text-purple-600" size={18} />
+                  <h3 className="text-base font-bold text-gray-900">Notifications</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Activity className="text-blue-600" size={18} />
+                  <h3 className="text-base font-bold text-gray-900">Activity</h3>
+                </div>
+              </div>
             </div>
             
-            <div className="p-6 flex-1 overflow-y-auto">
-              <div className="space-y-4">
-                {recentActivities.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <Activity size={48} className="text-gray-300 mb-4" />
-                    <p className="text-gray-500 font-medium">No recent activity</p>
-                    <p className="text-sm text-gray-400 mt-1">Your bids, offers and transactions will appear here</p>
-                  </div>
-                ) : recentActivities.slice(0, 5).map((activity, index) => {
-                  let icon = <Activity size={20} />;
-                  let colorClass = 'bg-gray-100 text-gray-600';
-                  let title = 'Activity';
-                  
-                  // Determine Icon and Color based on action/type
-                  if (activity.action === 'buy' || activity.action === 'placed_bid' || activity.action === 'placed_offer' || activity.action === 'listed_buy') {
-                    icon = <TrendingUp size={20} />;
-                    colorClass = 'bg-green-100 text-green-600';
-                    title = activity.action === 'buy' ? 'Bought Shares' : 
-                            activity.action === 'listed_buy' ? 'Created Buy Request' : 'Placed Order';
-                  } else if (activity.action === 'sell' || activity.action === 'listed_sell') {
-                    icon = <TrendingDown size={20} />;
-                    colorClass = 'bg-red-100 text-red-600';
-                    title = activity.action === 'sell' ? 'Sold Shares' : 'Listed for Sale';
-                  } else if (activity.action === 'accepted_bid') {
-                    icon = <CheckCircle size={20} />;
-                    colorClass = 'bg-emerald-100 text-emerald-600';
-                    title = 'Accepted Bid';
-                  } else if (activity.action === 'rejected_bid') {
-                    icon = <XCircle size={20} />;
-                    colorClass = 'bg-red-50 text-red-500';
-                    title = 'Rejected Bid';
-                  } else if (activity.action?.includes('counter')) {
-                    icon = <RotateCcw size={20} />;
-                    colorClass = 'bg-orange-100 text-orange-600';
-                    title = 'Countered Offer';
-                  }
-
-                  return (
-                    <div key={index} className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
-                        {icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm truncate">
-                          {title}
-                        </p>
-                        <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-                          {activity.description || `${activity.quantity} shares of ${activity.companyName}`}
-                        </p>
-                        <p className="text-[10px] text-gray-400 mt-1">
-                          {new Date(activity.date).toLocaleDateString()} • {new Date(activity.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                        </p>
-                      </div>
+            <div className="p-4 flex-1 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Notifications Column */}
+                <div className="space-y-2">
+                  {notifications.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <Bell size={32} className="text-gray-300 mb-2" />
+                      <p className="text-xs text-gray-500 font-medium">No notifications</p>
                     </div>
-                  );
-                })}
+                  ) : notifications.slice(0, 5).map((notification) => {
+                    const getNotificationIcon = (type) => {
+                      const icons = {
+                        new_bid: TrendingUp,
+                        new_offer: TrendingDown,
+                        bid_accepted: CheckCircle,
+                        offer_accepted: CheckCircle,
+                        deal_accepted: CheckCircle,
+                        referral_earning: Gift,
+                        boost_activated: Bell
+                      };
+                      return icons[type] || Bell;
+                    };
+
+                    const getNotificationColor = (type) => {
+                      // Positive news (green) - deals accepted, earnings
+                      if (type === 'bid_accepted' || type === 'offer_accepted' || type === 'deal_accepted' || type === 'referral_earning') {
+                        return 'bg-green-50 text-green-600 border-green-200';
+                      }
+                      // New opportunities (blue) - new bids/offers
+                      if (type === 'new_bid' || type === 'new_offer') {
+                        return 'bg-blue-50 text-blue-600 border-blue-200';
+                      }
+                      // Special actions (purple)
+                      if (type === 'boost_activated') {
+                        return 'bg-purple-50 text-purple-600 border-purple-200';
+                      }
+                      return 'bg-gray-50 text-gray-600 border-gray-200';
+                    };
+
+                    const Icon = getNotificationIcon(notification.type);
+                    const colorClass = getNotificationColor(notification.type);
+
+                    return (
+                      <div
+                        key={notification._id}
+                        className={`flex items-start gap-2 p-2 rounded-lg border transition-all hover:shadow-sm ${colorClass} ${
+                          !notification.isRead ? 'ring-2 ring-offset-1 ring-blue-400' : ''
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass.replace('50', '100')}`}>
+                          <Icon size={14} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 text-xs leading-tight">{notification.title}</p>
+                          <p className="text-[10px] text-gray-600 mt-0.5 line-clamp-2">{notification.message}</p>
+                          <p className="text-[9px] text-gray-400 mt-0.5">{formatRelativeTime(notification.createdAt)}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {notifications.length > 0 && (
+                    <button
+                      onClick={() => handleTabChange('notifications')}
+                      className="w-full text-center text-purple-600 text-xs font-semibold hover:text-purple-700 py-2"
+                    >
+                      View All →
+                    </button>
+                  )}
+                </div>
+
+                {/* Activity Column */}
+                <div className="space-y-2">
+                  {recentActivities.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <Activity size={32} className="text-gray-300 mb-2" />
+                      <p className="text-xs text-gray-500 font-medium">No recent activity</p>
+                    </div>
+                  ) : recentActivities.slice(0, 5).map((activity, index) => {
+                    let icon = <Activity size={14} />;
+                    let colorClass = 'bg-gray-50 text-gray-600 border-gray-200';
+                    let title = 'Activity';
+                    
+                    // Determine Icon and Color based on action/type
+                    if (activity.action === 'buy' || activity.action === 'placed_bid' || activity.action === 'placed_offer' || activity.action === 'listed_buy') {
+                      icon = <TrendingUp size={14} />;
+                      colorClass = 'bg-green-50 text-green-600 border-green-200';
+                      title = activity.action === 'buy' ? 'Bought Shares' : 
+                              activity.action === 'listed_buy' ? 'Buy Request' : 'Placed Bid';
+                    } else if (activity.action === 'sell' || activity.action === 'listed_sell') {
+                      icon = <TrendingDown size={14} />;
+                      colorClass = 'bg-orange-50 text-orange-600 border-orange-200';
+                      title = activity.action === 'sell' ? 'Sold Shares' : 'Listed for Sale';
+                    } else if (activity.action === 'accepted_bid') {
+                      icon = <CheckCircle size={14} />;
+                      colorClass = 'bg-emerald-50 text-emerald-600 border-emerald-200';
+                      title = 'Accepted Deal';
+                    } else if (activity.action === 'rejected_bid') {
+                      icon = <XCircle size={14} />;
+                      colorClass = 'bg-red-50 text-red-500 border-red-200';
+                      title = 'Rejected Bid';
+                    } else if (activity.action?.includes('counter')) {
+                      icon = <RotateCcw size={14} />;
+                      colorClass = 'bg-blue-50 text-blue-600 border-blue-200';
+                      title = 'Counter Offer';
+                    }
+
+                    return (
+                      <div key={index} className={`flex items-start gap-2 p-2 rounded-lg border transition-all hover:shadow-sm ${colorClass}`}>
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass.replace('50', '100')}`}>
+                          {icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 text-xs leading-tight">
+                            {title}
+                          </p>
+                          <p className="text-[10px] text-gray-600 mt-0.5 line-clamp-2">
+                            {activity.description || `${activity.quantity} shares of ${activity.companyName}`}
+                          </p>
+                          <p className="text-[9px] text-gray-400 mt-0.5">
+                            {new Date(activity.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              
-              <button className="w-full mt-4 text-purple-600 font-medium text-sm hover:bg-purple-50 py-2 rounded-lg transition-colors">
-                View All Activity →
-              </button>
             </div>
           </div>
         </div>
