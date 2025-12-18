@@ -1144,6 +1144,8 @@ const DashboardPage = () => {
                         bid_accepted: CheckCircle,
                         offer_accepted: CheckCircle,
                         deal_accepted: CheckCircle,
+                        deal_confirmed: CheckCircle,
+                        confirmation_required: Bell,
                         referral_earning: Gift,
                         boost_activated: Bell
                       };
@@ -1151,13 +1153,17 @@ const DashboardPage = () => {
                     };
 
                     const getNotificationColor = (type) => {
-                      // Positive news (green) - deals accepted, earnings
-                      if (type === 'bid_accepted' || type === 'offer_accepted' || type === 'deal_accepted' || type === 'referral_earning') {
+                      // Positive news (green) - deals accepted, confirmed, earnings
+                      if (type === 'bid_accepted' || type === 'offer_accepted' || type === 'deal_accepted' || type === 'deal_confirmed' || type === 'referral_earning') {
                         return 'bg-green-50 text-green-600 border-green-200';
                       }
                       // New opportunities (blue) - new bids/offers
                       if (type === 'new_bid' || type === 'new_offer') {
                         return 'bg-blue-50 text-blue-600 border-blue-200';
+                      }
+                      // Action required (orange/amber)
+                      if (type === 'confirmation_required') {
+                        return 'bg-amber-50 text-amber-600 border-amber-200';
                       }
                       // Special actions (purple)
                       if (type === 'boost_activated') {
