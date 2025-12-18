@@ -1101,27 +1101,32 @@ const DashboardPage = () => {
                             >
                               <XCircle size={14} strokeWidth={2.5} />
                             </button>
-                            <button 
-                              onClick={() => handleCounterAction(item)}
-                              className="bg-orange-100 text-orange-700 p-1.5 rounded-md hover:bg-orange-200 flex items-center justify-center transition-colors"
-                              title="Counter"
-                            >
-                              <RotateCcw size={14} strokeWidth={2.5} />
-                            </button>
-                            <button 
-                              onClick={() => {
-                                // View button - Navigate to the relevant tab
-                                if (item.type === 'counter_received') {
-                                  handleTabChange('my-bids-offers');
-                                } else {
-                                  handleTabChange('posts');
-                                }
-                              }}
-                              className="bg-gray-100 text-gray-700 p-1.5 rounded-md hover:bg-gray-200 flex items-center justify-center transition-colors"
-                              title="View"
-                            >
-                              <Eye size={14} strokeWidth={2.5} />
-                            </button>
+                            {/* Hide Counter and View buttons for buyer_accepted deals */}
+                            {item.type !== 'buyer_accepted' && (
+                              <>
+                                <button 
+                                  onClick={() => handleCounterAction(item)}
+                                  className="bg-orange-100 text-orange-700 p-1.5 rounded-md hover:bg-orange-200 flex items-center justify-center transition-colors"
+                                  title="Counter"
+                                >
+                                  <RotateCcw size={14} strokeWidth={2.5} />
+                                </button>
+                                <button 
+                                  onClick={() => {
+                                    // View button - Navigate to the relevant tab
+                                    if (item.type === 'counter_received') {
+                                      handleTabChange('my-bids-offers');
+                                    } else {
+                                      handleTabChange('posts');
+                                    }
+                                  }}
+                                  className="bg-gray-100 text-gray-700 p-1.5 rounded-md hover:bg-gray-200 flex items-center justify-center transition-colors"
+                                  title="View"
+                                >
+                                  <Eye size={14} strokeWidth={2.5} />
+                                </button>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
