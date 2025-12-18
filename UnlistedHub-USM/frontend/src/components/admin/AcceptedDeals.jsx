@@ -149,7 +149,7 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={handleBackdropClick}>
         <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
           {/* Header */}
-          <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-t-2xl flex items-center justify-between z-10">
+          <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-t-2xl flex items-center justify-between z-10 pointer-events-auto">
             <div className="flex items-center gap-3">
               <Sparkles className="w-6 h-6" />
               <div>
@@ -160,9 +160,11 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
             <button
               type="button"
               onClick={handleClose}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
+              onMouseDown={handleClose}
+              aria-label="Close"
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors cursor-pointer pointer-events-auto"
             >
-              <X size={20} />
+              <X size={20} onClick={handleClose} className="pointer-events-none" />
             </button>
           </div>
 
