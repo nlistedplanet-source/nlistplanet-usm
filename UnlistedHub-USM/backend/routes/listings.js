@@ -764,9 +764,19 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
         dealData.sellerConfirmedAt = bid.sellerAcceptedAt;
       }
 
-      const deal = await CompletedDeal.create(dealData);
+      // Check if deal already exists (from first acceptance), if yes update it, else create new
+      let deal = await CompletedDeal.findOne({ listingId: listing._id, bidId: bid._id });
       
-      console.log(`✅ Deal created with status: ${newStatus}`);
+      if (deal) {
+        // Deal exists, update it
+        Object.assign(deal, dealData);
+        await deal.save();
+        console.log(`✅ Deal updated with status: ${newStatus}`);
+      } else {
+        // Create new deal
+        deal = await CompletedDeal.create(dealData);
+        console.log(`✅ Deal created with status: ${newStatus}`);
+      }
       
       // Update bid with dealId
       bid.dealId = deal._id;
