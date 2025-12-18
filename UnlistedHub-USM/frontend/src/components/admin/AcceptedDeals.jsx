@@ -18,6 +18,8 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [closingNotes, setClosingNotes] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [newStatus, setNewStatus] = useState('completed');
+  const [statusRemark, setStatusRemark] = useState('');
 
   useEffect(() => {
     fetchDeals();
@@ -49,16 +51,25 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
         selectedDeal.dealId,
         selectedDeal.listingId,
         selectedDeal.bidId || selectedDeal.offerId,
-        closingNotes
+        statusRemark,
+        newStatus
       );
-      toast.success('Deal closed successfully');
+      
+      const statusMessages = {
+        completed: 'Deal marked as completed',
+        cancelled: 'Deal marked as cancelled',
+        on_hold: 'Deal put on hold'
+      };
+      toast.success(statusMessages[newStatus] || 'Deal updated successfully');
+      
       setShowCloseModal(false);
-      setClosingNotes('');
+      setStatusRemark('');
+      setNewStatus('completed');
       setSelectedDeal(null);
       fetchDeals();
     } catch (error) {
-      console.error('Failed to close deal:', error);
-      toast.error('Failed to close deal');
+      console.error('Failed to update deal:', error);
+      toast.error('Failed to update deal status');
     } finally {
       setProcessing(false);
     }
@@ -86,9 +97,19 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
   const DealDetailsModal = () => {
     if (!selectedDeal) return null;
 
+    const closeModal = () => {
+      setShowDetailsModal(false);
+      setSelectedDeal(null);
+    };
+
+    // Calculate correct prices
+    const buyerPays = selectedDeal.buyerOfferedPrice || (selectedDeal.agreedPrice * 1.02);
+    const sellerReceives = selectedDeal.sellerReceivesPrice || (selectedDeal.agreedPrice * 0.98);
+    const platformFee = buyerPays - sellerReceives;
+
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={closeModal}>
+        <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
           {/* Header */}
           <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-t-2xl flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -99,7 +120,7 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
               </div>
             </div>
             <button
-              onClick={() => setShowDetailsModal(false)}
+              onClick={closeModal}
               className="p-2 hover:bg-white/20 rounded-lg transition-colors"
             >
               <X size={20} />
@@ -146,16 +167,20 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
               </h3>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Buyer Pays</span>
-                  <span className="font-semibold text-gray-900">{formatCurrency(selectedDeal.buyerOfferedPrice)}</span>
+                  <span className="text-sm text-gray-600">Buyer Pays (per share)</span>
+                  <span className="font-semibold text-gray-900">{formatCurrency(buyerPays)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Seller Receives</span>
-                  <span className="font-semibold text-gray-900">{formatCurrency(selectedDeal.sellerReceivesPrice)}</span>
+                  <span className="text-sm text-gray-600">Seller Receives (per share)</span>
+                  <span className="font-semibold text-gray-900">{formatCurrency(sellerReceives)}</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-purple-200">
-                  <span className="text-sm font-bold text-purple-600">Platform Fee (2%)</span>
-                  <span className="font-bold text-purple-600">{formatCurrency(selectedDeal.platformFee)}</span>
+                  <span className="text-sm font-bold text-purple-600">Platform Fee (per share)</span>
+                  <span className="font-bold text-purple-600">{formatCurrency(platformFee)}</span>
+                </div>
+                <div className="flex justify-between pt-2 border-t border-purple-300 bg-purple-100 -mx-4 px-4 py-2 rounded-b-lg mt-2">
+                  <span className="text-sm font-bold text-purple-800">Total Platform Earnings</span>
+                  <span className="font-bold text-purple-800">{formatCurrency(platformFee * selectedDeal.quantity)}</span>
                 </div>
               </div>
             </div>
@@ -178,15 +203,24 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
                   </div>
                 )}
                 <div className="flex items-center gap-2">
+                  <Phone size={14} className="text-green-600" />
+                  <span className="text-sm text-gray-600">Mobile:</span>
+                  <span className="font-semibold text-gray-900">
+                    {selectedDeal.buyer.phoneNumber || selectedDeal.buyer.phone || 'Not provided'}
+                  </span>
+                  {(selectedDeal.buyer.phoneNumber || selectedDeal.buyer.phone) && (
+                    <a 
+                      href={`tel:${selectedDeal.buyer.phoneNumber || selectedDeal.buyer.phone}`}
+                      className="text-green-600 hover:text-green-700 text-xs underline"
+                    >
+                      Call
+                    </a>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
                   <Mail size={14} className="text-gray-500" />
                   <span className="text-sm text-gray-900">{selectedDeal.buyer.email}</span>
                 </div>
-                {selectedDeal.buyer.phoneNumber && (
-                  <div className="flex items-center gap-2">
-                    <Phone size={14} className="text-gray-500" />
-                    <span className="text-sm text-gray-900">{selectedDeal.buyer.phoneNumber}</span>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -208,15 +242,24 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
                   </div>
                 )}
                 <div className="flex items-center gap-2">
+                  <Phone size={14} className="text-blue-600" />
+                  <span className="text-sm text-gray-600">Mobile:</span>
+                  <span className="font-semibold text-gray-900">
+                    {selectedDeal.seller.phoneNumber || selectedDeal.seller.phone || 'Not provided'}
+                  </span>
+                  {(selectedDeal.seller.phoneNumber || selectedDeal.seller.phone) && (
+                    <a 
+                      href={`tel:${selectedDeal.seller.phoneNumber || selectedDeal.seller.phone}`}
+                      className="text-blue-600 hover:text-blue-700 text-xs underline"
+                    >
+                      Call
+                    </a>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
                   <Mail size={14} className="text-gray-500" />
                   <span className="text-sm text-gray-900">{selectedDeal.seller.email}</span>
                 </div>
-                {selectedDeal.seller.phoneNumber && (
-                  <div className="flex items-center gap-2">
-                    <Phone size={14} className="text-gray-500" />
-                    <span className="text-sm text-gray-900">{selectedDeal.seller.phoneNumber}</span>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -250,17 +293,50 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons - Status Change */}
             {selectedDeal.status === 'confirmed' && (
-              <button
-                onClick={() => {
-                  setShowDetailsModal(false);
-                  setShowCloseModal(true);
-                }}
-                className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white py-3 rounded-xl font-semibold hover:from-red-600 hover:to-red-700 transition-all"
-              >
-                Close Deal
-              </button>
+              <div className="space-y-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                  <CheckCircle size={18} className="text-gray-600" />
+                  Change Deal Status
+                </h3>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => {
+                      setNewStatus('completed');
+                      closeModal();
+                      setShowCloseModal(true);
+                    }}
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle size={18} />
+                    Mark Completed
+                  </button>
+                  <button
+                    onClick={() => {
+                      setNewStatus('cancelled');
+                      closeModal();
+                      setShowCloseModal(true);
+                    }}
+                    className="bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-red-600 hover:to-red-700 transition-all flex items-center justify-center gap-2"
+                  >
+                    <XCircle size={18} />
+                    Mark Cancelled
+                  </button>
+                </div>
+                <button
+                  onClick={() => {
+                    setNewStatus('on_hold');
+                    closeModal();
+                    setShowCloseModal(true);
+                  }}
+                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 px-4 rounded-xl font-semibold hover:from-yellow-600 hover:to-orange-600 transition-all flex items-center justify-center gap-2"
+                >
+                  <Clock size={18} />
+                  Put On Hold
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -268,60 +344,120 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
     );
   };
 
-  const CloseDealModal = () => (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <AlertCircle className="w-6 h-6 text-red-600" />
-          <h2 className="text-xl font-bold text-gray-900">Close Deal</h2>
-        </div>
-        
-        <p className="text-gray-600 mb-4">
-          Are you sure you want to close this deal? This action marks the deal as completed.
-        </p>
+  const CloseDealModal = () => {
+    const getStatusInfo = () => {
+      switch (newStatus) {
+        case 'completed':
+          return {
+            title: 'Mark Deal as Completed',
+            description: 'This will mark the deal as successfully completed. Both parties have received their assets.',
+            icon: CheckCircle,
+            iconColor: 'text-green-600',
+            buttonColor: 'from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700',
+            buttonText: 'Mark Completed'
+          };
+        case 'cancelled':
+          return {
+            title: 'Mark Deal as Cancelled',
+            description: 'This will mark the deal as cancelled. Please provide a reason for cancellation.',
+            icon: XCircle,
+            iconColor: 'text-red-600',
+            buttonColor: 'from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
+            buttonText: 'Mark Cancelled'
+          };
+        case 'on_hold':
+          return {
+            title: 'Put Deal On Hold',
+            description: 'This will put the deal on hold. Please provide a reason.',
+            icon: Clock,
+            iconColor: 'text-yellow-600',
+            buttonColor: 'from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600',
+            buttonText: 'Put On Hold'
+          };
+        default:
+          return {
+            title: 'Update Deal Status',
+            description: 'Update the deal status.',
+            icon: AlertCircle,
+            iconColor: 'text-gray-600',
+            buttonColor: 'from-gray-500 to-gray-600',
+            buttonText: 'Update'
+          };
+      }
+    };
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Admin Notes (Optional)
-          </label>
-          <textarea
-            value={closingNotes}
-            onChange={(e) => setClosingNotes(e.target.value)}
-            placeholder="Add any notes about this deal closure..."
-            className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            rows="3"
-          />
-        </div>
+    const statusInfo = getStatusInfo();
+    const StatusIcon = statusInfo.icon;
 
-        <div className="flex gap-3">
-          <button
-            onClick={() => {
-              setShowCloseModal(false);
-              setClosingNotes('');
-            }}
-            disabled={processing}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleCloseDeal}
-            disabled={processing}
-            className="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-semibold hover:from-red-600 hover:to-red-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {processing ? (
-              <>
-                <Loader className="animate-spin" size={16} />
-                Closing...
-              </>
-            ) : (
-              'Close Deal'
-            )}
-          </button>
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl max-w-md w-full p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <StatusIcon className={`w-6 h-6 ${statusInfo.iconColor}`} />
+            <h2 className="text-xl font-bold text-gray-900">{statusInfo.title}</h2>
+          </div>
+          
+          <p className="text-gray-600 mb-4">
+            {statusInfo.description}
+          </p>
+
+          {/* Deal Summary */}
+          {selectedDeal && (
+            <div className="bg-gray-50 rounded-lg p-3 mb-4 text-sm">
+              <p className="font-semibold text-gray-900">{selectedDeal.company}</p>
+              <p className="text-gray-600">{selectedDeal.quantity.toLocaleString('en-IN')} shares @ {formatCurrency(selectedDeal.agreedPrice)}</p>
+            </div>
+          )}
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Remark / Notes {newStatus !== 'completed' && <span className="text-red-500">*</span>}
+            </label>
+            <textarea
+              value={statusRemark}
+              onChange={(e) => setStatusRemark(e.target.value)}
+              placeholder={
+                newStatus === 'completed' 
+                  ? "Add any notes about this deal (optional)..." 
+                  : "Please provide reason for this action..."
+              }
+              className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              rows="3"
+              required={newStatus !== 'completed'}
+            />
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setShowCloseModal(false);
+                setStatusRemark('');
+                setNewStatus('completed');
+              }}
+              disabled={processing}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCloseDeal}
+              disabled={processing || (newStatus !== 'completed' && !statusRemark.trim())}
+              className={`flex-1 px-4 py-2 bg-gradient-to-r ${statusInfo.buttonColor} text-white rounded-xl font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2`}
+            >
+              {processing ? (
+                <>
+                  <Loader className="animate-spin" size={16} />
+                  Processing...
+                </>
+              ) : (
+                statusInfo.buttonText
+              )}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   if (loading) {
     return (

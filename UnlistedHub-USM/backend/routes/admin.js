@@ -1872,8 +1872,8 @@ router.get('/accepted-deals', async (req, res, next) => {
     // Find all listings with accepted or pending confirmation bids/offers
     const listings = await Listing.find({
       $or: [
-        { 'bids.status': { $in: ['accepted', 'pending_seller_confirmation', 'confirmed'] } },
-        { 'offers.status': { $in: ['accepted', 'pending_buyer_confirmation', 'confirmed'] } }
+        { 'bids.status': { $in: ['accepted', 'pending_seller_confirmation', 'pending_confirmation', 'confirmed'] } },
+        { 'offers.status': { $in: ['accepted', 'pending_buyer_confirmation', 'pending_confirmation', 'confirmed'] } }
       ]
     })
       .populate('userId', 'username email fullName phoneNumber')
@@ -1891,7 +1891,7 @@ router.get('/accepted-deals', async (req, res, next) => {
       // Process bids (for sell listings)
       if (listing.bids && listing.bids.length > 0) {
         listing.bids.forEach(bid => {
-          if (['accepted', 'pending_seller_confirmation', 'confirmed'].includes(bid.status)) {
+          if (['accepted', 'pending_seller_confirmation', 'pending_confirmation', 'confirmed'].includes(bid.status)) {
             if (!filterStatus || bid.status === filterStatus) {
               acceptedDeals.push({
                 _id: bid._id,
@@ -1935,7 +1935,7 @@ router.get('/accepted-deals', async (req, res, next) => {
       // Process offers (for buy listings)
       if (listing.offers && listing.offers.length > 0) {
         listing.offers.forEach(offer => {
-          if (['accepted', 'pending_buyer_confirmation', 'confirmed'].includes(offer.status)) {
+          if (['accepted', 'pending_buyer_confirmation', 'pending_confirmation', 'confirmed'].includes(offer.status)) {
             if (!filterStatus || offer.status === filterStatus) {
               acceptedDeals.push({
                 _id: offer._id,
@@ -2007,12 +2007,12 @@ router.get('/accepted-deals', async (req, res, next) => {
 });
 
 // @route   POST /api/admin/accepted-deals/:dealId/close
-// @desc    Close/mark deal as completed (Admin closes accepted deal)
+// @desc    Close/mark deal with various statuses (Admin action)
 // @access  Admin
 router.post('/accepted-deals/:dealId/close', async (req, res, next) => {
   try {
     const { dealId } = req.params;
-    const { listingId, bidId, notes } = req.body;
+    const { listingId, bidId, notes, status = 'completed' } = req.body;
 
     // Find the listing
     const listing = await Listing.findById(listingId);
@@ -2035,20 +2035,53 @@ router.post('/accepted-deals/:dealId/close', async (req, res, next) => {
       });
     }
 
-    // Update status to closed
-    item.status = 'closed';
+    // Map frontend status to bid status
+    const statusMap = {
+      'completed': 'closed',
+      'cancelled': 'cancelled',
+      'on_hold': 'on_hold'
+    };
+
+    // Update status
+    item.status = statusMap[status] || 'closed';
     item.closedAt = new Date();
     item.closedBy = req.user._id;
     item.adminNotes = notes;
+    item.adminRemark = notes;
+    item.finalStatus = status;
+
+    // Update listing status based on deal status
+    if (status === 'completed') {
+      listing.status = 'sold';
+    } else if (status === 'cancelled') {
+      listing.status = 'cancelled';
+    }
+    // For on_hold, keep the listing status as is
 
     await listing.save();
 
+    // Update CompletedDeal if exists
+    if (dealId && dealId !== 'undefined') {
+      try {
+        const CompletedDeal = (await import('../models/CompletedDeal.js')).default;
+        await CompletedDeal.findByIdAndUpdate(dealId, {
+          status: status,
+          adminNotes: notes,
+          closedAt: new Date(),
+          closedBy: req.user._id
+        });
+      } catch (e) {
+        console.log('CompletedDeal update failed or not found:', e.message);
+      }
+    }
+
     res.json({
       success: true,
-      message: 'Deal closed successfully',
+      message: `Deal marked as ${status}`,
       data: {
         listing,
-        item
+        item,
+        status
       }
     });
   } catch (error) {

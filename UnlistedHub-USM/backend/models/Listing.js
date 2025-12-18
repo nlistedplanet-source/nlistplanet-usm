@@ -40,7 +40,7 @@ const bidSchema = new mongoose.Schema({
   message: String,
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'pending_confirmation', 'confirmed', 'rejected', 'countered', 'expired'],
+    enum: ['pending', 'accepted', 'pending_confirmation', 'confirmed', 'rejected', 'countered', 'expired', 'closed', 'cancelled', 'on_hold'],
     default: 'pending'
   },
   counterHistory: [{
