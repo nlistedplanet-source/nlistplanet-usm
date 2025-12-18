@@ -1113,25 +1113,24 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          {/* Notifications & Activity Grid */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 min-h-[500px] flex flex-col">
-            <div className="p-4 border-b border-gray-100 flex-shrink-0">
-              <div className="grid grid-cols-2 gap-4">
+          {/* Notifications & Activity Sidebar */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+            {/* Notifications Section */}
+            <div className="p-4 border-b border-gray-100">
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Bell className="text-purple-600" size={18} />
                   <h3 className="text-base font-bold text-gray-900">Notifications</h3>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Activity className="text-blue-600" size={18} />
-                  <h3 className="text-base font-bold text-gray-900">Activity</h3>
-                </div>
+                <button
+                  onClick={() => handleTabChange('notifications')}
+                  className="text-purple-600 text-xs font-semibold hover:text-purple-700"
+                >
+                  View All →
+                </button>
               </div>
-            </div>
-            
-            <div className="p-4 flex-1 overflow-y-auto">
-              <div className="grid grid-cols-2 gap-4">
-                {/* Notifications Column */}
-                <div className="space-y-2">
+              
+              <div className="space-y-2 max-h-[280px] overflow-y-auto">
                   {notifications.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                       <Bell size={32} className="text-gray-300 mb-2" />
@@ -1188,18 +1187,17 @@ const DashboardPage = () => {
                       </div>
                     );
                   })}
-                  {notifications.length > 0 && (
-                    <button
-                      onClick={() => handleTabChange('notifications')}
-                      className="w-full text-center text-purple-600 text-xs font-semibold hover:text-purple-700 py-2"
-                    >
-                      View All →
-                    </button>
-                  )}
-                </div>
+              </div>
+            </div>
 
-                {/* Activity Column */}
-                <div className="space-y-2">
+            {/* Recent Activity Section */}
+            <div className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Activity className="text-blue-600" size={18} />
+                <h3 className="text-base font-bold text-gray-900">Recent Activity</h3>
+              </div>
+              
+              <div className="space-y-2">
                   {recentActivities.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                       <Activity size={32} className="text-gray-300 mb-2" />
@@ -1253,7 +1251,6 @@ const DashboardPage = () => {
                       </div>
                     );
                   })}
-                </div>
               </div>
             </div>
           </div>
