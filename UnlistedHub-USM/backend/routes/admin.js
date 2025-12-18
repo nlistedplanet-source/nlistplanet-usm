@@ -1869,6 +1869,9 @@ router.get('/accepted-deals', async (req, res, next) => {
     const { page = 1, limit = 20, status: filterStatus } = req.query;
     const skip = (page - 1) * limit;
 
+    // Import CompletedDeal for verification codes
+    const CompletedDeal = (await import('../models/CompletedDeal.js')).default;
+
     // Find all listings with accepted or pending confirmation bids/offers
     const listings = await Listing.find({
       $or: [
@@ -1876,10 +1879,10 @@ router.get('/accepted-deals', async (req, res, next) => {
         { 'offers.status': { $in: ['accepted', 'pending_buyer_confirmation', 'pending_confirmation', 'confirmed'] } }
       ]
     })
-      .populate('userId', 'username email fullName phoneNumber')
+      .populate('userId', 'username email fullName phoneNumber phone')
       .populate('companyId', 'name ScripName scriptName logo Logo')
-      .populate('bids.userId', 'username email fullName phoneNumber')
-      .populate('offers.userId', 'username email fullName phoneNumber')
+      .populate('bids.userId', 'username email fullName phoneNumber phone')
+      .populate('offers.userId', 'username email fullName phoneNumber phone')
       .sort({ updatedAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -1887,12 +1890,25 @@ router.get('/accepted-deals', async (req, res, next) => {
     // Extract accepted deals
     const acceptedDeals = [];
 
-    listings.forEach(listing => {
+    for (const listing of listings) {
       // Process bids (for sell listings)
       if (listing.bids && listing.bids.length > 0) {
-        listing.bids.forEach(bid => {
+        for (const bid of listing.bids) {
           if (['accepted', 'pending_seller_confirmation', 'pending_confirmation', 'confirmed'].includes(bid.status)) {
             if (!filterStatus || bid.status === filterStatus) {
+              // Fetch verification codes from CompletedDeal if exists
+              let verificationCodes = null;
+              if (bid.dealId) {
+                const completedDeal = await CompletedDeal.findById(bid.dealId);
+                if (completedDeal) {
+                  verificationCodes = {
+                    buyerCode: completedDeal.buyerVerificationCode,
+                    sellerCode: completedDeal.sellerVerificationCode,
+                    rmCode: completedDeal.rmVerificationCode
+                  };
+                }
+              }
+
               acceptedDeals.push({
                 _id: bid._id,
                 type: 'sell',
@@ -1903,40 +1919,54 @@ router.get('/accepted-deals', async (req, res, next) => {
                 companyLogo: listing.companyId?.Logo || listing.companyId?.logo,
                 quantity: bid.quantity,
                 agreedPrice: bid.price,
-                buyerOfferedPrice: bid.buyerOfferedPrice,
-                sellerReceivesPrice: bid.sellerReceivesPrice,
-                platformFee: bid.platformFee,
+                buyerOfferedPrice: bid.buyerOfferedPrice || (bid.price * 1.02),
+                sellerReceivesPrice: bid.sellerReceivesPrice || (bid.price * 0.98),
+                platformFee: bid.platformFee || (bid.price * 0.04),
                 status: bid.status,
                 seller: {
                   _id: listing.userId._id,
                   username: listing.userId.username,
                   email: listing.userId.email,
                   fullName: listing.userId.fullName,
-                  phoneNumber: listing.userId.phoneNumber
+                  phoneNumber: listing.userId.phoneNumber || listing.userId.phone
                 },
                 buyer: {
                   _id: bid.userId._id,
                   username: bid.userId.username,
                   email: bid.userId.email,
                   fullName: bid.userId.fullName,
-                  phoneNumber: bid.userId.phoneNumber
+                  phoneNumber: bid.userId.phoneNumber || bid.userId.phone
                 },
                 bidId: bid._id,
                 dealId: bid.dealId,
+                verificationCodes,
                 buyerAcceptedAt: bid.buyerAcceptedAt,
                 createdAt: bid.createdAt,
                 updatedAt: bid.updatedAt || listing.updatedAt
               });
             }
           }
-        });
+        }
       }
 
       // Process offers (for buy listings)
       if (listing.offers && listing.offers.length > 0) {
-        listing.offers.forEach(offer => {
+        for (const offer of listing.offers) {
           if (['accepted', 'pending_buyer_confirmation', 'pending_confirmation', 'confirmed'].includes(offer.status)) {
             if (!filterStatus || offer.status === filterStatus) {
+              // Fetch verification codes from CompletedDeal if exists
+              let verificationCodes = null;
+              if (offer.dealId) {
+                const completedDeal = await CompletedDeal.findById(offer.dealId);
+                if (completedDeal) {
+                  verificationCodes = {
+                    buyerCode: completedDeal.buyerVerificationCode,
+                    sellerCode: completedDeal.sellerVerificationCode,
+                    rmCode: completedDeal.rmVerificationCode
+                  };
+                }
+              }
+
               acceptedDeals.push({
                 _id: offer._id,
                 type: 'buy',
@@ -1947,35 +1977,36 @@ router.get('/accepted-deals', async (req, res, next) => {
                 companyLogo: listing.companyId?.Logo || listing.companyId?.logo,
                 quantity: offer.quantity,
                 agreedPrice: offer.price,
-                buyerOfferedPrice: offer.buyerOfferedPrice,
-                sellerReceivesPrice: offer.sellerReceivesPrice,
-                platformFee: offer.platformFee,
+                buyerOfferedPrice: offer.buyerOfferedPrice || (offer.price * 1.02),
+                sellerReceivesPrice: offer.sellerReceivesPrice || (offer.price * 0.98),
+                platformFee: offer.platformFee || (offer.price * 0.04),
                 status: offer.status,
                 buyer: {
                   _id: listing.userId._id,
                   username: listing.userId.username,
                   email: listing.userId.email,
                   fullName: listing.userId.fullName,
-                  phoneNumber: listing.userId.phoneNumber
+                  phoneNumber: listing.userId.phoneNumber || listing.userId.phone
                 },
                 seller: {
                   _id: offer.userId._id,
                   username: offer.userId.username,
                   email: offer.userId.email,
                   fullName: offer.userId.fullName,
-                  phoneNumber: offer.userId.phoneNumber
+                  phoneNumber: offer.userId.phoneNumber || offer.userId.phone
                 },
                 offerId: offer._id,
                 dealId: offer.dealId,
+                verificationCodes,
                 sellerAcceptedAt: offer.sellerAcceptedAt,
                 createdAt: offer.createdAt,
                 updatedAt: offer.updatedAt || listing.updatedAt
               });
             }
           }
-        });
+        }
       }
-    });
+    }
 
     // Sort by updatedAt (most recent first)
     acceptedDeals.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));

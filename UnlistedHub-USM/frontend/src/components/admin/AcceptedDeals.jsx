@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   CheckCircle, XCircle, Clock, Phone, Mail, User, Building2, 
   TrendingUp, Package, DollarSign, Calendar, Eye, Loader, 
-  AlertCircle, X, Sparkles
+  AlertCircle, X, Sparkles, Key, ShieldCheck
 } from 'lucide-react';
 import { adminAPI } from '../../utils/api';
 import { formatCurrency, formatDate } from '../../utils/helpers';
@@ -292,6 +292,39 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
                 </div>
               </div>
             </div>
+
+            {/* Verification Codes Section */}
+            {selectedDeal.verificationCodes && (
+              <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
+                <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <ShieldCheck size={18} className="text-amber-600" />
+                  Two-Way Verification Codes
+                </h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-3 bg-white rounded-lg border border-amber-200">
+                    <p className="text-xs text-gray-500 mb-1">Buyer Code</p>
+                    <p className="text-lg font-bold text-green-600 font-mono tracking-wider">
+                      {selectedDeal.verificationCodes.buyerCode || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-white rounded-lg border border-amber-200">
+                    <p className="text-xs text-gray-500 mb-1">Seller Code</p>
+                    <p className="text-lg font-bold text-blue-600 font-mono tracking-wider">
+                      {selectedDeal.verificationCodes.sellerCode || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-white rounded-lg border border-amber-200">
+                    <p className="text-xs text-gray-500 mb-1">RM Code</p>
+                    <p className="text-lg font-bold text-purple-600 font-mono tracking-wider">
+                      {selectedDeal.verificationCodes.rmCode || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-amber-700 mt-3 text-center">
+                  ⚠️ These codes are used for two-way verification between buyer and seller
+                </p>
+              </div>
+            )}
 
             {/* Action Buttons - Status Change */}
             {selectedDeal.status === 'confirmed' && (
