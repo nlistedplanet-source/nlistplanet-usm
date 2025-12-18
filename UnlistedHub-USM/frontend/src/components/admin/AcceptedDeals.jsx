@@ -97,21 +97,30 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
   const DealDetailsModal = () => {
     if (!selectedDeal) return null;
 
-    const closeModal = () => {
-      setShowDetailsModal(false);
-      setSelectedDeal(null);
-    };
-
     // Calculate correct prices
     const buyerPays = selectedDeal.buyerOfferedPrice || (selectedDeal.agreedPrice * 1.02);
     const sellerReceives = selectedDeal.sellerReceivesPrice || (selectedDeal.agreedPrice * 0.98);
     const platformFee = buyerPays - sellerReceives;
 
+    const handleClose = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setShowDetailsModal(false);
+      setSelectedDeal(null);
+    };
+
+    const handleBackdropClick = (e) => {
+      if (e.target === e.currentTarget) {
+        setShowDetailsModal(false);
+        setSelectedDeal(null);
+      }
+    };
+
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={closeModal}>
-        <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={handleBackdropClick}>
+        <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
           {/* Header */}
-          <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-t-2xl flex items-center justify-between">
+          <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-t-2xl flex items-center justify-between z-10">
             <div className="flex items-center gap-3">
               <Sparkles className="w-6 h-6" />
               <div>
@@ -120,8 +129,9 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
               </div>
             </div>
             <button
-              onClick={closeModal}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              type="button"
+              onClick={handleClose}
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
             >
               <X size={20} />
             </button>
@@ -336,9 +346,10 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
                 
                 <div className="grid grid-cols-2 gap-3">
                   <button
+                    type="button"
                     onClick={() => {
                       setNewStatus('completed');
-                      closeModal();
+                      setShowDetailsModal(false);
                       setShowCloseModal(true);
                     }}
                     className="bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all flex items-center justify-center gap-2"
@@ -347,9 +358,10 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
                     Mark Completed
                   </button>
                   <button
+                    type="button"
                     onClick={() => {
                       setNewStatus('cancelled');
-                      closeModal();
+                      setShowDetailsModal(false);
                       setShowCloseModal(true);
                     }}
                     className="bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-red-600 hover:to-red-700 transition-all flex items-center justify-center gap-2"
@@ -359,9 +371,10 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
                   </button>
                 </div>
                 <button
+                  type="button"
                   onClick={() => {
                     setNewStatus('on_hold');
-                    closeModal();
+                    setShowDetailsModal(false);
                     setShowCloseModal(true);
                   }}
                   className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 px-4 rounded-xl font-semibold hover:from-yellow-600 hover:to-orange-600 transition-all flex items-center justify-center gap-2"
