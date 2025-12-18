@@ -409,42 +409,51 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
                   <button
                     type="button"
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
+                      console.log('Mark Completed clicked');
                       setNewStatus('completed');
                       setShowDetailsModal(false);
                       setShowCloseModal(true);
                     }}
-                    className="bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all flex items-center justify-center gap-2"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <CheckCircle size={18} />
-                    Mark Completed
+                    <CheckCircle size={18} className="pointer-events-none" />
+                    <span className="pointer-events-none">Mark Completed</span>
                   </button>
                   <button
                     type="button"
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
+                      console.log('Mark Cancelled clicked');
                       setNewStatus('cancelled');
                       setShowDetailsModal(false);
                       setShowCloseModal(true);
                     }}
-                    className="bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-red-600 hover:to-red-700 transition-all flex items-center justify-center gap-2"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-red-600 hover:to-red-700 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <XCircle size={18} />
-                    Mark Cancelled
+                    <XCircle size={18} className="pointer-events-none" />
+                    <span className="pointer-events-none">Mark Cancelled</span>
                   </button>
                 </div>
                 <button
                   type="button"
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
+                    console.log('Put On Hold clicked');
                     setNewStatus('on_hold');
                     setShowDetailsModal(false);
                     setShowCloseModal(true);
                   }}
-                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 px-4 rounded-xl font-semibold hover:from-yellow-600 hover:to-orange-600 transition-all flex items-center justify-center gap-2"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 px-4 rounded-xl font-semibold hover:from-yellow-600 hover:to-orange-600 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Clock size={18} />
-                  Put On Hold
+                  <Clock size={18} className="pointer-events-none" />
+                  <span className="pointer-events-none">Put On Hold</span>
                 </button>
               </div>
             )}
