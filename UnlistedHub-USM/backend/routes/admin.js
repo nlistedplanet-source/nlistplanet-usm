@@ -1919,9 +1919,10 @@ router.get('/accepted-deals', async (req, res, next) => {
                 companyLogo: listing.companyId?.Logo || listing.companyId?.logo,
                 quantity: bid.quantity,
                 agreedPrice: bid.price,
+                // SELL listing: Seller gets their asking price, Buyer pays +2%
                 buyerOfferedPrice: bid.buyerOfferedPrice || (bid.price * 1.02),
-                sellerReceivesPrice: bid.sellerReceivesPrice || (bid.price * 0.98),
-                platformFee: bid.platformFee || (bid.price * 0.04),
+                sellerReceivesPrice: bid.sellerReceivesPrice || bid.price,
+                platformFee: bid.platformFee || (bid.price * 0.02),
                 status: bid.status,
                 seller: {
                   _id: listing.userId._id,
@@ -1977,9 +1978,10 @@ router.get('/accepted-deals', async (req, res, next) => {
                 companyLogo: listing.companyId?.Logo || listing.companyId?.logo,
                 quantity: offer.quantity,
                 agreedPrice: offer.price,
-                buyerOfferedPrice: offer.buyerOfferedPrice || (offer.price * 1.02),
+                // BUY listing: Buyer pays their budget, Seller gets -2%
+                buyerOfferedPrice: offer.buyerOfferedPrice || offer.price,
                 sellerReceivesPrice: offer.sellerReceivesPrice || (offer.price * 0.98),
-                platformFee: offer.platformFee || (offer.price * 0.04),
+                platformFee: offer.platformFee || (offer.price * 0.02),
                 status: offer.status,
                 buyer: {
                   _id: listing.userId._id,

@@ -97,10 +97,22 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
   const DealDetailsModal = () => {
     if (!selectedDeal) return null;
 
-    // Calculate correct prices
-    const buyerPays = selectedDeal.buyerOfferedPrice || (selectedDeal.agreedPrice * 1.02);
-    const sellerReceives = selectedDeal.sellerReceivesPrice || (selectedDeal.agreedPrice * 0.98);
-    const platformFee = buyerPays - sellerReceives;
+    // Calculate correct prices based on listing type
+    // SELL listing: Seller gets their asking price, Buyer pays +2%
+    // BUY listing: Buyer pays their budget, Seller gets -2%
+    let buyerPays, sellerReceives, platformFee;
+    
+    if (selectedDeal.type === 'sell') {
+      // Sell listing: agreedPrice is what seller wants
+      sellerReceives = selectedDeal.sellerReceivesPrice || selectedDeal.agreedPrice;
+      buyerPays = selectedDeal.buyerOfferedPrice || (selectedDeal.agreedPrice * 1.02);
+      platformFee = buyerPays - sellerReceives;
+    } else {
+      // Buy listing: agreedPrice is buyer's budget
+      buyerPays = selectedDeal.buyerOfferedPrice || selectedDeal.agreedPrice;
+      sellerReceives = selectedDeal.sellerReceivesPrice || (selectedDeal.agreedPrice * 0.98);
+      platformFee = buyerPays - sellerReceives;
+    }
 
     const handleClose = (e) => {
       e.preventDefault();

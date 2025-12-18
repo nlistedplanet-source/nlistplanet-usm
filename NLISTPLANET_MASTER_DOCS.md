@@ -202,79 +202,148 @@ Since the backend is shared, **be careful when changing API responses**. Changes
 
 ## 4. Platform Fee Model & Business Logic
 
-### 💰 Core Business Rule: Hidden 2% Fee
+### 💰 Core Business Rule: 2% Brokerage Fee (Hidden from Users)
 
-**The platform charges 2% on ALL transactions. This fee is NEVER shown to users.**
+**Platform acts as a broker and charges exactly 2% brokerage on ALL transactions.**
 
-| User Type | Always Sees |
-|-----------|-------------|
-| **SELLER** | What they will **RECEIVE** (after 2% deduction) |
-| **BUYER** | What they will **PAY** (after 2% addition) |
+> ⚠️ **CRITICAL: Platform fee is ALWAYS 2%, NEVER 4%!**
+> - Only ONE side pays the fee depending on who created the listing
+> - The fee is NEVER shown explicitly to users
 
-Both users see their OWN perspective - never the other person's actual amount.
+---
+
+### 🎯 Core Price Model (MEMORIZE THIS!)
+
+| Listing Type | Who Created | Who Pays Fee | Formula |
+|--------------|-------------|--------------|---------|
+| **SELL** | Seller | **Buyer** pays extra 2% | Buyer = Price × 1.02, Seller = Price |
+| **BUY** | Buyer | **Seller** gives up 2% | Buyer = Price, Seller = Price × 0.98 |
+
+**Key Principle:** The person who ACCEPTS (not creates) the listing pays the platform fee indirectly.
+
+---
 
 ### 📊 Price Calculation Examples
 
-#### Scenario 1: SELL Listing (₹238/share)
+#### Scenario 1: SELL Listing - Seller wants ₹28/share
 
-**Seller Creates Listing:**
+**Seller Creates SELL Listing:**
 ```
-Seller enters: ₹238/share
+Seller enters: ₹28/share (what they want to receive)
 
 System calculates:
-• Seller will get:  ₹238 (their entered price)
-• Buyer will pay:   ₹242.76 (₹238 × 1.02)
-• Platform fee:     ₹4.76
+┌─────────────────────────────────────────┐
+│  agreedPrice         = ₹28.00           │
+│  sellerReceivesPrice = ₹28.00  (100%)   │  ← Seller gets FULL asking price
+│  buyerOfferedPrice   = ₹28.56  (102%)   │  ← Buyer pays 2% extra
+│  platformFee         = ₹0.56   (2%)     │
+└─────────────────────────────────────────┘
 ```
 
-**Marketplace View:**
-- Seller: Does NOT see own listing (hidden)
-- Buyer: Sees **₹242.76/share** (what they will PAY)
+**What Users See:**
+- Seller (in My Posts): "Your Selling Price: ₹28/share"
+- Buyer (in Marketplace): "Price: ₹28.56/share" (what they'll pay)
 
-**Seller's Dashboard (My Posts):**
+**Money Flow:**
 ```
-Your Selling Price: ₹238/share
+Buyer pays ₹28.56 → Platform takes ₹0.56 → Seller gets ₹28.00
 ```
 
-**Buyer Places Bid at ₹230:**
+---
+
+#### Scenario 2: BUY Listing - Buyer's budget is ₹25/share
+
+**Buyer Creates BUY Listing:**
 ```
-Buyer enters: ₹230 (what they want to pay)
+Buyer enters: ₹25/share (their maximum budget)
 
 System calculates:
-• Buyer pays:   ₹230
-• Seller gets:  ₹225.49 (₹230 × 0.98)
-• Platform:     ₹4.51
+┌─────────────────────────────────────────┐
+│  agreedPrice         = ₹25.00           │
+│  buyerOfferedPrice   = ₹25.00  (100%)   │  ← Buyer pays their budget
+│  sellerReceivesPrice = ₹24.50  (98%)    │  ← Seller gets 2% less
+│  platformFee         = ₹0.50   (2%)     │
+└─────────────────────────────────────────┘
 ```
 
-**Buyer's View:** "Your Bid: ₹230/share"  
-**Seller's View:** "You will receive: ₹225.49/share"
+**What Users See:**
+- Buyer (in My Posts): "Your Buying Price: ₹25/share"
+- Seller (in Marketplace): "Price: ₹24.50/share" (what they'll receive)
 
-#### Scenario 2: BUY Listing (₹500/share)
-
-**Buyer Creates Listing:**
+**Money Flow:**
 ```
-Buyer enters: ₹500/share (their max budget)
-
-System calculates:
-• Buyer will pay:   ₹500
-• Seller will get:  ₹490 (₹500 × 0.98)
-• Platform fee:     ₹10
+Buyer pays ₹25.00 → Platform takes ₹0.50 → Seller gets ₹24.50
 ```
 
-**Marketplace View:**
-- Buyer: Does NOT see own listing
-- Seller: Sees **₹490/share** (what they will RECEIVE)
+---
+
+### 🔢 Database Fields Explained
+
+```javascript
+// In Listing.bids[] and Listing.offers[]
+{
+  price: Number,              // Original entered price (agreedPrice)
+  buyerOfferedPrice: Number,  // What buyer actually pays
+  sellerReceivesPrice: Number,// What seller actually receives
+  platformFee: Number,        // Platform's 2% cut
+}
+```
+
+**Calculation Logic in Code:**
+```javascript
+// SELL Listing: Seller sets price, Buyer pays extra
+if (listing.type === 'sell') {
+  sellerReceivesPrice = price;        // Seller gets asking price
+  buyerOfferedPrice = price * 1.02;   // Buyer pays +2%
+  platformFee = price * 0.02;         // 2% of base price
+}
+
+// BUY Listing: Buyer sets budget, Seller gets less
+if (listing.type === 'buy') {
+  buyerOfferedPrice = price;          // Buyer pays their budget
+  sellerReceivesPrice = price * 0.98; // Seller gets -2%
+  platformFee = price * 0.02;         // 2% of base price
+}
+```
+
+---
+
+### 📏 Price Display Rules
+
+| Listing Type | Owner Sees | Others See |
+|--------------|------------|------------|
+| SELL (₹100) | ₹100 (Your Price) | ₹102 (Buyer Pays) |
+| BUY (₹100) | ₹100 (Your Budget) | ₹98 (Seller Gets) |
+
+**What is NEVER Shown to Users:**
+- ❌ "Platform Fee", "Brokerage", "Commission" text
+- ❌ Fee calculation breakdown
+- ❌ 2% percentage anywhere
+- ❌ "After fee" or "Before fee" labels
+
+**Admin Dashboard Shows Full Breakdown:**
+```
+Deal Details (Admin Only):
+┌──────────────────────────────────────┐
+│  Agreed Price:     ₹28.00 × 1000     │
+│  Buyer Pays:       ₹28,560.00        │
+│  Seller Receives:  ₹28,000.00        │
+│  Platform Fee:     ₹560.00 (2%)      │
+└──────────────────────────────────────┘
+```
+
+---
 
 ### 🛠️ Helper Functions
 
 **Frontend:** `frontend/src/utils/helpers.js`
 ```javascript
-// Calculate what buyer pays (for SELL listings / seller counters)
+// Calculate what buyer pays (for SELL listings)
 export const calculateBuyerPays = (price) => {
   return price * 1.02;
 };
 
-// Calculate what seller receives (for bids / BUY listings)
+// Calculate what seller receives (for BUY listings)
 export const calculateSellerGets = (price) => {
   return price * 0.98;
 };
@@ -289,27 +358,27 @@ export const getPriceDisplay = (price, listingType, isOwner) => {
 };
 ```
 
-**Backend:** `backend/models/Listing.js`
+---
+
+### ⚠️ Common Mistakes to Avoid
+
 ```javascript
-// Bid schema stores:
-buyerOfferedPrice: Number,      // What buyer pays (price × 1.02)
-sellerReceivesPrice: Number,    // What seller gets (price × 0.98)
-platformFee: Number,            // The 2% (price × 0.02)
-platformFeePercentage: 2,       // Fixed 2%
+// ❌ WRONG: Charging both sides = 4% fee
+sellerReceivesPrice = price * 0.98;  // Seller loses 2%
+buyerOfferedPrice = price * 1.02;    // Buyer pays 2% more
+// This results in 4% platform fee!
+
+// ✅ CORRECT: Only one side pays
+// For SELL listing:
+sellerReceivesPrice = price;         // Seller gets full price
+buyerOfferedPrice = price * 1.02;    // Buyer pays 2% extra
+platformFee = price * 0.02;          // 2% fee
+
+// For BUY listing:
+buyerOfferedPrice = price;           // Buyer pays their budget
+sellerReceivesPrice = price * 0.98;  // Seller gets 2% less
+platformFee = price * 0.02;          // 2% fee
 ```
-
-### 📏 Price Display Rules
-
-| Listing Type | Owner Sees | Others See |
-|--------------|------------|------------|
-| SELL (₹100) | ₹100 (Your Price) | ₹102 (Buyer Pays) |
-| BUY (₹100) | ₹100 (Your Price) | ₹98 (Seller Gets) |
-
-**What is Hidden:**
-- ❌ "Platform Fee 2%" text anywhere
-- ❌ Other person's actual price/amount
-- ❌ Fee calculation breakdown
-- ❌ "You receive" / "After fee" labels
 
 **Admin View Only:**
 ```

@@ -389,16 +389,19 @@ router.post('/:id/accept', protect, async (req, res, next) => {
     };
 
     // Calculate platform fee fields
+    // Platform takes 2% as brokerage fee
     if (listing.type === 'sell') {
-      // Buyer is accepting SELL listing - buyer pays base + 2%
-      bidData.buyerOfferedPrice = price * 1.02; // Buyer pays 2% MORE
-      bidData.sellerReceivesPrice = price * 0.98; // Seller gets 2% LESS
-      bidData.platformFee = bidData.buyerOfferedPrice - bidData.sellerReceivesPrice;
+      // SELL listing: Seller wants 'price', Buyer pays 'price + 2%'
+      // Seller gets what they asked for, buyer pays extra
+      bidData.sellerReceivesPrice = price; // Seller gets their asking price
+      bidData.buyerOfferedPrice = price * 1.02; // Buyer pays 2% more
+      bidData.platformFee = bidData.buyerOfferedPrice - bidData.sellerReceivesPrice; // Platform gets 2%
     } else {
-      // Seller is accepting BUY listing - seller receives base - 2%
-      bidData.sellerReceivesPrice = price * 0.98; // Seller gets 2% LESS
-      bidData.buyerOfferedPrice = price * 1.02; // Buyer pays 2% MORE
-      bidData.platformFee = bidData.buyerOfferedPrice - bidData.sellerReceivesPrice;
+      // BUY listing: Buyer wants to pay 'price', Seller gets 'price - 2%'
+      // Buyer pays their budget, seller gets less
+      bidData.buyerOfferedPrice = price; // Buyer pays their budget
+      bidData.sellerReceivesPrice = price * 0.98; // Seller gets 2% less
+      bidData.platformFee = bidData.buyerOfferedPrice - bidData.sellerReceivesPrice; // Platform gets 2%
     }
 
     if (listing.type === 'sell') {
@@ -725,11 +728,10 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
       const sellerName = isSellListing ? ownerInfo.fullName : bidderInfo.fullName;
       const buyerName = isSellListing ? bidderInfo.fullName : ownerInfo.fullName;
       
-      // Calculate prices with platform fee
-      // For SELL listing: bid.price is Base Price -> Buyer Pays +2%, Seller Gets -2%
-      // For BUY listing: bid.price is Seller Receives -> Buyer Pays = SellerReceives / 0.98
-      const buyerPaysPerShare = isSellListing ? bid.price * 1.02 : bid.price / 0.98;
-      const sellerReceivesPerShare = isSellListing ? bid.price * 0.98 : bid.price;
+      // Use the pre-calculated prices from the bid
+      // These were calculated correctly when bid was placed or listing was accepted
+      const buyerPaysPerShare = bid.buyerOfferedPrice || (isSellListing ? bid.price * 1.02 : bid.price);
+      const sellerReceivesPerShare = bid.sellerReceivesPrice || (isSellListing ? bid.price : bid.price * 0.98);
       const platformFeePerShare = buyerPaysPerShare - sellerReceivesPerShare;
       
       const dealData = {
