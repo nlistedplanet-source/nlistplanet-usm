@@ -24,6 +24,13 @@ const ListingCard = ({ listing, onBidOffer, onShare, onBoost, isOwner }) => {
         </div>
       )}
 
+      {/* Post ID Badge */}
+      {listing.postId && (
+        <div className="absolute top-2 left-2 bg-white/95 backdrop-blur-sm border border-gray-200 text-gray-700 text-[10px] font-mono font-semibold px-2 py-1 rounded-md shadow-sm">
+          {listing.postId}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3 flex-1">

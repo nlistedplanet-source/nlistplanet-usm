@@ -138,7 +138,14 @@ const HistoryTab = () => {
                       <ShieldCheck size={20} />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-900">{deal.companyName}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-gray-900">{deal.companyName}</h3>
+                        {deal.postId && (
+                          <span className="text-[10px] font-mono font-semibold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded border border-blue-200">
+                            {deal.postId}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-500">
                         {deal.userRole === 'buyer' ? 'Bought from' : 'Sold to'} @{deal.userRole === 'buyer' ? deal.sellerUsername : deal.buyerUsername}
                       </p>
@@ -257,7 +264,14 @@ const HistoryTab = () => {
                       <div className="flex items-center gap-2">
                         {getStatusIcon(item.status)}
                         <div>
-                          <h4 className="font-bold text-dark-900 text-sm">{item.companyName}</h4>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-bold text-dark-900 text-sm">{item.companyName}</h4>
+                            {item.postId && (
+                              <span className="text-[9px] font-mono font-semibold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-300">
+                                {item.postId}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-[10px] text-dark-500">{item.companyId?.Sector || item.companyId?.sector || 'N/A'}</p>
                         </div>
                       </div>

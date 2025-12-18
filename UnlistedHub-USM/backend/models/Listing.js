@@ -159,6 +159,12 @@ const listingSchema = new mongoose.Schema({
     type: Number,
     default: null
   },
+  // Unique Post ID for tracking
+  postId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   soldExternally: {
     type: Boolean,
     default: false
@@ -202,11 +208,22 @@ const listingSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Generate unique Post ID before saving
+listingSchema.pre('save', function(next) {
+  if (!this.postId) {
+    // Format: NLP-XXXXXX (6 character random alphanumeric)
+    const randomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    this.postId = `NLP-${randomId}`;
+  }
+  next();
+});
+
 // Index for faster queries
 listingSchema.index({ type: 1, status: 1, createdAt: -1 });
 listingSchema.index({ userId: 1, status: 1 });
 listingSchema.index({ companyId: 1, type: 1, status: 1 });
 listingSchema.index({ isBoosted: 1, boostExpiresAt: 1 });
+listingSchema.index({ postId: 1 });
 
 // Auto-expire listings
 listingSchema.pre('find', function() {

@@ -708,7 +708,14 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
                           <img src={deal.companyLogo} alt="" className="w-8 h-8 rounded object-cover" />
                         )}
                         <div>
-                          <p className="font-semibold text-gray-900">{deal.companySymbol}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-gray-900">{deal.companySymbol}</p>
+                            {deal.postId && (
+                              <span className="text-[9px] font-mono font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                                {deal.postId}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-gray-500">{deal.company}</p>
                         </div>
                       </div>
