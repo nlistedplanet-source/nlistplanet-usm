@@ -33,8 +33,8 @@ import {
   Plus
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { portfolioAPI, listingsAPI, adminAPI } from '../utils/api';
-import { calculateTotalWithFee, calculateBuyerPays, calculateSellerGets, formatCurrency } from '../utils/helpers';
+import { portfolioAPI, listingsAPI, adminAPI, notificationsAPI } from '../utils/api';
+import { calculateTotalWithFee, calculateBuyerPays, calculateSellerGets, formatCurrency, formatRelativeTime } from '../utils/helpers';
 import toast from 'react-hot-toast';
 import MyPostsTab from '../components/dashboard/MyPostsTab';
 import MyBidsOffersTab from '../components/dashboard/MyBidsOffersTab';
@@ -95,6 +95,7 @@ const DashboardPage = () => {
   const [likedListings, setLikedListings] = useState(new Set());
   const [favoritedListings, setFavoritedListings] = useState(new Set());
   const [actionItems, setActionItems] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [viewMode, setViewMode] = useState('user'); // 'user' or 'admin'
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -288,6 +289,14 @@ const DashboardPage = () => {
 
       } catch (error) {
         console.error('❌ Failed to fetch action items:', error);
+      }
+
+      // 4. Fetch Recent Notifications
+      try {
+        const notificationsRes = await notificationsAPI.getAll({ limit: 5 });
+        setNotifications(notificationsRes.data.data || []);
+      } catch (error) {
+        console.error('❌ Failed to fetch notifications:', error);
       }
 
       // 3. Fetch Portfolio Data (Only for Overview/Portfolio tabs)
@@ -904,35 +913,73 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Pending Actions Notification */}
-        {actionItems.length > 0 && (
-          <div className="bg-gradient-to-r from-orange-50 to-red-50 border-l-4 border-orange-500 rounded-xl p-6 mb-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
-                <Bell className="text-white" size={24} />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-gray-900 mb-1">
-                  {actionItems.length} Pending Action{actionItems.length > 1 ? 's' : ''} Require{actionItems.length === 1 ? 's' : ''} Your Attention
-                </h3>
-                <p className="text-sm text-gray-600 mb-3">
-                  You have {actionItems.length} bid{actionItems.length > 1 ? 's' : ''}/offer{actionItems.length > 1 ? 's' : ''} waiting for your response. Review and take action on incoming offers.
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleTabChange('posts')}
-                    className="bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-orange-600 transition-colors text-sm"
+        {/* Recent Notifications */}
+        {notifications.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Bell className="text-purple-600" size={20} />
+                Recent Notifications
+              </h3>
+              <button
+                onClick={() => handleTabChange('notifications')}
+                className="text-purple-600 text-sm font-semibold hover:text-purple-700"
+              >
+                View All →
+              </button>
+            </div>
+            <div className="space-y-3">
+              {notifications.slice(0, 5).map((notification) => {
+                const getNotificationIcon = (type) => {
+                  const icons = {
+                    new_bid: TrendingUp,
+                    new_offer: TrendingUp,
+                    bid_accepted: CheckCircle,
+                    offer_accepted: CheckCircle,
+                    deal_accepted: CheckCircle,
+                    referral_earning: Gift,
+                    boost_activated: Bell
+                  };
+                  return icons[type] || Bell;
+                };
+
+                const getNotificationColor = (type) => {
+                  const colors = {
+                    new_bid: 'bg-blue-100 text-blue-600',
+                    new_offer: 'bg-green-100 text-green-600',
+                    bid_accepted: 'bg-green-100 text-green-600',
+                    offer_accepted: 'bg-green-100 text-green-600',
+                    deal_accepted: 'bg-emerald-100 text-emerald-600',
+                    referral_earning: 'bg-yellow-100 text-yellow-600',
+                    boost_activated: 'bg-purple-100 text-purple-600'
+                  };
+                  return colors[type] || 'bg-gray-100 text-gray-600';
+                };
+
+                const Icon = getNotificationIcon(notification.type);
+                const colorClass = getNotificationColor(notification.type);
+
+                return (
+                  <div
+                    key={notification._id}
+                    className={`flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors ${
+                      !notification.isRead ? 'bg-blue-50 border border-blue-200' : 'border border-gray-200'
+                    }`}
                   >
-                    View My Posts
-                  </button>
-                  <button
-                    onClick={() => handleTabChange('my-bids-offers')}
-                    className="bg-white text-orange-600 px-4 py-2 rounded-lg font-semibold hover:bg-orange-100 transition-colors text-sm border border-orange-300"
-                  >
-                    View My Bids
-                  </button>
-                </div>
-              </div>
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
+                      <Icon size={20} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 text-sm">{notification.title}</p>
+                      <p className="text-xs text-gray-600 mt-0.5">{notification.message}</p>
+                      <p className="text-xs text-gray-400 mt-1">{formatRelativeTime(notification.createdAt)}</p>
+                    </div>
+                    {!notification.isRead && (
+                      <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-2"></div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
