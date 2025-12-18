@@ -1130,13 +1130,13 @@ const DashboardPage = () => {
                 </button>
               </div>
               
-              <div className="space-y-2 max-h-[280px] overflow-y-auto">
-                  {notifications.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-8 text-center">
-                      <Bell size={32} className="text-gray-300 mb-2" />
-                      <p className="text-xs text-gray-500 font-medium">No notifications</p>
+              <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
+                  {notifications.filter(n => !n.isRead).length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-6 text-center">
+                      <Bell size={28} className="text-gray-300 mb-2" />
+                      <p className="text-xs text-gray-500 font-medium">No new notifications</p>
                     </div>
-                  ) : notifications.slice(0, 5).map((notification) => {
+                  ) : notifications.filter(n => !n.isRead).slice(0, 5).map((notification) => {
                     const getNotificationIcon = (type) => {
                       const icons = {
                         new_bid: TrendingUp,
@@ -1172,17 +1172,15 @@ const DashboardPage = () => {
                     return (
                       <div
                         key={notification._id}
-                        className={`flex items-start gap-2 p-2 rounded-lg border transition-all hover:shadow-sm ${colorClass} ${
-                          !notification.isRead ? 'ring-2 ring-offset-1 ring-blue-400' : ''
-                        }`}
+                        className={`flex items-start gap-1.5 p-1.5 rounded-md border transition-all hover:shadow-sm ${colorClass}`}
                       >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass.replace('50', '100')}`}>
-                          <Icon size={14} />
+                        <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${colorClass.replace('50', '100')}`}>
+                          <Icon size={12} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-900 text-xs leading-tight">{notification.title}</p>
-                          <p className="text-[10px] text-gray-600 mt-0.5 line-clamp-2">{notification.message}</p>
-                          <p className="text-[9px] text-gray-400 mt-0.5">{formatRelativeTime(notification.createdAt)}</p>
+                          <p className="font-semibold text-gray-900 text-[11px] leading-tight">{notification.title}</p>
+                          <p className="text-[9px] text-gray-600 mt-0.5 line-clamp-1">{notification.message}</p>
+                          <p className="text-[8px] text-gray-400 mt-0.5">{formatRelativeTime(notification.createdAt)}</p>
                         </div>
                       </div>
                     );
