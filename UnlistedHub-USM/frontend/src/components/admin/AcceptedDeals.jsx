@@ -118,15 +118,15 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
     let buyerPays, sellerReceives, platformFee;
     
     if (selectedDeal.type === 'sell') {
-      // Sell listing: agreedPrice is what seller wants
-      sellerReceives = selectedDeal.sellerReceivesPrice || selectedDeal.agreedPrice;
-      buyerPays = selectedDeal.buyerOfferedPrice || (selectedDeal.agreedPrice * 1.02);
-      platformFee = buyerPays - sellerReceives;
+      // Sell listing: seller gets agreedPrice, buyer pays extra 2%
+      sellerReceives = selectedDeal.agreedPrice;
+      buyerPays = selectedDeal.agreedPrice * 1.02;
+      platformFee = selectedDeal.agreedPrice * 0.02;
     } else {
-      // Buy listing: agreedPrice is buyer's budget
-      buyerPays = selectedDeal.buyerOfferedPrice || selectedDeal.agreedPrice;
-      sellerReceives = selectedDeal.sellerReceivesPrice || (selectedDeal.agreedPrice * 0.98);
-      platformFee = buyerPays - sellerReceives;
+      // Buy listing: buyer pays agreedPrice, seller gets 2% less
+      buyerPays = selectedDeal.agreedPrice;
+      sellerReceives = selectedDeal.agreedPrice * 0.98;
+      platformFee = selectedDeal.agreedPrice * 0.02;
     }
 
     const closeModal = () => {
