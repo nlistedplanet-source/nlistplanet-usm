@@ -148,26 +148,22 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
       }
     };
 
-    // Focus trap + keyboard handling to avoid scroll jumps
+    // Focus modal and handle escape key
     useEffect(() => {
-      const handleKeys = (e) => {
+      const handleEsc = (e) => {
         if (e.key === 'Escape') {
           closeModal();
-          return;
-        }
-        if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(e.key)) {
-          e.preventDefault();
         }
       };
 
-      window.addEventListener('keydown', handleKeys, { passive: false });
+      window.addEventListener('keydown', handleEsc);
       const el = modalRef.current;
       if (el) {
         el.focus({ preventScroll: true });
       }
 
       return () => {
-        window.removeEventListener('keydown', handleKeys, { passive: false });
+        window.removeEventListener('keydown', handleEsc);
       };
     }, []);
 
@@ -175,15 +171,12 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
       <div
         className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         onClick={handleBackdropClick}
-        onWheel={(e) => e.preventDefault()}
       >
         <div
           ref={modalRef}
           className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto focus:outline-none"
           tabIndex={-1}
           onClick={(e) => e.stopPropagation()}
-          onWheel={(e) => e.preventDefault()}
-          onTouchMove={(e) => e.preventDefault()}
         >
           {/* Header */}
           <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-t-2xl flex items-center justify-between z-10 pointer-events-auto">
