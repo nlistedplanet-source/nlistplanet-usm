@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   CheckCircle, XCircle, Clock, Phone, Mail, User, Building2, 
   TrendingUp, Package, DollarSign, Calendar, Eye, Loader, 
@@ -110,6 +110,8 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
   const DealDetailsModal = () => {
     if (!selectedDeal) return null;
 
+    const modalRef = useRef(null);
+
     // Calculate correct prices based on listing type
     // SELL listing: Seller gets their asking price, Buyer pays +2%
     // BUY listing: Buyer pays their budget, Seller gets -2%
@@ -146,30 +148,42 @@ const AcceptedDeals = ({ defaultFilter = '' }) => {
       }
     };
 
-    // Allow closing the modal via Escape key as well
+    // Focus trap + keyboard handling to avoid scroll jumps
     useEffect(() => {
-      const handleEsc = (e) => {
+      const handleKeys = (e) => {
         if (e.key === 'Escape') {
           closeModal();
+          return;
+        }
+        if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(e.key)) {
+          e.preventDefault();
         }
       };
 
-      window.addEventListener('keydown', handleEsc);
-      return () => window.removeEventListener('keydown', handleEsc);
+      window.addEventListener('keydown', handleKeys, { passive: false });
+      const el = modalRef.current;
+      if (el) {
+        el.focus({ preventScroll: true });
+      }
+
+      return () => {
+        window.removeEventListener('keydown', handleKeys, { passive: false });
+      };
     }, []);
 
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={handleBackdropClick}>
+      <div
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+        onClick={handleBackdropClick}
+        onWheel={(e) => e.preventDefault()}
+      >
         <div
-          className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+          ref={modalRef}
+          className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto focus:outline-none"
           tabIndex={-1}
           onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => {
-            // Prevent scroll jumps when pressing navigation keys
-            if (['PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown', ' '].includes(e.key)) {
-              e.preventDefault();
-            }
-          }}
+          onWheel={(e) => e.preventDefault()}
+          onTouchMove={(e) => e.preventDefault()}
         >
           {/* Header */}
           <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-t-2xl flex items-center justify-between z-10 pointer-events-auto">
