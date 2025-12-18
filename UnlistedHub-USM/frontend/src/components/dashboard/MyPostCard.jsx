@@ -44,10 +44,14 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
   const isSell = listing.type === 'sell';
   const bidsArray = (isSell ? listing.bids : listing.offers) || [];
   
-  // Separate bids into Counter Offers (in-progress) and Pending Bids
+  // Separate bids into different categories:
+  // 1. Buyer Accepted - waiting for seller to accept (pending_confirmation)
+  // 2. Counter Offers (in-progress negotiations)
+  // 3. Pending Bids (new bids awaiting response)
+  const buyerAcceptedBids = bidsArray.filter(b => b.status === 'pending_confirmation');
   const counterOfferBids = bidsArray.filter(b => b.status === 'countered');
   const pendingBids = bidsArray.filter(b => b.status === 'pending');
-  const activeBidsCount = counterOfferBids.length + pendingBids.length;
+  const activeBidsCount = buyerAcceptedBids.length + counterOfferBids.length + pendingBids.length;
   
   // Use seller's desired price (what they entered) for display
   const sellerPrice = isSell ? (listing.sellerDesiredPrice || listing.price) : (listing.buyerMaxPrice || listing.price);
@@ -548,7 +552,87 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
               </div>
             )}
 
-            {/* Section 2: Pending Bids */}
+            {/* Section 2: Buyer Accepted - Waiting for Seller */}
+            {buyerAcceptedBids.length > 0 && (
+              <div>
+                <div className="w-full bg-gradient-to-r from-green-100 to-emerald-100 px-3 py-2 rounded-md border-2 border-green-500 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-600 text-lg">✅</span>
+                    <h4 className="font-bold text-green-800 text-[12px]">Buyer Accepted - Your Confirmation Needed ({buyerAcceptedBids.length})</h4>
+                  </div>
+                </div>
+                
+                <div className="border-2 border-green-500 border-t-0 rounded-b-lg overflow-hidden shadow-lg">
+                  <table className="w-full bg-white">
+                    <thead className="bg-green-50 border-b-2 border-green-400">
+                      <tr>
+                        <th className="px-2 py-1.5 text-center text-[11px] font-bold text-green-800 uppercase border-r border-green-300 w-8">#</th>
+                        <th className="px-2 py-1.5 text-left text-[11px] font-bold text-green-800 uppercase border-r border-green-300">{isSell ? 'Buyer' : 'Seller'}</th>
+                        <th className="px-2 py-1.5 text-center text-[11px] font-bold text-green-800 uppercase border-r border-green-300">Price</th>
+                        <th className="px-2 py-1.5 text-center text-[11px] font-bold text-green-800 uppercase border-r border-green-300">Quantity</th>
+                        <th className="px-2 py-1.5 text-center text-[11px] font-bold text-green-800 uppercase border-r border-green-300">Total</th>
+                        <th className="px-2 py-1.5 text-center text-[11px] font-bold text-green-800 uppercase border-r border-green-300">Accepted On</th>
+                        <th className="px-2 py-1.5 text-center text-[11px] font-bold text-green-800 uppercase">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-green-200">
+                      {buyerAcceptedBids.map((bid, index) => {
+                        const displayPrice = bid.originalPrice || bid.price;
+                        const bidTotal = displayPrice * bid.quantity;
+                        
+                        return (
+                          <tr key={bid._id} className="hover:bg-green-50 transition-colors bg-green-50/50">
+                            <td className="px-2 py-2 text-[11px] font-bold text-gray-900 border-r border-green-200 text-center">{index + 1}</td>
+                            <td className="px-2 py-2 text-[11px] border-r border-green-200">
+                              <div className="font-bold text-green-700">@{bid.user?.username || bid.username || 'trader_' + (index + 1)}</div>
+                              <div className="text-[10px] text-gray-500">⭐ {bid.user?.rating?.toFixed(1) || '4.5'}</div>
+                            </td>
+                            <td className="px-2 py-2 text-center border-r border-green-200">
+                              <div className="text-[12px] font-bold text-gray-900">{formatCurrency(displayPrice)}</div>
+                            </td>
+                            <td className="px-2 py-2 text-center border-r border-green-200">
+                              <div className="text-[11px] font-bold text-gray-900">{formatShortQuantity(bid.quantity)}</div>
+                            </td>
+                            <td className="px-2 py-2 text-center border-r border-green-200">
+                              <div className="text-[11px] font-bold text-green-700">{formatCurrency(bidTotal)}</div>
+                            </td>
+                            <td className="px-2 py-2 text-center border-r border-green-200">
+                              <div className="text-[10px] text-gray-600">
+                                {bid.buyerAcceptedAt ? new Date(bid.buyerAcceptedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'}
+                              </div>
+                            </td>
+                            <td className="px-2 py-2 text-center">
+                              <div className="flex items-center justify-center gap-1">
+                                <button
+                                  onClick={() => handleAccept(bid)}
+                                  disabled={actionLoading === bid._id}
+                                  className="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-[10px] font-bold flex items-center gap-1"
+                                  title="Confirm Deal"
+                                >
+                                  {actionLoading === bid._id ? <Loader size={12} className="animate-spin" /> : <CheckCircle size={12} />}
+                                  Confirm
+                                </button>
+                                <button
+                                  onClick={() => handleReject(bid)}
+                                  disabled={actionLoading === bid._id}
+                                  className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors text-[10px] font-bold flex items-center gap-1 border border-red-300"
+                                  title="Reject Deal"
+                                >
+                                  <XCircle size={12} />
+                                  Reject
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Section 3: Pending Bids */}
             {pendingBids.length > 0 && (
               <div>
                 <button 

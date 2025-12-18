@@ -165,14 +165,15 @@ const DashboardPage = () => {
         // 1. Incoming Bids on my Sell Posts
         (sellRes.data.data || []).forEach(listing => {
           (listing.bids || []).forEach(bid => {
-            if (bid.status === 'pending') {
+            // Include pending AND pending_confirmation (buyer accepted, waiting for seller)
+            if (bid.status === 'pending' || bid.status === 'pending_confirmation') {
               // Find latest prices from history
               const history = bid.counterHistory || [];
               const latestSellerCounter = [...history].reverse().find(h => h.by === 'seller');
               const latestBuyerCounter = [...history].reverse().find(h => h.by === 'buyer');
 
               actions.push({
-                type: 'bid_received',
+                type: bid.status === 'pending_confirmation' ? 'buyer_accepted' : 'bid_received',
                 id: bid._id,
                 listingId: listing._id,
                 company: listing.companyName,
@@ -182,8 +183,8 @@ const DashboardPage = () => {
                 myActionPrice: latestSellerCounter ? latestSellerCounter.price : listing.price, // My Counter or List Price
                 otherActionPrice: latestBuyerCounter ? latestBuyerCounter.price : bid.price, // Buyer's Bid or Counter
                 quantity: bid.quantity,
-                user: bid.userId?.username,
-                date: bid.createdAt,
+                user: bid.userId?.username || bid.username,
+                date: bid.buyerAcceptedAt || bid.createdAt,
                 originalListing: listing
               });
             }
@@ -1038,16 +1039,17 @@ const DashboardPage = () => {
                       </div>
                       
                       {/* Table Data Row */}
-                      <div className="grid grid-cols-5 items-stretch hover:bg-gray-50 transition-colors">
+                      <div className={`grid grid-cols-5 items-stretch hover:bg-gray-50 transition-colors ${item.type === 'buyer_accepted' ? 'bg-green-50' : ''}`}>
                         {/* Type Column */}
                         <div className="p-2 border-r border-gray-200 flex flex-col justify-center items-center text-center">
                           <p className="text-xs font-bold text-gray-900">
-                            {item.type === 'bid_received' ? 'Sell' : 
+                            {item.type === 'bid_received' || item.type === 'buyer_accepted' ? 'Sell' : 
                              item.type === 'offer_received' ? 'Buy' : 
                              item.originalListing?.type === 'sell' ? 'Sell' : 'Buy'}
                           </p>
-                          <p className="text-[10px] font-medium text-blue-600 mt-0.5">
+                          <p className={`text-[10px] font-medium mt-0.5 ${item.type === 'buyer_accepted' ? 'text-green-600' : 'text-blue-600'}`}>
                             {item.type === 'counter_received' ? 'Counter' : 
+                             item.type === 'buyer_accepted' ? '✅ Accepted' :
                              item.type === 'bid_received' ? 'Bid' : 'Offer'}
                           </p>
                           <p className="text-[9px] text-gray-400 mt-0.5">
