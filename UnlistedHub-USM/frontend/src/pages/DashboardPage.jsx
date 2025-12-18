@@ -669,7 +669,13 @@ const DashboardPage = () => {
           <div className="p-3 border-b border-gray-100 flex-shrink-0">
             <div className="bg-blue-50 rounded-lg p-2 flex items-center justify-between">
               <button
-                onClick={() => setViewMode('user')}
+                onClick={() => {
+                  setViewMode('user');
+                  // Switch to first user tab when entering user mode
+                  if (activeTab.startsWith('admin-')) {
+                    handleTabChange('overview');
+                  }
+                }}
                 className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-all ${
                   viewMode === 'user'
                     ? 'bg-white text-purple-700 shadow-sm'
@@ -679,7 +685,13 @@ const DashboardPage = () => {
                 👤 User
               </button>
               <button
-                onClick={() => setViewMode('admin')}
+                onClick={() => {
+                  setViewMode('admin');
+                  // Switch to first admin tab when entering admin mode
+                  if (!activeTab.startsWith('admin-')) {
+                    handleTabChange('admin-users');
+                  }
+                }}
                 className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-all ${
                   viewMode === 'admin'
                     ? 'bg-white text-blue-700 shadow-sm'
@@ -1548,45 +1560,45 @@ const DashboardPage = () => {
         )}
 
         {/* Admin Tabs */}
-        {user?.role === 'admin' && activeTab === 'admin-companies' && (
+        {user?.role === 'admin' && viewMode === 'admin' && activeTab === 'admin-companies' && (
           <CompaniesManagement />
         )}
 
-        {user?.role === 'admin' && activeTab === 'admin-users' && (
+        {user?.role === 'admin' && viewMode === 'admin' && activeTab === 'admin-users' && (
           <UserManagement />
         )}
 
-        {user?.role === 'admin' && activeTab === 'admin-listings' && (
+        {user?.role === 'admin' && viewMode === 'admin' && activeTab === 'admin-listings' && (
           <ListingsManagement />
         )}
 
-        {user?.role === 'admin' && activeTab === 'admin-transactions' && (
+        {user?.role === 'admin' && viewMode === 'admin' && activeTab === 'admin-transactions' && (
           <TransactionsManagement />
         )}
 
-        {user?.role === 'admin' && activeTab === 'admin-reports' && (
+        {user?.role === 'admin' && viewMode === 'admin' && activeTab === 'admin-reports' && (
           <ReportsManagement />
         )}
 
-        {user?.role === 'admin' && activeTab === 'admin-final-deals' && (
+        {user?.role === 'admin' && viewMode === 'admin' && activeTab === 'admin-final-deals' && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <AcceptedDeals defaultFilter="confirmed" />
           </div>
         )}
 
-        {user?.role === 'admin' && activeTab === 'admin-ads' && (
+        {user?.role === 'admin' && viewMode === 'admin' && activeTab === 'admin-ads' && (
           <AdManagement />
         )}
 
-        {user?.role === 'admin' && activeTab === 'admin-referrals' && (
+        {user?.role === 'admin' && viewMode === 'admin' && activeTab === 'admin-referrals' && (
           <ReferralTracking />
         )}
 
-        {user?.role === 'admin' && activeTab === 'admin-news' && (
+        {user?.role === 'admin' && viewMode === 'admin' && activeTab === 'admin-news' && (
           <NewsManagement />
         )}
 
-        {user?.role === 'admin' && activeTab === 'admin-settings' && (
+        {user?.role === 'admin' && viewMode === 'admin' && activeTab === 'admin-settings' && (
           <PlatformSettings />
         )}
         </div>
