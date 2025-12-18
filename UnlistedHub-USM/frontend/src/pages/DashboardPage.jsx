@@ -532,7 +532,7 @@ const DashboardPage = () => {
     { id: 'portfolio', label: 'Portfolio', icon: Briefcase },
     { id: 'posts', label: 'My Posts', icon: FileText },
     { id: 'my-bids-offers', label: 'My Bids', icon: TrendingUp },
-    { id: 'history', label: 'History', icon: Package },
+    { id: 'history', label: 'Confirmation Codes', icon: Package },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'referrals', label: 'Referrals', icon: Gift },
     { id: 'profile', label: 'Profile', icon: UserIcon },

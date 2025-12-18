@@ -91,8 +91,8 @@ const HistoryTab = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-bold text-dark-900">History & Transactions</h2>
-          <p className="text-xs text-dark-500 mt-1">Your past listings and completed deals</p>
+          <h2 className="text-lg font-bold text-dark-900">Confirmation Codes</h2>
+          <p className="text-xs text-dark-500 mt-1">Your verification codes and completed deals</p>
         </div>
       </div>
 
