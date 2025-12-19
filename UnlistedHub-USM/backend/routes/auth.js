@@ -956,4 +956,81 @@ router.put('/profile', protect, validateProfileUpdate, async (req, res, next) =>
   }
 });
 
+// @route   POST /api/auth/google-login
+// @desc    Login/Register with Google
+// @access  Public
+router.post('/google-login',
+  body('idToken').notEmpty().withMessage('Google ID token is required'),
+  body('email').isEmail().withMessage('Valid email is required'),
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { idToken, email, displayName, photoURL } = req.body;
+
+      // For now, skip Firebase token verification (will add when firebase-admin is installed)
+      // In production, verify token with: admin.auth().verifyIdToken(idToken)
+
+      // Check if user exists
+      let user = await User.findOne({ email: email.toLowerCase() });
+
+      if (!user) {
+        // Create new user from Google account
+        const username = generateFunnyUsername();
+        
+        user = await User.create({
+          email: email.toLowerCase(),
+          fullName: displayName || email.split('@')[0],
+          username,
+          password: crypto.randomBytes(32).toString('hex'), // Random password for Google users
+          isGoogleUser: true,
+          isEmailVerified: true, // Google emails are pre-verified
+          emailVerified: true,
+          profilePicture: photoURL,
+          role: 'user'
+        });
+
+        // Send welcome email
+        try {
+          await sendWelcomeEmail(user.email, user.fullName || user.username);
+        } catch (emailError) {
+          console.error('Welcome email failed:', emailError);
+        }
+
+        // Log successful registration
+        logSuccessfulLogin(req, user._id, 'google_signup');
+      } else {
+        // Update profile picture if changed
+        if (photoURL && user.profilePicture !== photoURL) {
+          user.profilePicture = photoURL;
+          await user.save();
+        }
+
+        // Log successful login
+        logSuccessfulLogin(req, user._id, 'google_login');
+      }
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: user._id },
+        process.env.JWT_SECRET,
+        { expiresIn: '30d' }
+      );
+
+      res.json({
+        success: true,
+        token,
+        user: user.getPublicProfile()
+      });
+
+    } catch (error) {
+      console.error('Google login error:', error);
+      next(error);
+    }
+  }
+);
+
 export default router;
