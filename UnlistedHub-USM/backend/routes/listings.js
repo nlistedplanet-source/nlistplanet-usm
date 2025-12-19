@@ -536,6 +536,11 @@ router.post('/:id/bid', protect, async (req, res, next) => {
 
     await listing.save();
 
+    // Get the newly created bid/offer with its MongoDB _id
+    const newBid = listing.type === 'sell' 
+      ? listing.bids[listing.bids.length - 1]
+      : listing.offers[listing.offers.length - 1];
+
     // Create notification with push for listing owner
     const notifTemplate = listing.type === 'sell' 
       ? NotificationTemplates.NEW_BID(req.user.username, price, quantity, listing.companyName)
@@ -548,7 +553,7 @@ router.post('/:id/bid', protect, async (req, res, next) => {
         data: {
           ...notifTemplate.data,
           listingId: listing._id.toString(),
-          bidId: bidData._id.toString()
+          bidId: newBid._id.toString()
         },
         actionUrl: `/dashboard/listings/${listing._id}`
       }
