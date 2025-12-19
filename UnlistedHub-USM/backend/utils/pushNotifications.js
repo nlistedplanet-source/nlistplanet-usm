@@ -64,18 +64,18 @@ export const createAndSendNotification = async (userId, notificationData) => {
  * Notification templates for different actions
  */
 export const NotificationTemplates = {
-  NEW_BID: (fromUser, amount, quantity, companyName) => ({
+  NEW_BID: (fromUser, amount, quantity, companyName, postId = '') => ({
     type: 'new_bid',
     title: '🎯 New Bid Received!',
-    message: `${fromUser} placed a bid of ₹${amount} for ${quantity} shares of ${companyName}`,
-    data: { fromUser, amount, quantity, companyName }
+    message: `${fromUser} placed a bid of ₹${amount} for ${quantity} shares of ${companyName}${postId ? ` (Post #${postId.slice(-6)})` : ''}`,
+    data: { fromUser, amount, quantity, companyName, postId }
   }),
 
-  NEW_OFFER: (fromUser, amount, quantity, companyName) => ({
+  NEW_OFFER: (fromUser, amount, quantity, companyName, postId = '') => ({
     type: 'new_offer',
     title: '📈 New Offer Received!',
-    message: `${fromUser} made an offer of ₹${amount} for ${quantity} shares of ${companyName}`,
-    data: { fromUser, amount, quantity, companyName }
+    message: `${fromUser} made an offer of ₹${amount} for ${quantity} shares of ${companyName}${postId ? ` (Post #${postId.slice(-6)})` : ''}`,
+    data: { fromUser, amount, quantity, companyName, postId }
   }),
 
   BID_ACCEPTED: (companyName, amount, quantity) => ({

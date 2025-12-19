@@ -543,8 +543,8 @@ router.post('/:id/bid', protect, async (req, res, next) => {
 
     // Create notification with push for listing owner
     const notifTemplate = listing.type === 'sell' 
-      ? NotificationTemplates.NEW_BID(req.user.username, price, quantity, listing.companyName)
-      : NotificationTemplates.NEW_OFFER(req.user.username, price, quantity, listing.companyName);
+      ? NotificationTemplates.NEW_BID(req.user.username, price, quantity, listing.companyName, listing._id.toString())
+      : NotificationTemplates.NEW_OFFER(req.user.username, price, quantity, listing.companyName, listing._id.toString());
     
     await createAndSendNotification(
       listing.userId,
@@ -561,7 +561,9 @@ router.post('/:id/bid', protect, async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: listing.type === 'sell' ? 'Bid placed successfully' : 'Offer made successfully'
+      message: listing.type === 'sell' 
+        ? `Bid placed successfully on ${listing.companyName} (Post #${listing._id.toString().slice(-6)})`
+        : `Offer made successfully on ${listing.companyName} (Post #${listing._id.toString().slice(-6)})`
     });
   } catch (error) {
     next(error);
