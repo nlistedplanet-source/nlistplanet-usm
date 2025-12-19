@@ -16,6 +16,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import CheckEmailPage from './pages/CheckEmailPage';
 import EmailVerificationPage from './pages/EmailVerificationPage';
 import OTPVerificationPage from './pages/OTPVerificationPage';
+import CompleteProfilePage from './pages/CompleteProfilePage';
 import BlogPage from './pages/BlogPage';
 import BlogDetailPage from './pages/BlogDetailPage';
 
@@ -49,9 +50,9 @@ function AppContent() {
   const location = useLocation();
   const [showBottomNav, setShowBottomNav] = useState(true);
 
-  // Hide bottom nav on login/register/forgot-password/dashboard-preview/dashboard/check-email/verify-email pages
+  // Hide bottom nav on login/register/forgot-password/dashboard-preview/dashboard/check-email/verify-email/complete-profile pages
   useEffect(() => {
-    const hideNavPaths = ['/login', '/register', '/forgot-password', '/dashboard-preview', '/dashboard', '/check-email'];
+    const hideNavPaths = ['/login', '/register', '/forgot-password', '/dashboard-preview', '/dashboard', '/check-email', '/complete-profile'];
     const path = window.location.pathname;
     const isVerifyPath = path.startsWith('/verify-email/');
     setShowBottomNav(!hideNavPaths.includes(path) && !isVerifyPath);
@@ -84,6 +85,14 @@ function AppContent() {
           <Route path="/check-email" element={<CheckEmailPage />} />
           <Route path="/verify-email/:token" element={<EmailVerificationPage />} />
           <Route path="/verify-otp" element={<OTPVerificationPage />} />
+          <Route 
+            path="/complete-profile" 
+            element={
+              <ProtectedRoute>
+                <CompleteProfilePage />
+              </ProtectedRoute>
+            } 
+          />
           
           {/* Legal Pages */}
           <Route path="/privacy" element={<PrivacyPolicy />} />
@@ -114,6 +123,7 @@ function AppContent() {
        location.pathname !== '/register' && 
        location.pathname !== '/forgot-password' &&
        location.pathname !== '/check-email' &&
+       location.pathname !== '/complete-profile' &&
        !location.pathname.startsWith('/verify-email') && (
         <Footer />
       )}

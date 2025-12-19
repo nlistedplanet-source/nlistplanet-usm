@@ -1020,14 +1020,174 @@ router.post('/google-login',
         { expiresIn: '30d' }
       );
 
+      // Check if profile is complete (for Google users)
+      const profileComplete = !user.isGoogleUser || (user.fullName && user.phone && user.isPhoneVerified);
+
       res.json({
         success: true,
         token,
-        user: user.getPublicProfile()
+        user: user.getPublicProfile(),
+        profileComplete
       });
 
     } catch (error) {
       console.error('Google login error:', error);
+      next(error);
+    }
+  }
+);
+
+// Complete Google user profile
+router.post(
+  '/complete-profile',
+  protect,
+  [
+    body('fullName')
+      .trim()
+      .notEmpty()
+      .withMessage('Full name is required')
+      .isLength({ min: 2, max: 100 })
+      .withMessage('Full name must be between 2 and 100 characters'),
+    body('phone')
+      .trim()
+      .notEmpty()
+      .withMessage('Phone number is required')
+      .matches(/^[0-9]{10}$/)
+      .withMessage('Please provide a valid 10-digit phone number')
+  ],
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          errors: errors.array()
+        });
+      }
+
+      const { fullName, phone } = req.body;
+      const user = await User.findById(req.user.id);
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      // Check if phone already exists for another user
+      const existingPhone = await User.findOne({ 
+        phone, 
+        _id: { $ne: user._id } 
+      });
+      
+      if (existingPhone) {
+        return res.status(400).json({
+          success: false,
+          message: 'This phone number is already registered'
+        });
+      }
+
+      // Generate OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      user.otp = otp;
+      user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      user.otpAttempts = 0;
+      user.fullName = fullName;
+      user.phone = phone;
+      
+      await user.save();
+
+      // TODO: Send SMS OTP (integrate with SMS service)
+      console.log(`OTP for ${phone}: ${otp}`);
+
+      res.json({
+        success: true,
+        message: 'OTP sent to your phone number'
+      });
+
+    } catch (error) {
+      console.error('Profile completion error:', error);
+      next(error);
+    }
+  }
+);
+
+// Verify OTP for profile completion
+router.post(
+  '/verify-profile-otp',
+  protect,
+  [
+    body('otp')
+      .trim()
+      .notEmpty()
+      .withMessage('OTP is required')
+      .isLength({ min: 6, max: 6 })
+      .withMessage('OTP must be 6 digits')
+  ],
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          errors: errors.array()
+        });
+      }
+
+      const { otp } = req.body;
+      const user = await User.findById(req.user.id);
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      // Check OTP attempts
+      if (user.otpAttempts >= 5) {
+        return res.status(429).json({
+          success: false,
+          message: 'Too many attempts. Please request a new OTP.'
+        });
+      }
+
+      // Check if OTP expired
+      if (!user.otpExpiry || user.otpExpiry < new Date()) {
+        return res.status(400).json({
+          success: false,
+          message: 'OTP has expired. Please request a new one.'
+        });
+      }
+
+      // Verify OTP
+      if (user.otp !== otp) {
+        user.otpAttempts += 1;
+        await user.save();
+        
+        return res.status(400).json({
+          success: false,
+          message: `Invalid OTP. ${5 - user.otpAttempts} attempts remaining.`
+        });
+      }
+
+      // Mark profile as complete
+      user.isPhoneVerified = true;
+      user.otp = null;
+      user.otpExpiry = null;
+      user.otpAttempts = 0;
+      
+      await user.save();
+
+      res.json({
+        success: true,
+        message: 'Profile completed successfully',
+        user: user.getPublicProfile()
+      });
+
+    } catch (error) {
+      console.error('OTP verification error:', error);
       next(error);
     }
   }

@@ -341,17 +341,51 @@ export const AuthProvider = ({ children }) => {
         photoURL: googleUser.photoURL
       });
 
-      const { token: jwtToken, user: userData } = response.data;
+      const { token: jwtToken, user: userData, profileComplete } = response.data;
       
       setToken(jwtToken);
       localStorage.setItem('token', jwtToken);
       setUser(userData);
       
       toast.success(`Welcome ${userData.fullName || userData.username}!`);
-      return { success: true };
+      return { success: true, profileComplete };
     } catch (error) {
       console.error('Google login error:', error);
       const message = error.response?.data?.message || error.message || 'Google login failed';
+      toast.error(message);
+      return { success: false, message };
+    }
+  };
+
+  const completeProfile = async (fullName, phone) => {
+    try {
+      const response = await axios.post(`${BASE_API_URL}/auth/complete-profile`, {
+        fullName,
+        phone
+      });
+      
+      toast.success(response.data.message);
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to complete profile';
+      toast.error(message);
+      return { success: false, message };
+    }
+  };
+
+  const verifyProfileOtp = async (otp) => {
+    try {
+      const response = await axios.post(`${BASE_API_URL}/auth/verify-profile-otp`, {
+        otp
+      });
+      
+      // Update user with completed profile
+      setUser(response.data.user);
+      
+      toast.success(response.data.message);
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || 'OTP verification failed';
       toast.error(message);
       return { success: false, message };
     }
@@ -368,6 +402,8 @@ export const AuthProvider = ({ children }) => {
     resendVerification,
     updateEmail,
     loginWithGoogle,
+    completeProfile,
+    verifyProfileOtp,
     isAuthenticated: !!user
   };
 

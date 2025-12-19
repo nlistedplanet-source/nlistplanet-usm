@@ -69,7 +69,12 @@ const RegisterPage = () => {
     try {
       const result = await loginWithGoogle();
       if (result.success) {
-        navigate('/dashboard');
+        // Check if profile is complete
+        if (result.profileComplete === false) {
+          navigate('/complete-profile');
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (error) {
       console.error('Google signup failed:', error);

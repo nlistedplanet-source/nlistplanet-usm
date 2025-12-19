@@ -27,13 +27,21 @@ const userSchema = new mongoose.Schema({
   },
   fullName: {
     type: String,
-    required: [true, 'Full name is required'],
+    required: false, // Optional for Google users initially
     trim: true
   },
   phone: {
     type: String,
-    required: [true, 'Phone number is required'],
+    required: false, // Optional for Google users initially
     match: [/^[0-9]{10}$/, 'Please provide a valid 10-digit phone number']
+  },
+  isGoogleUser: {
+    type: Boolean,
+    default: false
+  },
+  isPhoneVerified: {
+    type: Boolean,
+    default: false
   },
   role: {
     type: String,
