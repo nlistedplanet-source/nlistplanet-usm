@@ -15,6 +15,7 @@ import {
   validateObjectId 
 } from '../middleware/validation.js';
 import { createNewCompanyFromListing, searchCompanyByName } from '../utils/companyLookup.js';
+import { createAndSendNotification, NotificationTemplates } from '../utils/pushNotifications.js';
 
 const router = express.Router();
 
@@ -415,21 +416,24 @@ router.post('/:id/accept', protect, async (req, res, next) => {
     
     await listing.save();
 
-    // Create notification for listing owner
-    await Notification.create({
-      userId: listing.userId,
-      type: 'deal_accepted',
-      title: 'Listing Accepted',
-      message: `@${req.user.username} accepted your ${listing.companyName} listing at ₹${price} for ${quantity} shares`,
-      data: {
-        listingId: listing._id,
-        bidId: bidData._id,
-        fromUser: req.user.username,
-        amount: price,
-        quantity,
-        companyName: listing.companyName
+    // Create notification with push for listing owner
+    await createAndSendNotification(
+      listing.userId,
+      {
+        type: 'deal_accepted',
+        title: 'Listing Accepted',
+        message: `@${req.user.username} accepted your ${listing.companyName} listing at ₹${price} for ${quantity} shares`,
+        data: {
+          listingId: listing._id.toString(),
+          bidId: bidData._id.toString(),
+          fromUser: req.user.username,
+          amount: price,
+          quantity,
+          companyName: listing.companyName
+        },
+        actionUrl: `/dashboard/bids`
       }
-    });
+    );
 
     res.status(201).json({
       success: true,
@@ -532,21 +536,23 @@ router.post('/:id/bid', protect, async (req, res, next) => {
 
     await listing.save();
 
-    // Create notification for listing owner
-    await Notification.create({
-      userId: listing.userId,
-      type: listing.type === 'sell' ? 'new_bid' : 'new_offer',
-      title: listing.type === 'sell' ? 'New Bid Received' : 'New Offer Received',
-      message: `@${req.user.username} ${listing.type === 'sell' ? 'placed a bid' : 'made an offer'} of ₹${price} for ${quantity} shares`,
-      data: {
-        listingId: listing._id,
-        bidId: bidData._id,
-        fromUser: req.user.username,
-        amount: price,
-        quantity,
-        companyName: listing.companyName
+    // Create notification with push for listing owner
+    const notifTemplate = listing.type === 'sell' 
+      ? NotificationTemplates.NEW_BID(req.user.username, price, quantity, listing.companyName)
+      : NotificationTemplates.NEW_OFFER(req.user.username, price, quantity, listing.companyName);
+    
+    await createAndSendNotification(
+      listing.userId,
+      {
+        ...notifTemplate,
+        data: {
+          ...notifTemplate.data,
+          listingId: listing._id.toString(),
+          bidId: bidData._id.toString()
+        },
+        actionUrl: `/dashboard/listings/${listing._id}`
       }
-    });
+    );
 
     res.status(201).json({
       success: true,
@@ -804,30 +810,32 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
       // ============ NOTIFICATIONS ============
       if (newStatus === 'confirmed') {
         // Both parties confirmed → Deal complete
-        // Notify buyer about confirmation
-        await Notification.create({
-          userId: buyerId,
-          type: 'deal_confirmed',
-          title: '🎉 Deal Confirmed!',
-          message: `Your deal for ${listing.companyName} is confirmed! Check your verification codes.`,
+        const dealTemplate = NotificationTemplates.DEAL_CONFIRMED(
+          listing.companyName, 
+          isBidder ? sellerReceivesPerShare * bid.quantity : buyerPaysPerShare * bid.quantity,
+          bid.quantity
+        );
+        
+        // Notify buyer about confirmation with push
+        await createAndSendNotification(buyerId, {
+          ...dealTemplate,
           data: {
-            listingId: listing._id,
-            dealId: deal._id,
-            companyName: listing.companyName
-          }
+            ...dealTemplate.data,
+            listingId: listing._id.toString(),
+            dealId: deal._id.toString()
+          },
+          actionUrl: `/dashboard/history`
         });
 
-        // Notify seller about confirmation
-        await Notification.create({
-          userId: sellerId,
-          type: 'deal_confirmed',
-          title: '🎉 Deal Confirmed!',
-          message: `Your deal for ${listing.companyName} is confirmed! Check your verification codes.`,
+        // Notify seller about confirmation with push
+        await createAndSendNotification(sellerId, {
+          ...dealTemplate,
           data: {
-            listingId: listing._id,
-            dealId: deal._id,
-            companyName: listing.companyName
-          }
+            ...dealTemplate.data,
+            listingId: listing._id.toString(),
+            dealId: deal._id.toString()
+          },
+          actionUrl: `/dashboard/history`
         });
       } else if (newStatus === 'pending_confirmation' || newStatus === 'accepted') {
         // First party accepted → Waiting for second party to CONFIRM (not negotiate)
@@ -836,36 +844,43 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
         const acceptorUsername = isBidder ? buyerUsername : sellerUsername;
         const waitingForUsername = isBidder ? sellerUsername : buyerUsername;
         
-        // Notify the person who accepted
-        await Notification.create({
-          userId: acceptorId,
+        // Notify the person who accepted with push
+        const acceptTemplate = listing.type === 'sell' 
+          ? NotificationTemplates.BID_ACCEPTED(listing.companyName, buyerPaysPerShare * bid.quantity, bid.quantity)
+          : NotificationTemplates.OFFER_ACCEPTED(listing.companyName, sellerReceivesPerShare * bid.quantity, bid.quantity);
+        
+        await createAndSendNotification(acceptorId, {
           type: 'deal_accepted',
           title: '✅ Deal Accepted!',
           message: `You accepted the deal for ${listing.companyName}. Waiting for @${waitingForUsername} to confirm.`,
           data: {
-            listingId: listing._id,
-            bidId: bid._id,
-            dealId: deal._id,
+            listingId: listing._id.toString(),
+            bidId: bid._id.toString(),
+            dealId: deal._id.toString(),
             amount: isBidder ? buyerPaysPerShare * bid.quantity : sellerReceivesPerShare * bid.quantity,
             quantity: bid.quantity,
             companyName: listing.companyName
-          }
+          },
+          actionUrl: `/dashboard/bids`
         });
         
-        // Notify the other party to CONFIRM (not accept again - just YES/NO)
-        await Notification.create({
-          userId: waitingForId,
-          type: 'confirmation_required',
-          title: '⚠️ Confirm Deal!',
+        // Notify the other party to CONFIRM with push
+        const confirmTemplate = NotificationTemplates.CONFIRMATION_REQUIRED(
+          listing.companyName,
+          isBidder ? sellerReceivesPerShare * bid.quantity : buyerPaysPerShare * bid.quantity,
+          bid.quantity
+        );
+        
+        await createAndSendNotification(waitingForId, {
+          ...confirmTemplate,
           message: `@${acceptorUsername} accepted your ${isBidder ? 'offer' : 'bid'} for ${listing.companyName}. Confirm or reject this final deal.`,
           data: {
-            listingId: listing._id,
-            bidId: bid._id,
-            dealId: deal._id,
-            amount: isBidder ? sellerReceivesPerShare * bid.quantity : buyerPaysPerShare * bid.quantity,
-            quantity: bid.quantity,
-            companyName: listing.companyName
-          }
+            ...confirmTemplate.data,
+            listingId: listing._id.toString(),
+            bidId: bid._id.toString(),
+            dealId: deal._id.toString()
+          },
+          actionUrl: `/dashboard/bids`
         });
       }
 
@@ -956,30 +971,34 @@ router.put('/:listingId/deals/:dealId/confirm', protect, async (req, res, next) 
     
     await listing.save();
 
-    // Notify buyer about seller confirmation
-    await Notification.create({
-      userId: deal.buyerId,
+    // Get company details
+    const company = await Company.findById(listing.companyId);
+    const companyName = company?.name || listing.companyName;
+
+    // Notify buyer about seller confirmation with push
+    await createAndSendNotification(deal.buyerId, {
       type: 'seller_confirmed',
       title: '🎉 Congratulations!',
-      message: `Seller accepted your bid for ${listing.companyName}. Check your codes!`,
+      message: `Seller accepted your bid for ${companyName}. Check your codes!`,
       data: {
-        listingId: listing._id,
-        dealId: deal._id,
-        companyName: listing.companyName
-      }
+        listingId: listing._id.toString(),
+        dealId: deal._id.toString(),
+        companyName
+      },
+      actionUrl: `/dashboard/history`
     });
 
-    // Notify seller about confirmation
-    await Notification.create({
-      userId: deal.sellerId,
+    // Notify seller about confirmation with push
+    await createAndSendNotification(deal.sellerId, {
       type: 'confirmation_success',
       title: '✅ Deal Confirmed!',
-      message: `You confirmed the sale of ${listing.companyName}. Check your codes!`,
+      message: `You confirmed the sale of ${companyName}. Check your codes!`,
       data: {
-        listingId: listing._id,
-        dealId: deal._id,
-        companyName: listing.companyName
-      }
+        listingId: listing._id.toString(),
+        dealId: deal._id.toString(),
+        companyName
+      },
+      actionUrl: `/dashboard/history`
     });
 
     res.json({
@@ -1042,18 +1061,22 @@ router.put('/:listingId/deals/:dealId/reject', protect, async (req, res, next) =
 
     await listing.save();
 
-    // Notify buyer about rejection
-    await Notification.create({
-      userId: deal.buyerId,
+    // Get company details
+    const company = await Company.findById(listing.companyId);
+    const companyName = company?.name || deal.companyName;
+
+    // Notify buyer about rejection with push
+    await createAndSendNotification(deal.buyerId, {
       type: 'seller_rejected',
       title: '❌ Seller Rejected',
-      message: `Seller declined your acceptance for ${deal.companyName}. ${reason || ''}`,
+      message: `Seller declined your acceptance for ${companyName}. ${reason || ''}`,
       data: {
-        listingId: listing._id,
-        dealId: deal._id,
-        companyName: deal.companyName,
+        listingId: listing._id.toString(),
+        dealId: deal._id.toString(),
+        companyName,
         reason
-      }
+      },
+      actionUrl: `/dashboard/bids`
     });
 
     res.json({
@@ -1107,19 +1130,23 @@ router.put('/:listingId/bids/:bidId/reject', protect, async (req, res, next) => 
     bid.status = 'rejected';
     await listing.save();
 
-    // Create notification for bidder
-    await Notification.create({
-      userId: bid.userId,
-      type: 'bid_rejected',
-      title: 'Bid Rejected',
-      message: `Your ${listing.type === 'sell' ? 'bid' : 'offer'} of ₹${bid.price} for ${bid.quantity} shares of ${listing.companyName} has been rejected.`,
+    // Get company details
+    const company = await Company.findById(listing.companyId);
+    const companyName = company?.name || listing.companyName;
+
+    // Create notification with push for bidder
+    const template = listing.type === 'sell' 
+      ? NotificationTemplates.BID_REJECTED(bid.price, bid.quantity, companyName)
+      : NotificationTemplates.OFFER_REJECTED(bid.price, bid.quantity, companyName);
+
+    await createAndSendNotification(bid.userId, {
+      ...template,
       data: {
-        listingId: listing._id,
-        bidId: bid._id,
-        amount: bid.price,
-        quantity: bid.quantity,
-        companyName: listing.companyName
-      }
+        ...template.data,
+        listingId: listing._id.toString(),
+        bidId: bid._id.toString()
+      },
+      actionUrl: `/dashboard/bids`
     });
 
     res.json({
@@ -1205,20 +1232,25 @@ router.put('/:listingId/bids/:bidId/counter', protect, async (req, res, next) =>
     
     await listing.save();
 
-    // Create notification for bidder
-    await Notification.create({
-      userId: bid.userId,
-      type: 'bid_countered',
-      title: 'Counter Offer Received',
-      message: `Counter offer on ${listing.companyName}: ₹${price} for ${quantity || bid.quantity} shares`,
+    // Get company details and counter sender info
+    const company = await Company.findById(listing.companyId);
+    const companyName = company?.name || listing.companyName;
+    const counterSender = await User.findById(req.user._id);
+    const senderUsername = counterSender.anonymousUsername || counterSender.username;
+
+    // Determine recipient (if owner countered, notify bidder; if bidder countered, notify owner)
+    const recipientId = isOwner ? bid.userId : listing.userId;
+
+    // Create notification with push for recipient
+    await createAndSendNotification(recipientId, {
+      ...NotificationTemplates.BID_COUNTERED(senderUsername, price, quantity || bid.quantity, companyName),
       data: {
-        listingId: listing._id,
-        bidId: bid._id,
-        amount: price,
-        quantity: quantity || bid.quantity,
-        companyName: listing.companyName,
+        ...NotificationTemplates.BID_COUNTERED(senderUsername, price, quantity || bid.quantity, companyName).data,
+        listingId: listing._id.toString(),
+        bidId: bid._id.toString(),
         round
-      }
+      },
+      actionUrl: `/dashboard/bids`
     });
 
     res.json({
@@ -1462,16 +1494,20 @@ router.put('/:id/mark-sold', protect, async (req, res, next) => {
           bid.rejectedAt = new Date();
           bid.rejectionReason = 'Listing sold externally';
           
-          await Notification.create({
-            userId: bid.userId,
+          // Get company details
+          const company = await Company.findById(listing.companyId);
+          const companyName = company?.name || listing.companyName;
+
+          await createAndSendNotification(bid.userId, {
             type: 'bid_rejected',
             title: 'Listing No Longer Available',
-            message: `The ${listing.type === 'sell' ? 'seller' : 'buyer'} for ${listing.companyName} has completed their transaction elsewhere.`,
+            message: `The ${listing.type === 'sell' ? 'seller' : 'buyer'} for ${companyName} has completed their transaction elsewhere.`,
             data: {
-              listingId: listing._id,
-              bidId: bid._id,
-              companyName: listing.companyName
-            }
+              listingId: listing._id.toString(),
+              bidId: bid._id.toString(),
+              companyName
+            },
+            actionUrl: `/dashboard/bids`
           });
         }
       }
@@ -1535,16 +1571,20 @@ router.put('/:id/cancel', protect, async (req, res, next) => {
           bid.rejectedAt = new Date();
           bid.rejectionReason = 'Listing cancelled by owner';
           
-          await Notification.create({
-            userId: bid.userId,
+          // Get company details
+          const company = await Company.findById(listing.companyId);
+          const companyName = company?.name || listing.companyName;
+
+          await createAndSendNotification(bid.userId, {
             type: 'bid_rejected',
             title: 'Listing Cancelled',
-            message: `The ${listing.type === 'sell' ? 'seller' : 'buyer'} has cancelled their listing for ${listing.companyName}.`,
+            message: `The ${listing.type === 'sell' ? 'seller' : 'buyer'} has cancelled their listing for ${companyName}.`,
             data: {
-              listingId: listing._id,
-              bidId: bid._id,
-              companyName: listing.companyName
-            }
+              listingId: listing._id.toString(),
+              bidId: bid._id.toString(),
+              companyName
+            },
+            actionUrl: `/dashboard/bids`
           });
         }
       }

@@ -2,6 +2,11 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { BASE_API_URL } from '../utils/api';
 import toast from 'react-hot-toast';
+import { 
+  requestNotificationPermission, 
+  onForegroundMessage,
+  areNotificationsEnabled 
+} from '../config/firebase';
 
 const AuthContext = createContext();
 
@@ -18,6 +23,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [lastActivity, setLastActivity] = useState(Date.now());
+  const [fcmToken, setFcmToken] = useState(null);
   
   // Auto logout after 30 minutes of inactivity
   const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
@@ -71,6 +77,97 @@ export const AuthProvider = ({ children }) => {
     loadUser();
   }, [token]);
 
+  // Register FCM token when user logs in
+  useEffect(() => {
+    if (!user || fcmToken) return;
+
+    const registerFCMToken = async () => {
+      try {
+        // Request notification permission and get FCM token
+        const token = await requestNotificationPermission();
+        
+        if (token) {
+          setFcmToken(token);
+          
+          // Register token with backend
+          await axios.post(`${BASE_API_URL}/notifications/register-device`, {
+            fcmToken: token
+          });
+          
+          console.log('FCM token registered successfully');
+          toast.success('🔔 Push notifications enabled!', { duration: 2000 });
+        } else {
+          console.log('FCM token not available');
+        }
+      } catch (error) {
+        console.error('Failed to register FCM token:', error);
+      }
+    };
+
+    // Ask for permission after a short delay (better UX)
+    const timer = setTimeout(() => {
+      registerFCMToken();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [user, fcmToken]);
+
+  // Listen for foreground messages
+  useEffect(() => {
+    if (!user) return;
+
+    const unsubscribe = onForegroundMessage((notification) => {
+      // Show toast notification
+      toast.custom(
+        (t) => (
+          <div
+            className={`${
+              t.visible ? 'animate-enter' : 'animate-leave'
+            } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+            onClick={() => {
+              if (notification.actionUrl) {
+                window.location.href = notification.actionUrl;
+              }
+              toast.dismiss(t.id);
+            }}
+          >
+            <div className="flex-1 w-0 p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 pt-0.5">
+                  <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
+                    <span className="text-primary-600 text-xl">🔔</span>
+                  </div>
+                </div>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    {notification.title}
+                  </p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {notification.body}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex border-l border-gray-200">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toast.dismiss(t.id);
+                }}
+                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-primary-600 hover:text-primary-500 focus:outline-none"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        ),
+        { duration: 5000 }
+      );
+    });
+
+    return unsubscribe;
+  }, [user]);
+
   // Track user activity
   useEffect(() => {
     if (!user) return;
@@ -78,7 +175,7 @@ export const AuthProvider = ({ children }) => {
     const updateActivity = () => {
       setLastActivity(Date.now());
     };
-
+    
     // Track various user activities
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
     events.forEach(event => {

@@ -2124,5 +2124,86 @@ router.post('/accepted-deals/:dealId/close', async (req, res, next) => {
   }
 });
 
+// @route   GET /api/admin/share-analytics
+// @desc    Get share tracking analytics for admin
+// @access  Admin
+router.get('/share-analytics', async (req, res, next) => {
+  try {
+    const ShareTracking = (await import('../models/ShareTracking.js')).default;
+    
+    // Get all shares with populated listing data
+    const shares = await ShareTracking.find({ isActive: true })
+      .populate({
+        path: 'listingId',
+        select: 'companyName company companyId userId username postId',
+        populate: {
+          path: 'companyId',
+          select: 'name logo Logo'
+        }
+      })
+      .populate('userId', 'username fullName')
+      .sort({ shareDate: -1 });
+
+    // Calculate aggregate stats
+    const totalShares = shares.length;
+    const totalViews = shares.reduce((sum, s) => sum + (s.uniqueVisitors?.length || 0), 0);
+    const totalClicks = shares.reduce((sum, s) => sum + (s.clicks || 0), 0);
+    const totalConversions = shares.reduce((sum, s) => sum + (s.conversions?.length || 0), 0);
+    const totalEarnings = shares.reduce((sum, s) => {
+      return sum + s.conversions.reduce((cSum, c) => cSum + (c.referralReward || 0), 0);
+    }, 0);
+    
+    const conversionRate = totalClicks > 0 
+      ? ((totalConversions / totalClicks) * 100).toFixed(2)
+      : 0;
+    
+    const avgEarningsPerConversion = totalConversions > 0
+      ? totalEarnings / totalConversions
+      : 0;
+
+    // Get unique active users who shared
+    const activeUsers = new Set(shares.map(s => s.userId?._id?.toString()).filter(Boolean)).size;
+
+    // Get top performing shares (by conversions then earnings)
+    const topShares = shares
+      .filter(s => s.listingId) // Only shares with valid listings
+      .map(share => ({
+        _id: share._id,
+        shareId: share.shareId,
+        companyName: share.listingId?.companyName || share.listingId?.company || 'Unknown',
+        username: share.listingId?.username || share.userId?.username || 'N/A',
+        views: share.uniqueVisitors?.length || 0,
+        clicks: share.clicks || 0,
+        conversions: share.conversions?.length || 0,
+        earnings: share.conversions.reduce((sum, c) => sum + (c.referralReward || 0), 0),
+        shareDate: share.shareDate
+      }))
+      .sort((a, b) => {
+        // Sort by conversions first, then earnings
+        if (b.conversions !== a.conversions) return b.conversions - a.conversions;
+        return b.earnings - a.earnings;
+      })
+      .slice(0, 10); // Top 10
+
+    res.json({
+      success: true,
+      data: {
+        totalShares,
+        totalViews,
+        totalClicks,
+        totalConversions,
+        totalEarnings,
+        conversionRate: parseFloat(conversionRate),
+        avgEarningsPerConversion,
+        activeUsers,
+        topShares
+      }
+    });
+  } catch (error) {
+    console.error('Share analytics error:', error);
+    next(error);
+  }
+});
+
 export default router;
 

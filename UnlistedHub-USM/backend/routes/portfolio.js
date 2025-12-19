@@ -24,6 +24,8 @@ router.get('/stats', protect, async (req, res, next) => {
     let totalShares = 0;
 
     transactions.forEach(tx => {
+      if (!tx.buyerId || !tx.sellerId) return; // Skip incomplete transactions
+      
       const amount = tx.price * tx.quantity;
       
       if (tx.buyerId.toString() === userId.toString()) {
@@ -89,7 +91,7 @@ router.get('/holdings', protect, async (req, res, next) => {
       const holding = holdingsMap[companyName];
       const amount = tx.price * tx.quantity;
 
-      if (tx.buyerId.toString() === userId.toString()) {
+      if (tx.buyerId && tx.buyerId.toString() === userId.toString()) {
         // User bought
         holding.totalQuantity += tx.quantity;
         holding.totalInvested += amount;
@@ -218,6 +220,8 @@ router.get('/activities', protect, async (req, res, next) => {
 
     // 2. Add transactions
     transactions.forEach(tx => {
+      if (!tx.buyerId || !tx.sellerId) return; // Skip incomplete transactions
+      
       const isBuyer = tx.buyerId.toString() === userId.toString();
       activities.push({
         type: 'transaction',

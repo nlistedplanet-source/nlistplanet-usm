@@ -188,7 +188,34 @@ const userSchema = new mongoose.Schema({
       type: Date,
       default: Date.now
     }
-  }]
+  }],
+  // FCM tokens for push notifications
+  fcmTokens: [{
+    type: String,
+    trim: true
+  }],
+  notificationPreferences: {
+    pushEnabled: {
+      type: Boolean,
+      default: true
+    },
+    emailEnabled: {
+      type: Boolean,
+      default: true
+    },
+    bidNotifications: {
+      type: Boolean,
+      default: true
+    },
+    offerNotifications: {
+      type: Boolean,
+      default: true
+    },
+    dealNotifications: {
+      type: Boolean,
+      default: true
+    }
+  }
 }, {
   timestamps: true
 });

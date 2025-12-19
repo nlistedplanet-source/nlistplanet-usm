@@ -38,7 +38,7 @@ const shareTrackingSchema = new mongoose.Schema({
       ref: 'Transaction'
     },
     platformFee: Number,
-    referralReward: Number,  // 1% of platform fee
+    referralReward: Number,  // 10% of platform fee (0.2% of transaction)
     createdAt: {
       type: Date,
       default: Date.now
