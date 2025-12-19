@@ -12,7 +12,7 @@ const firebaseConfig = {
 };
 
 // VAPID key for web push (from Firebase Console → Cloud Messaging → Web Push Certificates)
-const VAPID_KEY = process.env.REACT_APP_FIREBASE_VAPID_KEY || "BA1cPlr8LOVkTbtsxMVO6mNMAMLwEd0Kj9LLaGLEACgNxZcGlyzHLkHs68oZ_OucDPWM_zbxdEf7rPNbdmf-7I";
+const VAPID_KEY = process.env.REACT_APP_FIREBASE_VAPID_KEY || "BA1cPlr8LOVkTbtsxMV06mNMAMLwEd0Kj9LLaGGLEACgNxZcGlyzHLkHs68oZ_OucDPWM_zbzdEf7rPNbdmf-7I";
 
 let app = null;
 let messaging = null;
