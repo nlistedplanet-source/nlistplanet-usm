@@ -5,7 +5,8 @@ import toast from 'react-hot-toast';
 import { 
   requestNotificationPermission, 
   onForegroundMessage,
-  areNotificationsEnabled 
+  areNotificationsEnabled,
+  signInWithGoogle as firebaseSignInWithGoogle
 } from '../config/firebase';
 
 const AuthContext = createContext();
@@ -328,6 +329,34 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      const googleUser = await firebaseSignInWithGoogle();
+      
+      // Send Google ID token to backend for verification
+      const response = await axios.post(`${BASE_API_URL}/auth/google-login`, {
+        idToken: googleUser.idToken,
+        email: googleUser.email,
+        displayName: googleUser.displayName,
+        photoURL: googleUser.photoURL
+      });
+
+      const { token: jwtToken, user: userData } = response.data;
+      
+      setToken(jwtToken);
+      localStorage.setItem('token', jwtToken);
+      setUser(userData);
+      
+      toast.success(`Welcome ${userData.fullName || userData.username}!`);
+      return { success: true };
+    } catch (error) {
+      console.error('Google login error:', error);
+      const message = error.response?.data?.message || error.message || 'Google login failed';
+      toast.error(message);
+      return { success: false, message };
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -338,6 +367,7 @@ export const AuthProvider = ({ children }) => {
     changePassword,
     resendVerification,
     updateEmail,
+    loginWithGoogle,
     isAuthenticated: !!user
   };
 

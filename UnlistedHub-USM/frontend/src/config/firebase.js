@@ -16,12 +16,16 @@ const VAPID_KEY = process.env.REACT_APP_FIREBASE_VAPID_KEY || "BA1cPlr8LOVkTbtsx
 
 let app = null;
 let messaging = null;
+let auth = null;
 
 // Initialize Firebase
 try {
   // Wait for CDN-loaded Firebase
   if (window.firebase) {
     app = window.firebase.initializeApp(firebaseConfig);
+    
+    // Initialize Firebase Authentication
+    auth = window.firebase.auth();
     
     // Check if messaging is supported in this browser
     if ('Notification' in window && 'serviceWorker' in navigator) {
@@ -152,5 +156,50 @@ export const getNotificationPermission = () => {
   return Notification.permission;
 };
 
-export { messaging };
+/**
+ * Sign in with Google
+ * @returns {Promise<{idToken: string, email: string, displayName: string, photoURL: string}>}
+ */
+export const signInWithGoogle = async () => {
+  try {
+    if (!auth) {
+      throw new Error('Firebase Auth not initialized');
+    }
+
+    const provider = new window.firebase.auth.GoogleAuthProvider();
+    provider.addScope('email');
+    provider.addScope('profile');
+    
+    const result = await auth.signInWithPopup(provider);
+    const user = result.user;
+    const idToken = await user.getIdToken();
+    
+    return {
+      idToken,
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      uid: user.uid
+    };
+  } catch (error) {
+    console.error('Google sign-in error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Sign out from Firebase
+ */
+export const signOut = async () => {
+  try {
+    if (auth) {
+      await auth.signOut();
+    }
+  } catch (error) {
+    console.error('Sign out error:', error);
+    throw error;
+  }
+};
+
+export { messaging, auth };
 export default app;
