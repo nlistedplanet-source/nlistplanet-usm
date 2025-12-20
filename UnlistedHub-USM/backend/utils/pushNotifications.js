@@ -114,6 +114,10 @@ export const sendPushNotification = async (userId, payload) => {
         notification: {
           sound: 'default',
           channelId: 'nlistplanet_notifications',
+          visibility: 'public',
+          priority: 'max',
+          vibrateTimings: [0, 500, 200, 500],
+          notificationCount: 1,
         }
       },
       apns: {

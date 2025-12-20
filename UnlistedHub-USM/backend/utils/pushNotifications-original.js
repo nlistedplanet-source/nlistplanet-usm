@@ -96,6 +96,9 @@ export const sendPushNotification = async (userId, payload) => {
           sound: 'default',
           clickAction: 'FLUTTER_NOTIFICATION_CLICK',
           channelId: 'nlistplanet_notifications',
+          visibility: 'public',
+          priority: 'max',
+          vibrateTimings: [0, 500, 200, 500],
         }
       },
       apns: {
