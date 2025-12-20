@@ -188,9 +188,13 @@ router.post('/test-push', protect, async (req, res, next) => {
     const result = await sendPushNotification(req.user._id, notificationData);
 
     if (!result.success) {
+      let errorMessage = `Failed to send notification: ${result.reason || 'Unknown error'}`;
+      if (result.details) {
+        errorMessage += ` (${result.details})`;
+      }
       return res.status(500).json({
         success: false,
-        message: `Failed to send notification: ${result.reason || 'Unknown error'}`
+        message: errorMessage
       });
     }
 

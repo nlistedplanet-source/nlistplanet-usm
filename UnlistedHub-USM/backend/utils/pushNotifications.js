@@ -20,13 +20,17 @@ const initializeFirebase = () => {
   if (initializationAttempted) return firebaseInitialized;
   initializationAttempted = true;
   
-  if (firebaseInitialized || !admin) return false;
+  if (firebaseInitialized || !admin) {
+    if (!admin) console.warn('⚠️ Firebase Admin SDK not loaded (admin is null)');
+    return firebaseInitialized;
+  }
   
   try {
     // Check if Firebase credentials are available
     let firebaseCredentials = process.env.FIREBASE_SERVICE_ACCOUNT;
     
     if (firebaseCredentials) {
+      console.log('🔑 Found FIREBASE_SERVICE_ACCOUNT, attempting initialization...');
       // Remove surrounding quotes if present (dotenv quirk)
       if (firebaseCredentials.startsWith("'") && firebaseCredentials.endsWith("'")) {
         firebaseCredentials = firebaseCredentials.slice(1, -1);
@@ -35,16 +39,21 @@ const initializeFirebase = () => {
         firebaseCredentials = firebaseCredentials.slice(1, -1);
       }
       
-      const serviceAccount = JSON.parse(firebaseCredentials);
-      
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
-      });
-      
-      firebaseInitialized = true;
-      console.log('✅ Firebase Admin SDK initialized');
+      try {
+        const serviceAccount = JSON.parse(firebaseCredentials);
+        
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount)
+        });
+        
+        firebaseInitialized = true;
+        console.log('✅ Firebase Admin SDK initialized successfully');
+      } catch (parseError) {
+        console.error('❌ Failed to parse FIREBASE_SERVICE_ACCOUNT JSON:', parseError.message);
+        console.error('Value starts with:', firebaseCredentials.substring(0, 20));
+      }
     } else {
-      console.warn('⚠️ Firebase credentials not found. Push notifications disabled.');
+      console.warn('⚠️ FIREBASE_SERVICE_ACCOUNT environment variable is MISSING');
     }
   } catch (error) {
     console.error('❌ Firebase initialization failed:', error.message);
@@ -68,8 +77,13 @@ export const sendPushNotification = async (userId, payload) => {
     initializeFirebase();
     
     if (!admin || !firebaseInitialized) {
-      console.log('📱 Push notification skipped (Firebase not available)');
-      return { success: false, reason: 'firebase_not_available' };
+      const reason = !admin ? 'firebase_admin_not_loaded' : 'firebase_not_initialized';
+      console.log(`📱 Push notification skipped (${reason})`);
+      return { 
+        success: false, 
+        reason: reason,
+        details: !process.env.FIREBASE_SERVICE_ACCOUNT ? 'FIREBASE_SERVICE_ACCOUNT is missing' : 'Initialization failed'
+      };
     }
 
     // Get user's FCM tokens from User model
