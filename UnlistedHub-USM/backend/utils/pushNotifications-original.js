@@ -19,8 +19,18 @@ const initializeFirebase = () => {
   
   try {
     // Check if Firebase credentials are available
-    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    let firebaseCredentials = process.env.FIREBASE_SERVICE_ACCOUNT;
+    
+    if (firebaseCredentials) {
+      // Remove surrounding quotes if present (dotenv quirk)
+      if (firebaseCredentials.startsWith("'") && firebaseCredentials.endsWith("'")) {
+        firebaseCredentials = firebaseCredentials.slice(1, -1);
+      }
+      if (firebaseCredentials.startsWith('"') && firebaseCredentials.endsWith('"')) {
+        firebaseCredentials = firebaseCredentials.slice(1, -1);
+      }
+      
+      const serviceAccount = JSON.parse(firebaseCredentials);
       
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
@@ -48,8 +58,13 @@ initializeFirebase();
 export const sendPushNotification = async (userId, payload) => {
   try {
     if (!admin || !firebaseInitialized) {
-      console.log('📱 Push notification skipped (Firebase not available)');
-      return { success: false, reason: 'firebase_not_available' };
+      const reason = !admin ? 'firebase_admin_not_loaded' : 'firebase_not_initialized';
+      console.log(`📱 Push notification skipped (${reason})`);
+      return { 
+        success: false, 
+        reason: reason,
+        details: !process.env.FIREBASE_SERVICE_ACCOUNT ? 'FIREBASE_SERVICE_ACCOUNT is missing' : 'Initialization failed'
+      };
     }
 
     // Get user's FCM tokens from User model
