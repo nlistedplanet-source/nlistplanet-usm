@@ -22,7 +22,9 @@ const notificationSchema = new mongoose.Schema({
       'confirmation_required',
       'listing_expired',
       'boost_activated',
-      'referral_earning'
+      'referral_earning',
+      'app_update',
+      'test'
     ],
     required: true
   },
@@ -40,7 +42,9 @@ const notificationSchema = new mongoose.Schema({
     fromUser: String,
     amount: Number,
     quantity: Number,
-    companyName: String
+    companyName: String,
+    version: String,
+    actionUrl: String
   },
   isRead: {
     type: Boolean,

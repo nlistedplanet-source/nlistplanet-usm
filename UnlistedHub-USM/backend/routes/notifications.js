@@ -161,6 +161,48 @@ router.post('/register-device', protect, async (req, res, next) => {
   }
 });
 
+// @route   POST /api/notifications/test-push
+// @desc    Send a test push notification to the current user
+// @access  Private
+router.post('/test-push', protect, async (req, res, next) => {
+  try {
+    const { sendPushNotification } = await import('../utils/pushNotifications.js');
+    const User = (await import('../models/User.js')).default;
+    
+    const user = await User.findById(req.user._id).select('fcmTokens');
+    
+    if (!user || !user.fcmTokens || user.fcmTokens.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No registered devices found. Please allow notifications and try again.'
+      });
+    }
+
+    const notificationData = {
+      type: 'test',
+      title: '🔔 Test Notification',
+      message: 'This is a test notification to verify your device is correctly registered. ' + new Date().toLocaleTimeString(),
+      data: { actionUrl: '/' }
+    };
+
+    const result = await sendPushNotification(req.user._id, notificationData);
+
+    if (!result.success) {
+      return res.status(500).json({
+        success: false,
+        message: `Failed to send notification: ${result.reason || 'Unknown error'}`
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Test notification sent'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // @route   POST /api/notifications/unregister-device
 // @desc    Remove FCM token (logout from device)
 // @access  Private

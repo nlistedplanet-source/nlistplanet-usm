@@ -88,18 +88,17 @@ export const sendPushNotification = async (userId, payload) => {
       },
       data: {
         type: payload.type,
-        ...payload.data,
-        // Convert all data values to strings (FCM requirement)
-        listingId: payload.data?.listingId?.toString() || '',
-        bidId: payload.data?.bidId?.toString() || '',
-        amount: payload.data?.amount?.toString() || '',
-        quantity: payload.data?.quantity?.toString() || '',
+        // Ensure all data values are strings (FCM requirement)
+        ...Object.keys(payload.data || {}).reduce((acc, key) => {
+          acc[key] = payload.data[key]?.toString() || '';
+          return acc;
+        }, {}),
+        actionUrl: payload.data?.actionUrl || '/',
       },
       android: {
         priority: 'high',
         notification: {
           sound: 'default',
-          clickAction: 'FLUTTER_NOTIFICATION_CLICK',
           channelId: 'nlistplanet_notifications',
         }
       },
@@ -111,10 +110,28 @@ export const sendPushNotification = async (userId, payload) => {
           }
         }
       },
+      webpush: {
+        fcm_options: {
+          link: payload.data?.actionUrl || '/'
+        },
+        notification: {
+          icon: '/Logo.png',
+          badge: '/Logo.png',
+          image: payload.data?.imageUrl || undefined,
+          requireInteraction: true,
+          vibrate: [200, 100, 200, 100, 200],
+          timestamp: Date.now(),
+          renotify: true,
+          tag: payload.type || 'default',
+          silent: false,
+          dir: 'ltr',
+          lang: 'en'
+        }
+      },
       tokens: user.fcmTokens
     };
 
-    const response = await admin.messaging().sendEachForMultitoken(message);
+    const response = await admin.messaging().sendEachForMulticast(message);
     
     // Remove invalid tokens
     const invalidTokens = [];
@@ -162,7 +179,7 @@ export const createAndSendNotification = async (userId, notificationData) => {
     });
 
     // Send push notification (non-blocking)
-    sendPushNotification(userId, {
+    await sendPushNotification(userId, {
       title: notificationData.title,
       message: notificationData.message,
       type: notificationData.type,
