@@ -187,7 +187,7 @@ const HowItWorksPage = () => {
               <div className="flex flex-col items-center mb-2 w-fit mx-auto">
                 <div>
                   <img
-                    src="/images/logos/new_logo.png"
+                    src="/crismas logo.png"
                     alt="Nlist Planet Logo"
                     className="h-32 w-32 object-contain"
                   />
