@@ -364,10 +364,7 @@ const MyBidsOffersTab = () => {
                       : `You (${isBid ? 'Bid' : 'Offer'})`}
                   </td>
                   <td className="px-3 py-2 text-right font-mono text-gray-700">
-                    {formatCurrency(isBid 
-                      ? calculateBuyerPays(activity.originalPrice || activity.price) 
-                      : calculateSellerGets(activity.originalPrice || activity.price)
-                    )}
+                    {formatCurrency(activity.originalPrice || activity.price)}
                   </td>
                   <td className="px-3 py-2 text-right text-gray-700">{activity.quantity}</td>
                   <td className="px-3 py-2 text-center">
@@ -589,9 +586,21 @@ const MyBidsOffersTab = () => {
                 <div className="flex justify-between items-end">
                   <div>
                     <p className="text-2xl font-bold text-gray-900">
-                      {formatCurrency(selectedActivity.counterHistory?.length > 0 
-                        ? selectedActivity.counterHistory[selectedActivity.counterHistory.length - 1].price 
-                        : selectedActivity.price)}
+                      {(() => {
+                        const isBid = selectedActivity.type === 'bid';
+                        const lastCounter = selectedActivity.counterHistory?.length > 0 
+                          ? selectedActivity.counterHistory[selectedActivity.counterHistory.length - 1] 
+                          : null;
+                        
+                        if (!lastCounter) return formatCurrency(selectedActivity.price);
+                        
+                        const isSellerCounter = lastCounter.by === 'seller';
+                        if (isBid) {
+                          return formatCurrency(isSellerCounter ? calculateBuyerPays(lastCounter.price) : lastCounter.price);
+                        } else {
+                          return formatCurrency(!isSellerCounter ? calculateSellerGets(lastCounter.price) : lastCounter.price);
+                        }
+                      })()}
                     </p>
                     <p className="text-sm text-gray-500">Current Price / Share</p>
                   </div>
