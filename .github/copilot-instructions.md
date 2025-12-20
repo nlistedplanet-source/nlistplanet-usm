@@ -50,6 +50,7 @@ getPriceDisplay(price, listingType, isOwner) // → { displayPrice, label }
 | Models | `backend/models/` - User (Argon2id), Listing (bids), Company (mixed casing) |
 | Push Notifications | `backend/utils/pushNotifications.js` (FCM integration) |
 | Shared Components | `ShareCardGenerator.jsx` (Keep synced between Desktop/Mobile) |
+| KYC & Referrals | `backend/routes/kyc.js`, `backend/routes/referrals.js` |
 
 ## 🛡️ Security & Auth
 
@@ -72,10 +73,15 @@ haptic.success()        // [10, 50, 10]ms pattern
 formatShortNumber(num)  // 1500000 → "15 L"
 ```
 
+## 🆔 Post ID System
+All listings use a `postId` (e.g., `NLP-123456`).
+- **Backend:** Generated in `Listing.js` pre-save hook.
+- **Frontend:** Displayed in `ListingCard.jsx` and `HistoryTab.jsx`.
+
 ## 🚫 Don'ts
 
 1. **Never expose platform fee** to users.
 2. **Never use `require()`** — ES modules only (`import/export`).
-3. **Never assume** legacy `CompanyName` — use `name` field (or handle both).
+3. **Never assume** legacy `CompanyName` — use `name` field (or handle both: `company.CompanyName || company.name`).
 4. **Never hardcode prices** — use helper functions.
 5. **Never forget:** Backend changes impact BOTH UIs.

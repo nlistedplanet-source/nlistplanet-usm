@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }) => {
           });
           
           console.log('FCM token registered successfully');
-          toast.success('🔔 Push notifications enabled!', { duration: 2000 });
+          // toast.success('🔔 Push notifications enabled!', { duration: 2000 });
         } else {
           console.log('FCM token not available');
         }
