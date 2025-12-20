@@ -325,6 +325,7 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 type="number"
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                onWheel={(e) => e.target.blur()}
                 placeholder=" "
                 className="peer w-full px-4 py-3 pl-10 pr-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 required
@@ -349,6 +350,7 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 type="number"
                 value={formData.quantity}
                 onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                onWheel={(e) => e.target.blur()}
                 placeholder=" "
                 className="peer w-full px-4 py-3 pl-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 required
@@ -370,6 +372,7 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 type="number"
                 value={formData.minLot}
                 onChange={(e) => setFormData({ ...formData, minLot: e.target.value })}
+                onWheel={(e) => e.target.blur()}
                 placeholder=" "
                 className="peer w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 min="1"

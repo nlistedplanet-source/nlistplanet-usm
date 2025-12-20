@@ -1,103 +1,64 @@
-# Copilot Instructions for UnlistedHub-USM
+# Copilot Instructions — UnlistedHub Desktop
 
-## Architecture Overview
-P2P marketplace for unlisted shares with admin-mediated transactions. Desktop web app.
+> **See [root copilot-instructions](../../.github/copilot-instructions.md) for full architecture, fee model, and security details.**
 
-**Tech Stack:** React 18, Node.js/Express, MongoDB (Mongoose), JWT auth, Tailwind CSS
+## Desktop App Specifics
 
-## Project Structure
-```
-backend/
-├── server.js          # Express app with Helmet, CORS, rate limiting
-├── models/            # Mongoose schemas (User, Listing, Company, Transaction...)
-├── routes/            # API endpoints (/api/auth, /api/listings, /api/admin...)
-├── middleware/        # auth.js (JWT), validation.js, securityLogger.js
-└── utils/             # emailService.js, smsService.js
+**Tech Stack:** React 18 + Tailwind CSS
 
-frontend/src/
-├── context/           # AuthContext.jsx (login state, axios interceptor)
-├── pages/             # Route components
-├── components/        # Reusable UI (ListingCard, etc.)
-└── utils/             # api.js (axios wrappers), helpers.js (price calculations)
-```
-
-## Developer Workflows
 ```bash
-# Backend
-cd backend && npm install
-npm run dev          # nodemon hot-reload
-npm start            # production
-GET /api/health      # health check
-
-# Frontend
-cd frontend && npm install
-npm start            # dev server (localhost:3000)
-npm run build        # production build
+cd UnlistedHub-USM/backend && npm run dev    # Backend :5001
+cd UnlistedHub-USM/frontend && npm start     # Frontend :3000
 ```
-**Environment:** Copy `.env.example` → `.env`, never commit secrets. Restart server after changes.
 
-## Critical Business Logic: Platform Fee (2%)
-The platform fee is the core pricing mechanism. Use helper functions from `utils/helpers.js`:
+## Backend Scripts (run from `backend/`)
+
+```bash
+npm run dev                        # Nodemon hot-reload
+npm run seed                       # Seed companies
+node scripts/createAdmin.js        # Create admin user
+node scripts/fetchNews.js          # Manual news fetch
+node scripts/migrateUsernameHistory.js  # Username migration
+```
+
+## API Wrappers (`src/utils/api.js`)
 
 ```javascript
-// frontend/src/utils/helpers.js
-calculateBuyerPays(price)  // → price * 1.02 (buyer pays +2%)
-calculateSellerGets(price) // → price * 0.98 (seller gets -2%)
-getPriceDisplay(price, listingType, isOwner) // → { displayPrice, label }
+// All return axios promises with auto token injection
+listingsAPI.getAll(params)    // GET /api/listings
+listingsAPI.create(data)      // POST /api/listings
+listingsAPI.placeBid(id, bid) // POST /api/listings/:id/bids
+
+companiesAPI.getAll()         // GET /api/companies
+companiesAPI.search(query)    // GET /api/companies/search
+
+adminAPI.getStats()           // GET /api/admin/stats
+adminAPI.getUsers()           // GET /api/admin/users
+adminAPI.banUser(id)          // PUT /api/admin/users/:id/ban
 ```
 
-**Price Display Rules:**
-| Listing Type | Owner Sees | Others See |
-|--------------|------------|------------|
-| SELL (₹100)  | ₹100 (Your Price) | ₹102 (Buyer Pays) |
-| BUY (₹100)   | ₹100 (Your Price) | ₹98 (Seller Gets) |
+## Admin Panel Routes
 
-Backend mirrors this in `models/Listing.js` with `buyerOfferedPrice`, `sellerReceivesPrice`, `platformFee` fields on bids.
-
-## Auth Pattern
-- **Backend:** JWT via `middleware/auth.js` - `protect` (required), `optionalAuth` (guest allowed), `authorize(...roles)`
-- **Frontend:** `AuthContext.jsx` - `useAuth()` hook provides `{ user, login, logout, isAuthenticated }`
-- **Header:** `Authorization: Bearer <token>` (axios default set in AuthContext)
-- **30-min inactivity logout** in frontend
-
-## API Structure
-All endpoints prefixed with `/api`. See `frontend/src/utils/api.js` for axios wrappers:
-```javascript
-listingsAPI.getAll(), listingsAPI.create(), listingsAPI.placeBid()
-companiesAPI.getAll(), companiesAPI.search()
-adminAPI.getStats(), adminAPI.banUser()
+```
+/admin/dashboard    — Stats overview
+/admin/users        — User management
+/admin/listings     — Listing moderation
+/admin/transactions — Deal closure
+/admin/companies    — Company CRUD
+/admin/news         — News management + AI
 ```
 
-## Key Patterns & Conventions
-1. **Anonymous Trading:** System-generated usernames (`@trader_xyz`), real identity only visible to admin
-2. **Validation:** Use `middleware/validation.js` - `validateListing`, `validateBid`, `validateObjectId`
-3. **CORS:** Whitelist in `server.js` + `CORS_ORIGINS` env var; auto-allows `*.vercel.app` previews
-4. **Security:** Helmet, rate limiting (300/15min global, 20/15min auth), Argon2 passwords, mongo-sanitize
-5. **No automated tests:** Validate manually via Postman/browser after changes
-6. **ES Modules:** Backend uses `"type": "module"` - use `import/export`, not `require`
+## Components to Keep Synced with Mobile
 
-## Data Flow: Bid Lifecycle
-```
-Buyer places Bid → status: 'pending'
-  ↓
-Seller: Accept/Reject/Counter → status: 'accepted'/'rejected'/'countered'
-  ↓
-Counter rounds (max 4) with counterHistory array
-  ↓
-Both accept → Transaction created → Admin manual closure
-```
+**Always update BOTH when modifying:**
+- `ShareCardGenerator.jsx` — html2canvas investment cards
+- `helpers.js` — Price calculation functions (fee logic must match)
 
-## Deployment
-- **Backend:** Render.com auto-deploy on push to main (see `RENDER_AUTODEPLOY.md`)
-- **Frontend:** Vercel auto-deploy with preview URLs
-- **Required env vars:** `MONGODB_URI`, `JWT_SECRET` (32+ chars), `FRONTEND_URL`, `CORS_ORIGINS`
+## Desktop-Only Features
 
-## Scripts & Automation
-```bash
-# Backend scripts (run from backend/)
-node scripts/fetchNews.js      # Fetch news from RSS feeds (cron: every 6 hours)
-node scripts/seedCompanies.js  # Seed company data
-```
+- Full admin panel UI
+- MobileApp.jsx wrapper for responsive testing
+- Advanced data tables with sorting/filtering
 
 ## Admin Routes
 Admin-only endpoints require `authorize('admin')` middleware:

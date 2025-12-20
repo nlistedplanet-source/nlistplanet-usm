@@ -612,7 +612,8 @@ const MyBidsOffersTab = () => {
                       required
                       value={counterPrice}
                       onChange={(e) => setCounterPrice(e.target.value)}
-                      className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent font-bold text-gray-900"
+                      onWheel={(e) => e.target.blur()}
+                      className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent font-bold text-gray-900 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="0.00"
                     />
                   </div>
@@ -624,7 +625,8 @@ const MyBidsOffersTab = () => {
                     required
                     value={counterQuantity}
                     onChange={(e) => setCounterQuantity(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent font-bold text-gray-900"
+                    onWheel={(e) => e.target.blur()}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent font-bold text-gray-900 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
               </div>

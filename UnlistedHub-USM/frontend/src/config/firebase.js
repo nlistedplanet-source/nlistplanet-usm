@@ -3,13 +3,18 @@
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyA7jdJrLTnfOcECcmQyrZDL5iEH97zOoJ8",
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyA7jdJrLTnFOcECcmQyrZDL5iEH97zOoJ8",
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "nlistplanet.firebaseapp.com",
   projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "nlistplanet",
   storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "nlistplanet.firebasestorage.app",
   messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "630890625828",
-  appId: process.env.REACT_APP_FIREBASE_APP_ID || "1:630890625828:web:21e2c38082dd7ac8b851b1"
+  appId: process.env.REACT_APP_FIREBASE_APP_ID || "1:630890625828:web:21e2c38082dd7ac8b851b1",
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || "G-7HZRR4L29F"
 };
+
+console.log('🔥 Firebase Config API Key (first 10):', firebaseConfig.apiKey.substring(0, 10) + '...');
+console.log('🔥 Firebase Auth Domain:', firebaseConfig.authDomain);
+console.log('🔥 Firebase Project ID:', firebaseConfig.projectId);
 
 // VAPID key for web push (from Firebase Console → Cloud Messaging → Web Push Certificates)
 const VAPID_KEY = process.env.REACT_APP_FIREBASE_VAPID_KEY || "BA1cPlr8LOVkTbtsxMV06mNMAMLwEd0Kj9LLaGGLEACgNxZcGlyzHLkHs68oZ_OucDPWM_zbzdEf7rPNbdmf-7I";
@@ -182,7 +187,11 @@ export const signInWithGoogle = async () => {
       uid: user.uid
     };
   } catch (error) {
-    console.error('Google sign-in error:', error);
+    console.error('Google sign-in error details:', {
+      code: error.code,
+      message: error.message,
+      fullError: error
+    });
     throw error;
   }
 };

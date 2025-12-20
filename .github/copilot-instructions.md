@@ -1,249 +1,159 @@
 # Copilot Instructions — NListPlanet / UnlistedHub
 
-## 🏗️ Architecture Overview
+## Architecture (One Backend, Two Frontends)
 
-**One Backend, Two Frontends:** Single shared backend ([UnlistedHub-USM/backend](UnlistedHub-USM/backend)) serves both desktop ([UnlistedHub-USM/frontend](UnlistedHub-USM/frontend)) and mobile PWA ([nlistplanet-mobile/frontend](nlistplanet-mobile/frontend)). Backend uses ES modules exclusively—no `require()`. Any docs mentioning separate mobile backend are legacy and incorrect.
+```
+UnlistedHub-USM/backend/     → Express API (Port 5001) - serves BOTH frontends
+UnlistedHub-USM/frontend/    → Desktop React 18 + Tailwind (Port 3000)
+nlistplanet-mobile/frontend/ → Mobile PWA React 19 + Tailwind (Port 3001)
+```
 
-**Core Concept:** Anonymous P2P marketplace for unlisted shares. Users trade anonymously via system-generated usernames (`@trader_xxx`). Admin mediates all transactions. Platform earns hidden 2% fee.
+**Core Concept:** Anonymous P2P marketplace for unlisted shares. Users trade via system-generated usernames (`@trader_xxx`). Admin mediates all transactions. Platform earns **hidden 2% fee**.
 
-## 📁 Essential Files (Read These First)
+## Quick Start
 
-| Path | Purpose |
-|------|---------|
-| [backend/server.js](UnlistedHub-USM/backend/server.js) | Security headers, CORS config, route registration, middleware chain |
-| [backend/middleware/auth.js](UnlistedHub-USM/backend/middleware/auth.js) | JWT auth helpers: `protect`, `authorize`, `optionalAuth` |
-| [backend/models/Listing.js](UnlistedHub-USM/backend/models/Listing.js) | Listing/bid schema with hidden fee fields (`buyerOfferedPrice`, `sellerReceivesPrice`, `platformFee`) |
-| [backend/models/Company.js](UnlistedHub-USM/backend/models/Company.js) | Company schema; pre-save hook auto-normalizes `pan`, `isin`, `cin` to lowercase |
-| [backend/models/User.js](UnlistedHub-USM/backend/models/User.js) | User schema with Argon2id password hashing, FCM tokens, KYC status, referral tracking |
-| [UnlistedHub-USM/frontend/src/utils/api.js](UnlistedHub-USM/frontend/src/utils/api.js) | Desktop axios client with auto token injection and 401 handling |
-| [nlistplanet-mobile/frontend/src/utils/api.js](nlistplanet-mobile/frontend/src/utils/api.js) | Mobile axios client (similar pattern, slight URL differences) |
-| [UnlistedHub-USM/frontend/src/utils/helpers.js](UnlistedHub-USM/frontend/src/utils/helpers.js) | Price/date formatting: `calculateBuyerPays`, `calculateSellerGets`, `getPriceDisplay`, `formatCurrency` |
-
-## 🚀 Dev Workflows
-
-**Backend (Port 5001):**
 ```bash
-cd UnlistedHub-USM/backend
-npm install
-npm run dev  # nodemon hot-reload
-npm start    # production mode
+# Backend (always start first)
+cd UnlistedHub-USM/backend && npm install && npm run dev
+
+# Desktop OR Mobile frontend
+cd UnlistedHub-USM/frontend && npm start       # Desktop :3000
+cd nlistplanet-mobile/frontend && npm start    # Mobile :3001
 ```
 
-**Desktop (Port 3000):**
-```bash
-cd UnlistedHub-USM/frontend
-npm install
-npm start
+**Health check:** `GET /api/health` • **Kill port:** `Stop-Process -Id (Get-NetTCPConnection -LocalPort 5001).OwningProcess -Force`
+
+**Common Issues:**
+- Backend won't start: Check `MONGODB_URI` and `JWT_SECRET` (32+ chars) in `.env`
+- Frontend 401 errors: Backend cold start on Render takes 30-60s, retry or use cached user data
+- Port already in use: `Stop-Process -Name "node" -Force -ErrorAction SilentlyContinue`
+
+## 💰 Platform Fee (CRITICAL - Read This)
+
+Hidden 2% brokerage where **ONLY one side pays** (never both):
+
+| Listing Type | Owner Gets | Others See/Pay |
+|--------------|------------|----------------|
+| SELL @ ₹100  | ₹100       | ₹102 (buyer pays +2%) |
+| BUY @ ₹100   | ₹100       | ₹98 (seller gets -2%)  |
+
+**Always use helpers from `frontend/src/utils/helpers.js`:**
+```javascript
+calculateBuyerPays(price)   // → price × 1.02
+calculateSellerGets(price)  // → price × 0.98
+getPriceDisplay(price, listingType, isOwner) // → { displayPrice, label }
 ```
 
-**Mobile PWA:**
-```bash
-cd nlistplanet-mobile/frontend
-npm install
-npm start
+**Backend stores:** `buyerOfferedPrice`, `sellerReceivesPrice`, `platformFee` on bids. **Never expose fee to users.**
+
+## Key Files
+
+| Purpose | Path |
+|---------|------|
+| Security/CORS/Routes | `backend/server.js` |
+| Auth middleware | `backend/middleware/auth.js` (`protect`, `authorize`, `optionalAuth`) |
+| Price helpers | `frontend/src/utils/helpers.js` (both frontends have this) |
+| API client | `frontend/src/utils/api.js` (auto token injection, 401 handling) |
+| Models | `backend/models/` - User (Argon2id), Listing (bids), Company (auto-lowercase pan/isin) |
+| Push notifications | `backend/utils/pushNotifications.js` (FCM integration, templates) |
+| Email service | `backend/utils/emailService.js` (SMTP via nodemailer) |
+| News scheduler | `backend/utils/newsScheduler.js` (RSS feeds, AI processing) |
+
+## Auth & Security
+
+- **JWT:** 32+ char `JWT_SECRET` required, tokens via `Authorization: Bearer {token}`
+- **Middleware order:** Helmet → CORS → Rate limit (300/15min) → mongo-sanitize → xss-clean
+- **Password:** 12-128 chars, Argon2id hashing (never bcrypt)
+- **Frontend:** 30-min inactivity auto-logout, 401 clears localStorage
+
+## Two-Step Bid Flow
+
+```
+Bid placed → pending
+First accept → accepted (listing hidden)
+Second accept → confirmed (verification codes generated)
+Admin closes → closed (transaction complete)
 ```
 
-**Health Check:** `GET /api/health`
+Users see only `@trader_xxx` usernames. Real identities visible to admin only.
 
-**Testing:** No automated tests. Validate via Postman/browser UI. Ad-hoc test scripts in backend root: `node test-admin-api.js`, `node test-openai.js`, `node test-sms.js`.
+## Push Notifications (Firebase)
 
-**Kill Port 5001 (PowerShell):**
-```powershell
-$processId = (Get-NetTCPConnection -LocalPort 5001).OwningProcess; Stop-Process -Id $processId -Force
+**Architecture:** FCM (Firebase Cloud Messaging) sends instant notifications to all user devices.
+
+**Key Function:** `createAndSendNotification(userId, data)` in `backend/utils/pushNotifications.js`
+- Creates in-app notification + sends FCM push (non-blocking)
+- Auto-cleans invalid tokens
+- Multi-device support via `user.fcmTokens[]` array
+- Templates: `NotificationTemplates.NEW_BID()`, `.BID_ACCEPTED()`, etc.
+
+**Usage pattern:**
+```javascript
+// OLD (in-app only) - DON'T use
+await Notification.create({ userId, type, title, message });
+
+// NEW (in-app + push) - ALWAYS use
+await createAndSendNotification(userId, {
+  ...NotificationTemplates.NEW_BID(username, price, qty, company),
+  data: { listingId: id },
+  actionUrl: '/dashboard/bids'
+});
 ```
 
-**Utility Scripts (run from backend):**
-- `npm run seed` — Seed companies ([scripts/seedCompanies.js](UnlistedHub-USM/backend/scripts/seedCompanies.js))
-- `node scripts/createAdmin.js` — Create admin user
-- `node scripts/fetchNews.js` — Fetch news articles
-- `node scripts/migrateUsernameHistory.js` — Username history migration
+**Setup:** `FIREBASE_SERVICE_ACCOUNT` env var (JSON string). See [FIREBASE_SETUP_EASY.md](FIREBASE_SETUP_EASY.md).
 
-## 🔐 Environment Variables
+## Dual Frontend Sync
 
-**Backend Required:**
-- `MONGODB_URI` — MongoDB connection string
-- `JWT_SECRET` — 32+ chars (validation enforced)
-- `FRONTEND_URL` — Main frontend URL
-- `CORS_ORIGINS` — Comma-separated allowed origins
-- `EMAIL_USER`, `EMAIL_PASSWORD` — SMTP credentials
-- `OPENAI_API_KEY` — For AI news features (optional but required for news AI)
+**Components duplicated in both UIs** (always update both):
+- `ShareCardGenerator.jsx` - investment highlight cards with html2canvas
 
-**Backend Optional:**
-- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` — Image storage
-- `FIREBASE_PROJECT_ID`, `FIREBASE_PRIVATE_KEY`, `FIREBASE_CLIENT_EMAIL` — Push notifications (graceful fallback if missing)
+**Mobile-only utilities** in `nlistplanet-mobile/frontend/src/utils/helpers.js`:
+```javascript
+haptic.light()          // Vibration feedback
+haptic.success()        // [10, 50, 10]ms pattern
+formatShortNumber(num)  // 1500000 → "15 L"
+```
 
-**Frontends:**
-- `REACT_APP_API_URL` — Backend URL (defaults to production if unset)
-- `REACT_APP_FIREBASE_*` — Firebase config for push notifications (see [FIREBASE_SETUP_EASY.md](FIREBASE_SETUP_EASY.md))
+**AuthContext differences:**
+- Desktop: `UnlistedHub-USM/frontend/src/context/AuthContext.jsx` (410 lines)
+- Mobile: `nlistplanet-mobile/frontend/src/context/AuthContext.jsx` (293 lines)
+- Both: 30-min inactivity logout, FCM token management, cached user fallback
 
-**Never commit `.env` files.**
+## API Client Pattern
 
-## 💰 Platform Fee Model (CRITICAL)
+**Auto token injection:** `frontend/src/utils/api.js` sets `Authorization: Bearer {token}` automatically
+```javascript
+// CORRECT - api.js adds token
+await listingsAPI.getAll({ status: 'active' });
 
-**Hidden 2% brokerage—ONLY one side pays:**
+// WRONG - manual axios call without token
+await axios.get('/api/listings');
+```
 
-- **SELL listing:** Seller gets asking price, buyer pays +2%
-  - `buyerPays = price × 1.02`
-  - `sellerGets = price`
-- **BUY listing:** Buyer pays budget, seller gets -2%
-  - `buyerPays = price`
-  - `sellerGets = price × 0.98`
+**401 handling:** Mobile/Desktop AuthContext clears localStorage on 401 → redirects to login.
 
-**NEVER charge both sides (that's 4% total).**
+## Environment Variables
 
-**Display Rules:**
-- SELL listing owner sees base price; others see buyer-pays
-- BUY listing owner sees base price; others see seller-gets
+**Required:** `MONGODB_URI`, `JWT_SECRET` (32+ chars), `FRONTEND_URL`, `CORS_ORIGINS`
+**Optional:** `OPENAI_API_KEY` (AI news), `CLOUDINARY_*` (images), `FIREBASE_SERVICE_ACCOUNT` (push notifications)
 
-**Always use helpers from [helpers.js](UnlistedHub-USM/frontend/src/utils/helpers.js):**
-- `calculateBuyerPays(price)` → price × 1.02
-- `calculateSellerGets(price)` → price × 0.98
-- `getPriceDisplay(price, listingType, isOwner)` → handles display logic
+**Deployment:** Backend on Render.com (Oregon free tier), auto-deploy from `main` branch
+- Production API: `https://nlistplanet-usm-v8dc.onrender.com/api`
+- Manual deploy if auto-deploy fails (see [RENDER_AUTODEPLOY.md](UnlistedHub-USM/backend/RENDER_AUTODEPLOY.md))
+- Cold start: 30-60s on first request after inactivity
 
-**Backend stores:** `buyerOfferedPrice`, `sellerReceivesPrice`, `platformFee` on listings/bids. **Never surface the fee explicitly to users.**
+## 🚫 Don'ts
 
-See [PLATFORM_FEE_MODEL.md](PLATFORM_FEE_MODEL.md) for comprehensive examples.
+1. **Never expose platform fee** to users
+2. **Never use `require()`** — ES modules only (`import/export`)
+3. **Never weaken** rate limiting or security middleware
+4. **Never assume** legacy `CompanyName` — use `name` field
+5. **Never hardcode prices** — use helper functions
+6. **Never forget:** Backend changes impact BOTH UIs
 
-## 🔒 Security & Auth
+## Docs Reference
 
-**Middleware Chain (order matters):**
-1. Helmet (CSP headers, XSS protection)
-2. CORS (whitelist from `CORS_ORIGINS`)
-3. Rate limiting (300/15min global; 20/15min auth endpoints)
-4. mongo-sanitize (NoSQL injection prevention)
-5. xss-clean (XSS sanitization)
-6. compression
-
-**Password Policy:**
-- 12-128 chars, alphanumeric with upper/lower/number
-- Hashed with Argon2id (never bcrypt)
-
-**Auth Middleware:**
-- `protect` — Requires valid JWT
-- `authorize(...roles)` — Role-based access control
-- `optionalAuth` — Attach user if token present, else continue
-
-**Frontend Auth:**
-- AuthContext sets `Authorization: Bearer {token}` on all requests
-- Auto-logout after ~30min inactivity
-- 401 responses clear local storage and redirect to login
-
-## 🔄 Critical Data Flows
-
-**Two-Step Bid Accept (Anonymous Trading):**
-1. Buyer bids → status: `pending`
-2. Either party accepts first → status: `accepted`, listing hidden from marketplace
-3. Second party accepts → status: `confirmed`, verification codes generated
-4. Admin manually closes → status: `closed`, transaction complete
-
-**Trading is anonymous:**
-- Users see `@trader_xxx` usernames only
-- Real identities visible to admin only in transaction details
-- See [TWO_STEP_ACCEPT_FLOW_UNIFIED.md](TWO_STEP_ACCEPT_FLOW_UNIFIED.md) for complete flow
-
-## 🎨 Frontend Patterns
-
-**Frameworks:**
-- Desktop: React 18 + Tailwind CSS
-- Mobile: React 19 + Tailwind CSS
-
-**Mobile-Specific Helpers:**
-- `haptic.*` functions in [nlistplanet-mobile/frontend/src/utils/helpers.js](nlistplanet-mobile/frontend/src/utils/helpers.js)
-- `triggerHaptic(type)` for tactile feedback
-
-**Critical Duplication:**
-- `ShareCardGenerator` component exists in BOTH UIs:
-  - [Desktop version](UnlistedHub-USM/frontend/src/components/ShareCardGenerator.jsx)
-  - [Mobile version](nlistplanet-mobile/frontend/src/components/ShareCardGenerator.jsx)
-- Uses html2canvas to render investment highlight cards with company logos
-- **Always update both versions when making changes**
-
-**Keep centralized:**
-- Price formatting in `helpers.js` (avoid duplicating math)
-- Date formatting in `helpers.js`
-- API calls in `api.js` with proper error handling
-
-## 🤖 AI Features
-
-**Automated News Pipeline:**
-- [utils/newsAI.js](UnlistedHub-USM/backend/utils/newsAI.js) generates Hindi Inshorts summaries (40-60 words) + DALL-E 3 images
-- Runs every 30min via [utils/newsScheduler.js](UnlistedHub-USM/backend/utils/newsScheduler.js)
-- Requires `OPENAI_API_KEY`; optional `CLOUDINARY_*` for permanent storage
-
-**Admin Endpoints:**
-- `POST /api/admin/news-ai/process-ai` — Process single article
-- `POST /api/admin/news-ai/batch-process-ai` — Batch process
-- `POST /api/admin/news-ai/generate-image` — Generate DALL-E image
-- `POST /api/admin/news-ai/generate-hindi` — Generate Hindi summary
-
-See [INSHORTS_NEWS_AI_GUIDE.md](INSHORTS_NEWS_AI_GUIDE.md) for complete API docs and [NEWS_AI_POSTMAN.json](NEWS_AI_POSTMAN.json) for Postman collection.
-
-## 📲 Push Notifications
-
-**System:** Firebase Cloud Messaging (FCM) via firebase-admin
-
-**Current State:** Stub implementation ([backend/utils/pushNotifications.js](UnlistedHub-USM/backend/utils/pushNotifications.js)) — gracefully fails if firebase-admin not installed. Real implementation in [pushNotifications-original.js](UnlistedHub-USM/backend/utils/pushNotifications-original.js).
-
-**User Model Fields:**
-- `fcmTokens: [String]` — Multi-device support
-- `notificationPreferences` — Push/email/bid/offer/deal toggles
-
-**Notification Templates:** Predefined in `NotificationTemplates` object for bid, offer, counter, accept, reject, deal events.
-
-**Setup:** See [FIREBASE_SETUP_EASY.md](FIREBASE_SETUP_EASY.md) and [PUSH_NOTIFICATIONS_COMPLETE.md](PUSH_NOTIFICATIONS_COMPLETE.md).
-
-## 📊 Referral & Share Tracking
-
-**Share Tracking:** Users generate unique share links (`/listing/{id}?ref={shareId}`). Track views (by IP), clicks, conversions, earnings (50% of platform fee on conversions = 1% of transaction).
-
-**Models:**
-- [ReferralTracking](UnlistedHub-USM/backend/models/ReferralTracking.js) — User referral codes
-- [ShareTracking](UnlistedHub-USM/backend/models/ShareTracking.js) — Post share metrics
-
-**Endpoints:**
-- `POST /api/share/create` — Generate share link
-- `GET /api/share/track/:shareId` — Track click/view
-- `GET /api/share/my-shares` — User's share performance
-- `GET /api/referrals/my-referrals` — User's referrals list
-
-**UI Locations:**
-- Desktop: `UnlistedHub-USM/frontend/src/components/dashboard/ReferralsTab.jsx`
-- Mobile: `nlistplanet-mobile/frontend/src/pages/referrals/ReferralsPage.jsx`
-
-See [REFERRAL_SHARE_TRACKING_COMPLETE.md](REFERRAL_SHARE_TRACKING_COMPLETE.md) and [REFERRAL_TRACKING_SYSTEM.md](REFERRAL_TRACKING_SYSTEM.md).
-
-## 🚀 Deployment
-
-**Backend:** Render.com (see [RENDER_AUTODEPLOY.md](UnlistedHub-USM/backend/RENDER_AUTODEPLOY.md))
-- Auto-deploy from Git
-- Add all env vars from backend `.env.example`
-
-**Frontends:** Vercel
-- Set env vars: `CI=false`, `GENERATE_SOURCEMAP=false`
-- Desktop root: `UnlistedHub-USM/frontend`
-- Mobile root: `nlistplanet-mobile/frontend`
-
-## 🚫 Critical Don'ts
-
-1. **DO NOT expose platform fee** to users (keep hidden)
-2. **DO NOT weaken rate limiting** or security middleware
-3. **DO NOT assume legacy `CompanyName` fields** — use `name` field
-4. **DO NOT bypass Argon2id** or password policy
-5. **DO NOT use `require()`** — ES modules only
-6. **DO NOT forget:** Backend changes impact BOTH UIs
-7. **DO NOT hardcode prices** — always use helper functions
-
-## 📚 Comprehensive Docs
-
-| Doc | Focus |
-|-----|-------|
-| [NLISTPLANET_MASTER_DOCS.md](NLISTPLANET_MASTER_DOCS.md) | Complete system architecture and workflows |
-| [PLATFORM_FEE_MODEL.md](PLATFORM_FEE_MODEL.md) | Fee calculation with examples |
-| [SECURITY_HARDENING_SUMMARY.md](SECURITY_HARDENING_SUMMARY.md) | Security features overview |
-| [TWO_STEP_ACCEPT_FLOW_UNIFIED.md](TWO_STEP_ACCEPT_FLOW_UNIFIED.md) | Bid acceptance flow details |
-| [INSHORTS_NEWS_AI_GUIDE.md](INSHORTS_NEWS_AI_GUIDE.md) | AI news generation API docs |
-| [USERNAME_HISTORY_GUIDE.md](UnlistedHub-USM/backend/USERNAME_HISTORY_GUIDE.md) | Username change tracking |
-| [SECURITY_FEATURES.md](UnlistedHub-USM/backend/SECURITY_FEATURES.md) | Detailed security implementation |
-| [FIREBASE_SETUP_EASY.md](FIREBASE_SETUP_EASY.md) | Firebase FCM setup guide |
-| [PUSH_NOTIFICATIONS_COMPLETE.md](PUSH_NOTIFICATIONS_COMPLETE.md) | Push notification system docs |
-| [REFERRAL_SHARE_TRACKING_COMPLETE.md](REFERRAL_SHARE_TRACKING_COMPLETE.md) | Share tracking implementation |
+- [PLATFORM_FEE_MODEL.md](PLATFORM_FEE_MODEL.md) — Fee calculation examples
+- [TWO_STEP_ACCEPT_FLOW_UNIFIED.md](TWO_STEP_ACCEPT_FLOW_UNIFIED.md) — Bid acceptance flow
+- [NLISTPLANET_MASTER_DOCS.md](NLISTPLANET_MASTER_DOCS.md) — Complete system architecture
+- [FIREBASE_SETUP_EASY.md](FIREBASE_SETUP_EASY.md) — Push notification setup

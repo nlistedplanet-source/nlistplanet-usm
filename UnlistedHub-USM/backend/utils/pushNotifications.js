@@ -1,81 +1,199 @@
-// Stub file for push notifications when firebase-admin is not available
+// Conditional import - firebase-admin may not be installed 
+let admin = null;
+let adminImportError = null;
+
+try {
+  admin = (await import('firebase-admin')).default;
+} catch (error) {
+  adminImportError = error;
+  console.warn('⚠️ firebase-admin not installed. Push notifications disabled.');
+}
+
 import Notification from '../models/Notification.js';
 
-console.warn('⚠️ Using push notification stub (firebase-admin not installed)');
+// Initialize Firebase Admin SDK (if not already initialized)
+let firebaseInitialized = false;
+let initializationAttempted = false;
+
+const initializeFirebase = () => {
+  // Only try once
+  if (initializationAttempted) return firebaseInitialized;
+  initializationAttempted = true;
+  
+  if (firebaseInitialized || !admin) return false;
+  
+  try {
+    // Check if Firebase credentials are available
+    let firebaseCredentials = process.env.FIREBASE_SERVICE_ACCOUNT;
+    
+    if (firebaseCredentials) {
+      // Remove surrounding quotes if present (dotenv quirk)
+      if (firebaseCredentials.startsWith("'") && firebaseCredentials.endsWith("'")) {
+        firebaseCredentials = firebaseCredentials.slice(1, -1);
+      }
+      if (firebaseCredentials.startsWith('"') && firebaseCredentials.endsWith('"')) {
+        firebaseCredentials = firebaseCredentials.slice(1, -1);
+      }
+      
+      const serviceAccount = JSON.parse(firebaseCredentials);
+      
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+      });
+      
+      firebaseInitialized = true;
+      console.log('✅ Firebase Admin SDK initialized');
+    } else {
+      console.warn('⚠️ Firebase credentials not found. Push notifications disabled.');
+    }
+  } catch (error) {
+    console.error('❌ Firebase initialization failed:', error.message);
+  }
+};
+
+// Initialize on module load (delayed to ensure dotenv is loaded)
+setTimeout(() => {
+  initializeFirebase();
+}, 100);
 
 /**
- * Send push notification (stub - does nothing)
+ * Send push notification to a user's device(s)
+ * @param {string} userId - User ID to send notification to
+ * @param {object} payload - Notification payload
+ * @returns {Promise<object>} Result of notification send
  */
 export const sendPushNotification = async (userId, payload) => {
-  console.log('📱 Push notification skipped (firebase-admin not available)');
-  return { success: false, reason: 'firebase_not_available' };
+  try {
+    // Lazy initialization - ensure Firebase is ready
+    initializeFirebase();
+    
+    if (!admin || !firebaseInitialized) {
+      console.log('📱 Push notification skipped (Firebase not available)');
+      return { success: false, reason: 'firebase_not_available' };
+    }
+
+    // Get user's FCM tokens from User model
+    const User = (await import('../models/User.js')).default;
+    const user = await User.findById(userId).select('fcmTokens');
+    
+    if (!user || !user.fcmTokens || user.fcmTokens.length === 0) {
+      console.log(`📱 No FCM tokens found for user ${userId}`);
+      return { success: false, reason: 'no_tokens' };
+    }
+
+    const message = {
+      notification: {
+        title: payload.title,
+        body: payload.message,
+      },
+      data: {
+        type: payload.type,
+        ...payload.data,
+        // Convert all data values to strings (FCM requirement)
+        listingId: payload.data?.listingId?.toString() || '',
+        bidId: payload.data?.bidId?.toString() || '',
+        amount: payload.data?.amount?.toString() || '',
+        quantity: payload.data?.quantity?.toString() || '',
+      },
+      android: {
+        priority: 'high',
+        notification: {
+          sound: 'default',
+          clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+          channelId: 'nlistplanet_notifications',
+        }
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: 'default',
+            badge: 1,
+          }
+        }
+      },
+      tokens: user.fcmTokens
+    };
+
+    const response = await admin.messaging().sendEachForMultitoken(message);
+    
+    // Remove invalid tokens
+    const invalidTokens = [];
+    response.responses.forEach((resp, idx) => {
+      if (!resp.success) {
+        invalidTokens.push(user.fcmTokens[idx]);
+        console.log(`❌ Failed to send to token: ${resp.error?.message}`);
+      }
+    });
+
+    // Clean up invalid tokens
+    if (invalidTokens.length > 0) {
+      await User.findByIdAndUpdate(userId, {
+        $pull: { fcmTokens: { $in: invalidTokens } }
+      });
+    }
+
+    console.log(`✅ Push notification sent: ${response.successCount}/${user.fcmTokens.length} delivered`);
+    
+    return {
+      success: true,
+      successCount: response.successCount,
+      failureCount: response.failureCount,
+      invalidTokens
+    };
+
+  } catch (error) {
+    console.error('❌ Push notification error:', error.message);
+    return { success: false, error: error.message };
+  }
 };
 
 /**
- * Send push notification to multiple users (stub)
- */
-export const sendPushNotificationToMultipleUsers = async (userIds, payload) => {
-  console.log('📱 Bulk push notification skipped (firebase-admin not available)');
-  return {
-    success: false,
-    reason: 'firebase_not_available',
-    sent: 0,
-    failed: userIds.length
-  };
-};
-
-/**
- * Send push notification for new bid (stub)
- */
-export const sendNewBidNotification = async (listing, bid) => {
-  console.log('📱 New bid notification skipped');
-  return { success: false };
-};
-
-/**
- * Send push notification for bid acceptance (stub)
- */
-export const sendBidAcceptedNotification = async (listing, bid) => {
-  console.log('📱 Bid accepted notification skipped');
-  return { success: false };
-};
-
-/**
- * Send push notification for deal completion (stub)
- */
-export const sendDealCompletedNotification = async (userId, dealData) => {
-  console.log('📱 Deal completed notification skipped');
-  return { success: false };
-};
-
-/**
- * Create in-app notification and send push notification (stub)
+ * Create in-app notification and send push notification
+ * @param {string} userId - User ID to notify
+ * @param {object} notificationData - Notification data
+ * @returns {Promise<object>} Created notification
  */
 export const createAndSendNotification = async (userId, notificationData) => {
-  const notification = await Notification.create({
-    userId,
-    ...notificationData
-  });
-  console.log('📱 In-app notification created (push notification skipped)');
-  return notification;
+  try {
+    // Create in-app notification
+    const notification = await Notification.create({
+      userId,
+      ...notificationData
+    });
+
+    // Send push notification (non-blocking)
+    sendPushNotification(userId, {
+      title: notificationData.title,
+      message: notificationData.message,
+      type: notificationData.type,
+      data: notificationData.data || {}
+    }).catch(err => {
+      console.error('Push notification failed:', err);
+    });
+
+    return notification;
+  } catch (error) {
+    console.error('❌ Notification creation failed:', error.message);
+    throw error;
+  }
 };
 
 /**
  * Notification templates for different actions
  */
 export const NotificationTemplates = {
-  NEW_BID: (fromUser, amount, quantity, companyName, postId = '') => ({
+  NEW_BID: (fromUser, amount, quantity, companyName) => ({
     type: 'new_bid',
     title: '🎯 New Bid Received!',
-    message: `${fromUser} placed a bid of ₹${amount} for ${quantity} shares of ${companyName}${postId ? ` (Post #${postId.slice(-6)})` : ''}`,
-    data: { fromUser, amount, quantity, companyName, postId }
+    message: `${fromUser} placed a bid of ₹${amount} for ${quantity} shares of ${companyName}`,
+    data: { fromUser, amount, quantity, companyName }
   }),
 
-  NEW_OFFER: (fromUser, amount, quantity, companyName, postId = '') => ({
+  NEW_OFFER: (fromUser, amount, quantity, companyName) => ({
     type: 'new_offer',
     title: '📈 New Offer Received!',
-    message: `${fromUser} made an offer of ₹${amount} for ${quantity} shares of ${companyName}${postId ? ` (Post #${postId.slice(-6)})` : ''}`,
-    data: { fromUser, amount, quantity, companyName, postId }
+    message: `${fromUser} made an offer of ₹${amount} for ${quantity} shares of ${companyName}`,
+    data: { fromUser, amount, quantity, companyName }
   }),
 
   BID_ACCEPTED: (companyName, amount, quantity) => ({
@@ -137,10 +255,6 @@ export const NotificationTemplates = {
 
 export default {
   sendPushNotification,
-  sendPushNotificationToMultipleUsers,
-  sendNewBidNotification,
-  sendBidAcceptedNotification,
-  sendDealCompletedNotification,
   createAndSendNotification,
   NotificationTemplates
 };

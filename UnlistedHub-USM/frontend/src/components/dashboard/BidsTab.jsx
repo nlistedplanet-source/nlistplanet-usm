@@ -267,7 +267,8 @@ const BidsTab = () => {
                     step="0.01"
                     value={counterData.price}
                     onChange={(e) => setCounterData({ ...counterData, price: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                    onWheel={(e) => e.target.blur()}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="Enter your counter price"
                   />
                 </div>
@@ -285,7 +286,8 @@ const BidsTab = () => {
                     min="1"
                     value={counterData.quantity}
                     onChange={(e) => setCounterData({ ...counterData, quantity: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                    onWheel={(e) => e.target.blur()}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="Enter quantity"
                   />
                 </div>

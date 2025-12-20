@@ -736,7 +736,8 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                   step="0.01"
                   value={modifyPrice}
                   onChange={(e) => setModifyPrice(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-semibold text-gray-900"
+                  onWheel={(e) => e.target.blur()}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-semibold text-gray-900 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   placeholder="Enter price per share"
                 />
                 {modifyPrice && (
@@ -753,7 +754,8 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                   min="1"
                   value={modifyQuantity}
                   onChange={(e) => setModifyQuantity(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-semibold text-gray-900"
+                  onWheel={(e) => e.target.blur()}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-semibold text-gray-900 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   placeholder="Enter total quantity"
                 />
                 {modifyQuantity && (
@@ -770,7 +772,8 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                   min="1"
                   value={modifyMinQuantity}
                   onChange={(e) => setModifyMinQuantity(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-semibold text-gray-900"
+                  onWheel={(e) => e.target.blur()}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-semibold text-gray-900 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   placeholder="Enter minimum lot size"
                 />
                 {modifyMinQuantity && (
@@ -912,11 +915,11 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
               </div>
               <div className="mb-4">
                 <label className="block text-sm font-bold text-gray-700 mb-2">Counter Price (per share) *</label>
-                <input type="number" required min="1" step="0.01" value={counterPrice} onChange={(e) => setCounterPrice(e.target.value)} className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-semibold text-gray-900" placeholder="Enter your counter price" />
+                <input type="number" required min="1" step="0.01" value={counterPrice} onChange={(e) => setCounterPrice(e.target.value)} onWheel={(e) => e.target.blur()} className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-semibold text-gray-900 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" placeholder="Enter your counter price" />
               </div>
               <div className="mb-5">
                 <label className="block text-sm font-bold text-gray-700 mb-2">Quantity *</label>
-                <input type="number" required min="1" value={counterQuantity} onChange={(e) => setCounterQuantity(e.target.value)} className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-semibold text-gray-900" placeholder="Enter quantity" />
+                <input type="number" required min="1" value={counterQuantity} onChange={(e) => setCounterQuantity(e.target.value)} onWheel={(e) => e.target.blur()} className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-semibold text-gray-900 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" placeholder="Enter quantity" />
               </div>
               {counterPrice && counterQuantity && (
                 <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-xl p-4 mb-5 border-2 border-purple-300">
