@@ -125,21 +125,19 @@ const BidOfferModal = ({ listing, onClose, onSuccess }) => {
                   </p>
                 </div>
               </div>
-              <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-[10px] text-gray-500 mb-1">{isSell ? 'Price (with fee)' : 'Price (after fee)'}</p>
+                  <p className="text-[10px] text-gray-500 mb-1">Price</p>
                   <p className="font-bold text-lg text-emerald-700">₹{displayPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
-                <div className="pt-2 border-t border-gray-200">
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-gray-500">Available Quantity:</span>
-                    <span className="font-semibold text-gray-900 group relative cursor-help">
-                      {formatQuantityShort(listing.quantity)}
-                      <span className="hidden group-hover:block absolute right-0 top-full mt-1 bg-gray-900 text-white text-[9px] px-2 py-1 rounded whitespace-nowrap z-10 shadow-lg">
-                        {listing.quantity.toLocaleString('en-IN')} shares
-                      </span>
+                <div>
+                  <p className="text-[10px] text-gray-500 mb-1">Available Quantity</p>
+                  <p className="font-bold text-lg text-gray-900 group relative cursor-help">
+                    {formatQuantityShort(listing.quantity)}
+                    <span className="hidden group-hover:block absolute right-0 top-full mt-1 bg-gray-900 text-white text-[9px] px-2 py-1 rounded whitespace-nowrap z-10 shadow-lg">
+                      {listing.quantity.toLocaleString('en-IN')} shares
                     </span>
-                  </div>
+                  </p>
                 </div>
               </div>
             </div>
