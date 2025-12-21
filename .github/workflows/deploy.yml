@@ -6,13 +6,50 @@ on:
       - main
     paths:
       - 'UnlistedHub-USM/frontend/**'
+      - 'nlistplanet-mobile/frontend/**'
 
 jobs:
-  deploy:
-    name: Trigger Vercel Deployment
+  deploy-desktop:
+    name: Deploy Desktop Frontend
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.modified, 'UnlistedHub-USM/frontend') || contains(github.event.head_commit.added, 'UnlistedHub-USM/frontend')
+    steps:
+      - name: Trigger Vercel Deploy Hook (Desktop)
+        run: |
+          curl -X POST "${{ secrets.VERCEL_DESKTOP_DEPLOY_HOOK }}"
+          echo "✅ Desktop deployment triggered!"
+
+  deploy-mobile:
+    name: Deploy Mobile Frontend
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.modified, 'nlistplanet-mobile/frontend') || contains(github.event.head_commit.added, 'nlistplanet-mobile/frontend')
+    steps:
+      - name: Trigger Vercel Deploy Hook (Mobile)
+        run: |
+          curl -X POST "${{ secrets.VERCEL_MOBILE_DEPLOY_HOOK }}"
+          echo "✅ Mobile deployment triggered!"
+
+  deploy-both:
+    name: Deploy Both (Fallback)
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Vercel Deploy Hook
+      - name: Checkout to check changed files
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Check changed paths and deploy
         run: |
-          curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK }}"
-          echo "Vercel deployment triggered successfully!"
+          CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
+          
+          if echo "$CHANGED" | grep -q "UnlistedHub-USM/frontend/"; then
+            echo "🖥️ Desktop changes detected, deploying..."
+            curl -X POST "${{ secrets.VERCEL_DESKTOP_DEPLOY_HOOK }}" || true
+          fi
+          
+          if echo "$CHANGED" | grep -q "nlistplanet-mobile/frontend/"; then
+            echo "📱 Mobile changes detected, deploying..."
+            curl -X POST "${{ secrets.VERCEL_MOBILE_DEPLOY_HOOK }}" || true
+          fi
+          
+          echo "✅ Deployment check complete!"
