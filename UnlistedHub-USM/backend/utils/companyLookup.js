@@ -7,6 +7,7 @@
 import Company from '../models/Company.js';
 import Notification from '../models/Notification.js';
 import User from '../models/User.js';
+import { createAndSendNotification } from './pushNotifications.js';
 
 // Sector mapping for common company types
 const SECTOR_KEYWORDS = {

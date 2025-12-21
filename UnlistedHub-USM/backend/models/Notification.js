@@ -24,6 +24,9 @@ const notificationSchema = new mongoose.Schema({
       'boost_activated',
       'referral_earning',
       'app_update',
+      'admin_alert',
+      'success',
+      'warning',
       'test'
     ],
     required: true
@@ -43,6 +46,10 @@ const notificationSchema = new mongoose.Schema({
     amount: Number,
     quantity: Number,
     companyName: String,
+    companyId: mongoose.Schema.Types.ObjectId,
+    addedBy: mongoose.Schema.Types.ObjectId,
+    action: String,
+    verificationStatus: String,
     version: String,
     actionUrl: String
   },
