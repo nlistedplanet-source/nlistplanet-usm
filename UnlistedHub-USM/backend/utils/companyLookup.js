@@ -160,23 +160,43 @@ export async function createNewCompanyFromListing(companyName, userId, additiona
       : null;
 
     // Create new company with pending verification
-    const newCompany = await Company.create({
+    // Build company data object - only include ISIN/PAN/CIN if they have values
+    // This avoids MongoDB unique index issues with null values
+    const companyData = {
       name: trimmedName,
       scriptName: additionalData.scriptName || trimmedName.split(' ')[0],
       sector: sector, // Business sector (Technology, Finance, etc.) - auto-detected
       marketSegment: marketSegment, // Market segment (SME, Mainboard, etc.) - from user input
       logo: logo,
-      isin: (additionalData.isin && additionalData.isin.trim()) || null,
-      pan: (additionalData.pan && additionalData.pan.trim()) || null,
-      cin: (additionalData.cin && additionalData.cin.trim()) || null,
-      website: additionalData.website || null,
       description: `${trimmedName} - Unlisted company. Details pending verification.`,
       verificationStatus: 'pending',
       addedBy: 'user',
       addedByUser: userId,
       isActive: true,
       totalListings: 1
-    });
+    };
+
+    // Only add ISIN if provided (avoid null value in unique index)
+    if (additionalData.isin && additionalData.isin.trim()) {
+      companyData.isin = additionalData.isin.trim().toUpperCase();
+    }
+
+    // Only add PAN if provided
+    if (additionalData.pan && additionalData.pan.trim()) {
+      companyData.pan = additionalData.pan.trim().toUpperCase();
+    }
+
+    // Only add CIN if provided
+    if (additionalData.cin && additionalData.cin.trim()) {
+      companyData.cin = additionalData.cin.trim().toUpperCase();
+    }
+
+    // Only add website if provided
+    if (additionalData.website && additionalData.website.trim()) {
+      companyData.website = additionalData.website.trim();
+    }
+
+    const newCompany = await Company.create(companyData);
 
     console.log(`Successfully created new company: ${newCompany.name}`);
 
