@@ -112,12 +112,16 @@ function generateLogoUrl(companyName) {
  */
 export async function createNewCompanyFromListing(companyName, userId, additionalData = {}) {
   try {
-    // Check if company already exists (case-insensitive)
+    const trimmedName = companyName.trim();
+    
+    // Check if company already exists (case-insensitive, escaped regex)
+    const escapedName = trimmedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const existingCompany = await Company.findOne({
-      name: { $regex: new RegExp(`^${companyName.trim()}$`, 'i') }
+      name: { $regex: new RegExp(`^${escapedName}$`, 'i') }
     });
 
     if (existingCompany) {
+      console.log(`Company "${trimmedName}" already exists in database.`);
       return {
         success: true,
         company: existingCompany,
@@ -125,23 +129,36 @@ export async function createNewCompanyFromListing(companyName, userId, additiona
       };
     }
 
+    // Check if ISIN already exists if provided
+    if (additionalData.isin) {
+      const existingIsin = await Company.findOne({ isin: additionalData.isin.toUpperCase().trim() });
+      if (existingIsin) {
+        console.log(`Company with ISIN "${additionalData.isin}" already exists: ${existingIsin.name}`);
+        return {
+          success: true,
+          company: existingIsin,
+          isNew: false
+        };
+      }
+    }
+
     // Detect sector from company name
-    const sector = additionalData.sector || detectSector(companyName);
+    const sector = additionalData.sector || detectSector(trimmedName);
     
     // Generate logo URL
-    const logo = generateLogoUrl(companyName);
+    const logo = generateLogoUrl(trimmedName);
 
     // Create new company with pending verification
     const newCompany = await Company.create({
-      name: companyName.trim(),
-      scriptName: additionalData.scriptName || companyName.split(' ')[0],
+      name: trimmedName,
+      scriptName: additionalData.scriptName || trimmedName.split(' ')[0],
       sector: sector,
       logo: logo,
       isin: additionalData.isin || null,
       pan: additionalData.pan || null,
       cin: additionalData.cin || null,
       website: additionalData.website || null,
-      description: `${companyName} - Unlisted company. Details pending verification.`,
+      description: `${trimmedName} - Unlisted company. Details pending verification.`,
       verificationStatus: 'pending',
       addedBy: 'user',
       addedByUser: userId,
@@ -149,8 +166,13 @@ export async function createNewCompanyFromListing(companyName, userId, additiona
       totalListings: 1
     });
 
+    console.log(`Successfully created new company: ${newCompany.name}`);
+
     // Notify all admins about new company with Push Notifications
-    await notifyAdminsAboutNewCompany(newCompany, userId);
+    // We don't await this to avoid slowing down the response
+    notifyAdminsAboutNewCompany(newCompany, userId).catch(err => 
+      console.error('Error in background admin notification:', err)
+    );
 
     return {
       success: true,

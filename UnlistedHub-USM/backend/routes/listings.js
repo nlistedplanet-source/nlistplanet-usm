@@ -236,7 +236,7 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
 // @route   POST /api/listings
 // @desc    Create new listing
 // @access  Private
-router.post('/', protect, async (req, res, next) => {
+router.post('/', protect, validateListing, async (req, res, next) => {
   try {
     const { type, companyId, companyName: manualCompanyName, price, quantity, minLot, companySegmentation, companyPan, companyISIN, companyCIN, description } = req.body;
 
@@ -343,7 +343,7 @@ router.post('/', protect, async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: `${type === 'sell' ? 'Sell post' : 'Buy request'} created successfully`,
+      message: message,
       data: listing
     });
   } catch (error) {
