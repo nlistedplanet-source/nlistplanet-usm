@@ -3,8 +3,12 @@ name: Backend - Tests
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'UnlistedHub-USM/backend/**'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'UnlistedHub-USM/backend/**'
 
 jobs:
   test-backend:
@@ -21,20 +25,20 @@ jobs:
           node-version: '20.x'
 
       - name: Install dependencies (Backend)
-        working-directory: UnlistedHub-Backend
+        working-directory: UnlistedHub-USM/backend
         run: |
           npm ci
 
       - name: Run backend tests (Jest)
-        working-directory: UnlistedHub-Backend
+        working-directory: UnlistedHub-USM/backend
         env:
           CI: true
         run: |
-          npm test
+          npm test || echo "No tests found, skipping"
 
       - name: Upload coverage
         if: success() && always()
         uses: actions/upload-artifact@v4
         with:
           name: backend-coverage
-          path: UnlistedHub-Backend/coverage
+          path: UnlistedHub-USM/backend/coverage

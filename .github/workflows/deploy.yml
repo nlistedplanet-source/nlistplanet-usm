@@ -1,0 +1,18 @@
+name: Auto Deploy to Vercel
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'UnlistedHub-USM/frontend/**'
+
+jobs:
+  deploy:
+    name: Trigger Vercel Deployment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Vercel Deploy Hook
+        run: |
+          curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK }}"
+          echo "Vercel deployment triggered successfully!"
