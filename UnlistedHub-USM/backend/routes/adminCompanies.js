@@ -910,7 +910,42 @@ router.put('/companies/:id/verify', protect, authorize('admin'), async (req, res
       });
     }
 
-    // Update verification status
+    // If rejecting, delete the company and all associated listings
+    if (status === 'rejected') {
+      // Delete all listings associated with this company
+      const Listing = (await import('../models/Listing.js')).default;
+      const deletedListings = await Listing.deleteMany({ 
+        $or: [
+          { companyId: companyId },
+          { manualCompanyName: { $regex: new RegExp(`^${company.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } }
+        ]
+      });
+
+      console.log(`Deleted ${deletedListings.deletedCount} listings associated with rejected company: ${company.name}`);
+
+      // Delete the company
+      await Company.findByIdAndDelete(companyId);
+
+      // Notify the user who added the company
+      if (company.addedByUser) {
+        const Notification = (await import('../models/Notification.js')).default;
+        await Notification.create({
+          userId: company.addedByUser,
+          type: 'warning',
+          title: '❌ Company Rejected',
+          message: `Your company "${company.name}" and associated ${deletedListings.deletedCount} listing(s) were rejected. ${notes || 'Contact admin for details.'}`,
+          data: { companyId: company._id }
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: `Company and ${deletedListings.deletedCount} associated listing(s) deleted successfully`,
+        deletedListings: deletedListings.deletedCount
+      });
+    }
+
+    // If verifying, update status
     company.verificationStatus = status;
     company.verificationNotes = notes || '';
     company.verifiedBy = req.user._id;
@@ -923,18 +958,16 @@ router.put('/companies/:id/verify', protect, authorize('admin'), async (req, res
       const Notification = (await import('../models/Notification.js')).default;
       await Notification.create({
         userId: company.addedByUser,
-        type: status === 'verified' ? 'success' : 'warning',
-        title: status === 'verified' ? '✅ Company Verified' : '❌ Company Rejected',
-        message: status === 'verified' 
-          ? `Your company "${company.name}" has been verified and is now live on marketplace!`
-          : `Your company "${company.name}" was rejected. ${notes || 'Contact admin for details.'}`,
+        type: 'success',
+        title: '✅ Company Verified',
+        message: `Your company "${company.name}" has been verified and is now live on marketplace!`,
         data: { companyId: company._id }
       });
     }
 
     res.json({
       success: true,
-      message: `Company ${status === 'verified' ? 'approved' : 'rejected'} successfully`,
+      message: 'Company approved successfully',
       company
     });
   } catch (error) {
