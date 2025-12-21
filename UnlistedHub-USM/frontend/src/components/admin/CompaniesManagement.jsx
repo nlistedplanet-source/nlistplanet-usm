@@ -4,6 +4,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { BASE_API_URL, adminAPI } from '../../utils/api';
 
+// Force webpack recompile - Edit button fix
 const CompaniesManagement = () => {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(false);
