@@ -270,7 +270,7 @@ router.post('/', protect, validateListing, async (req, res, next) => {
             pan: companyPan || null,
             isin: companyISIN || null,
             cin: companyCIN || null,
-            sector: companySegmentation || null
+            segment: companySegmentation || null // Market segment, NOT business sector
           }
         );
 

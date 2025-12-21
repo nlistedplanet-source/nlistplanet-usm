@@ -466,7 +466,10 @@ const CompaniesManagement = () => {
                   <th style={{ width: '140px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Sector</th>
                   <th style={{ width: '100px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Reg. Date</th>
                   {activeTab === 'manual-entries' && (
-                    <th style={{ width: '120px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Added By</th>
+                    <>
+                      <th style={{ width: '100px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Segment</th>
+                      <th style={{ width: '120px' }} className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Added By</th>
+                    </>
                   )}
                   <th style={{ width: activeTab === 'manual-entries' ? '120px' : '80px' }} className="px-3 py-2 text-center text-[10px] font-semibold text-gray-600 uppercase whitespace-nowrap">Actions</th>
                 </tr>
@@ -517,15 +520,31 @@ const CompaniesManagement = () => {
                       {company.registrationDate ? new Date(company.registrationDate).toLocaleDateString('en-GB') : '-'}
                     </td>
                     {activeTab === 'manual-entries' && (
-                      <td className="px-3 py-2 text-gray-600 text-[10px] whitespace-nowrap">
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                          User Added
-                        </span>
-                      </td>
+                      <>
+                        <td className="px-3 py-2 text-gray-600 text-[10px] whitespace-nowrap">
+                          {company.marketSegment ? (
+                            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                              {company.marketSegment}
+                            </span>
+                          ) : '-'}
+                        </td>
+                        <td className="px-3 py-2 text-gray-600 text-[10px] whitespace-nowrap">
+                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                            @{company.addedByUser?.username || 'Unknown'}
+                          </span>
+                        </td>
+                      </>
                     )}
                     <td className="px-3 py-2">
                       {activeTab === 'manual-entries' ? (
                         <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => handleEdit(company)}
+                            className="p-1 text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                            title="Edit Details"
+                          >
+                            <Edit2 size={14} />
+                          </button>
                           <button
                             onClick={() => handleApproveManualEntry(company._id)}
                             className="px-2 py-1 text-[10px] bg-green-500 text-white rounded hover:bg-green-600 transition-colors"

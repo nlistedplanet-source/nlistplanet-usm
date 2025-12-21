@@ -142,24 +142,29 @@ export async function createNewCompanyFromListing(companyName, userId, additiona
       }
     }
 
-    // Detect sector from company name
-    // If additionalData.sector is a segment (SME, Mainboard, etc.), we prefer detectSector
-    const segments = ['SME', 'Mainboard', 'Unlisted', 'Pre-IPO', 'Startup', 'Private'];
-    let sector = detectSector(trimmedName);
+    // Detect sector from company name (NEVER use companySegmentation as sector)
+    // companySegmentation is market segment (SME/Mainboard), not business sector (Technology/Finance)
+    const sector = detectSector(trimmedName);
     
-    // If detectSector returned 'Other' and we have a sector in additionalData that isn't just a segment, use it
-    if (sector === 'Other' && additionalData.sector && !segments.includes(additionalData.sector)) {
-      sector = additionalData.sector;
-    }
+    // Note: We always auto-detect sector from company name.
+    // additionalData.sector might contain companySegmentation (SME, Mainboard, etc.) which is NOT a business sector.
+    // Business sectors are: Technology, Financial Service, eCommerce, etc.
 
     // Generate logo URL
     const logo = generateLogoUrl(trimmedName);
+
+    // Market segment from additionalData (SME, Mainboard, etc.) - optional
+    const segments = ['SME', 'Mainboard', 'Unlisted', 'Pre-IPO', 'Startup', 'Private'];
+    const marketSegment = additionalData.segment && segments.includes(additionalData.segment) 
+      ? additionalData.segment 
+      : null;
 
     // Create new company with pending verification
     const newCompany = await Company.create({
       name: trimmedName,
       scriptName: additionalData.scriptName || trimmedName.split(' ')[0],
-      sector: sector,
+      sector: sector, // Business sector (Technology, Finance, etc.) - auto-detected
+      marketSegment: marketSegment, // Market segment (SME, Mainboard, etc.) - from user input
       logo: logo,
       isin: (additionalData.isin && additionalData.isin.trim()) || null,
       pan: (additionalData.pan && additionalData.pan.trim()) || null,

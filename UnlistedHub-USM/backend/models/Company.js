@@ -21,6 +21,13 @@ const companySchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  // Market segment (SME, Mainboard, Unlisted, Pre-IPO, Startup, Private)
+  // Different from business sector (Technology, Finance, etc.)
+  marketSegment: {
+    type: String,
+    enum: ['SME', 'Mainboard', 'Unlisted', 'Pre-IPO', 'Startup', 'Private'],
+    default: null
+  },
   description: {
     type: String,
     maxlength: 1000
