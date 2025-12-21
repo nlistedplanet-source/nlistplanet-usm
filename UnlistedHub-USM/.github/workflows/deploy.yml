@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'UnlistedHub-USM/frontend/**'
+      - 'frontend/**'
 
 jobs:
   deploy:
