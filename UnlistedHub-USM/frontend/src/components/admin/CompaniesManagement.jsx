@@ -6,7 +6,7 @@ import { BASE_API_URL, adminAPI } from '../../utils/api';
 
 // Force webpack recompile - Edit button fix
 const CompaniesManagement = () => {
-  console.log('🔄 CompaniesManagement loaded - Version: 2024-12-21-11:00 - Edit button ENABLED');
+  console.log(' CompaniesManagement loaded - Version: 2024-12-21-11:00 - Edit button ENABLED');
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -556,14 +556,14 @@ const CompaniesManagement = () => {
                             className="px-2 py-1 text-[10px] bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
                             title="Approve & Publish"
                           >
-                            ✓ Approve
+                             Approve
                           </button>
                           <button
                             onClick={() => handleRejectManualEntry(company._id)}
                             className="px-2 py-1 text-[10px] bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
                             title="Reject"
                           >
-                            ✗ Reject
+                             Reject
                           </button>
                         </div>
                       ) : (
@@ -812,6 +812,4 @@ const CompaniesManagement = () => {
 };
 
 export default CompaniesManagement;
-/ /   B u i l d :   2 0 2 5 - 1 2 - 2 1   1 6 : 0 5 : 5 6 
- 
- 
+// Build: 2025-12-21 16:05:56
