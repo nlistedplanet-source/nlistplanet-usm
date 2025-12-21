@@ -143,8 +143,15 @@ export async function createNewCompanyFromListing(companyName, userId, additiona
     }
 
     // Detect sector from company name
-    const sector = additionalData.sector || detectSector(trimmedName);
+    // If additionalData.sector is a segment (SME, Mainboard, etc.), we prefer detectSector
+    const segments = ['SME', 'Mainboard', 'Unlisted', 'Pre-IPO', 'Startup', 'Private'];
+    let sector = detectSector(trimmedName);
     
+    // If detectSector returned 'Other' and we have a sector in additionalData that isn't just a segment, use it
+    if (sector === 'Other' && additionalData.sector && !segments.includes(additionalData.sector)) {
+      sector = additionalData.sector;
+    }
+
     // Generate logo URL
     const logo = generateLogoUrl(trimmedName);
 
@@ -154,9 +161,9 @@ export async function createNewCompanyFromListing(companyName, userId, additiona
       scriptName: additionalData.scriptName || trimmedName.split(' ')[0],
       sector: sector,
       logo: logo,
-      isin: additionalData.isin || null,
-      pan: additionalData.pan || null,
-      cin: additionalData.cin || null,
+      isin: (additionalData.isin && additionalData.isin.trim()) || null,
+      pan: (additionalData.pan && additionalData.pan.trim()) || null,
+      cin: (additionalData.cin && additionalData.cin.trim()) || null,
       website: additionalData.website || null,
       description: `${trimmedName} - Unlisted company. Details pending verification.`,
       verificationStatus: 'pending',
@@ -240,23 +247,24 @@ async function notifyAdminsAboutNewCompany(company, addedByUserId) {
 export async function searchCompanyByName(companyName) {
   try {
     const searchTerm = companyName.trim();
-    const searchRegex = new RegExp(searchTerm, 'i');
+    const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const searchRegex = new RegExp(escapedTerm, 'i');
     
     // First: Exact match on name (case-insensitive)
     let company = await Company.findOne({
-      name: { $regex: new RegExp(`^${searchTerm}$`, 'i') }
+      name: { $regex: new RegExp(`^${escapedTerm}$`, 'i') }
     });
     if (company) return company;
 
     // Second: Exact match on scriptName (case-insensitive)
     company = await Company.findOne({
-      scriptName: { $regex: new RegExp(`^${searchTerm}$`, 'i') }
+      scriptName: { $regex: new RegExp(`^${escapedTerm}$`, 'i') }
     });
     if (company) return company;
 
     // Third: Exact match on CompanyName (legacy field)
     company = await Company.findOne({
-      CompanyName: { $regex: new RegExp(`^${searchTerm}$`, 'i') }
+      CompanyName: { $regex: new RegExp(`^${escapedTerm}$`, 'i') }
     });
     if (company) return company;
 

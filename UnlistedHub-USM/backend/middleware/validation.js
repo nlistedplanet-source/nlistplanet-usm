@@ -27,7 +27,7 @@ export const validateListing = [
   body('price').isFloat({ min: 1, max: 1000000000 }).withMessage('Price must be between 1 and 1000000000'),
   body('quantity').isInt({ min: 1, max: 100000000 }).withMessage('Quantity must be between 1 and 100000000'),
   body('minLot').isInt({ min: 1 }).withMessage('Minimum lot must be at least 1'),
-  body('companySegmentation').optional().isIn(['SME', 'Mainboard', 'Private']).withMessage('Invalid segmentation'),
+  body('companySegmentation').optional().isIn(['SME', 'Mainboard', 'Unlisted', 'Pre-IPO', 'Startup']).withMessage('Invalid segmentation'),
   body('description').optional().isString().isLength({ max: 1000 }).trim().escape().withMessage('Description max 1000 characters'),
   handleValidationErrors
 ];
