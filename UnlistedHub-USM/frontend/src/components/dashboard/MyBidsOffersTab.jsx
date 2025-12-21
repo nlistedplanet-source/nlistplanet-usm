@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader, TrendingUp, TrendingDown, Clock, CheckCircle, XCircle, RotateCcw, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
 import { listingsAPI } from '../../utils/api';
-import { formatCurrency, formatDate, calculateSellerGets, calculateBuyerPays } from '../../utils/helpers';
+import { formatCurrency, formatDate, calculateSellerGets, calculateBuyerPays, getNetPriceForUser } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 
 const MyBidsOffersTab = () => {
@@ -95,12 +95,32 @@ const MyBidsOffersTab = () => {
 
   const handleCounterClick = (activity) => {
     setSelectedActivity(activity);
-    // Pre-fill with the LAST price from history or original
-    const lastPrice = activity.counterHistory?.length > 0 
-      ? activity.counterHistory[activity.counterHistory.length - 1].price 
-      : activity.price;
-      
-    setCounterPrice(lastPrice.toString());
+    
+    // Determine the visible price for the current user to pre-fill
+    const isBid = activity.type === 'bid'; // I am Buyer
+    const hasCounterHistory = activity.counterHistory?.length > 0;
+    const latestCounter = hasCounterHistory ? activity.counterHistory[activity.counterHistory.length - 1] : null;
+    
+    let lastVisiblePrice = activity.price;
+    
+    if (latestCounter) {
+      if (isBid) {
+        // I am Buyer, if last counter was by seller, adjust it
+        lastVisiblePrice = latestCounter.by === 'seller' ? calculateBuyerPays(latestCounter.price) : latestCounter.price;
+      } else {
+        // I am Seller, if last counter was by buyer, adjust it
+        lastVisiblePrice = latestCounter.by === 'buyer' ? calculateSellerGets(latestCounter.price) : latestCounter.price;
+      }
+    } else {
+      // Initial bid/offer
+      if (isBid) {
+        lastVisiblePrice = activity.buyerOfferedPrice || activity.price;
+      } else {
+        lastVisiblePrice = activity.sellerReceivesPrice || activity.price;
+      }
+    }
+
+    setCounterPrice(lastVisiblePrice.toString());
     setCounterQuantity(activity.quantity.toString());
     setShowCounterModal(true);
   };
@@ -199,29 +219,9 @@ const MyBidsOffersTab = () => {
     // Determine the "Current Price" to show in the header
     // If countered, show the latest counter price. If pending, show original bid.
     const latestCounter = counterHistory.length > 0 ? counterHistory[counterHistory.length - 1] : null;
-    const rawDisplayPrice = latestCounter ? latestCounter.price : (activity.originalPrice || activity.price);
     
-    // Calculate display price based on fee model
-    // If I am Buyer (isBid): I pay +2% on Seller's price. My price is already what I pay.
-    // If I am Seller (!isBid): I get -2% on Buyer's price. My price is already what I get.
-    let displayPrice = rawDisplayPrice;
-    if (latestCounter) {
-       if (isBid) {
-         // I am Buyer. If counter is from Seller, I see (Price * 1.02). If from me, I see (Price).
-         displayPrice = latestCounter.by === 'seller' ? calculateBuyerPays(latestCounter.price) : latestCounter.price;
-       } else {
-         // I am Seller. If counter is from Buyer, I see (Price * 0.98). If from me, I see (Price).
-         displayPrice = latestCounter.by === 'buyer' ? calculateSellerGets(latestCounter.price) : latestCounter.price;
-       }
-    } else {
-       // Initial Bid/Offer - use the actual price buyer/seller sees (with fees)
-       // Backend sends buyerOfferedPrice (buyer pays) and sellerReceivesPrice (seller gets)
-       if (isBid) {
-         displayPrice = activity.buyerOfferedPrice || activity.originalPrice || activity.price;
-       } else {
-         displayPrice = activity.sellerReceivesPrice || activity.originalPrice || activity.price;
-       }
-    }
+    // Use universal helper to determine display price
+    const displayPrice = getNetPriceForUser(activity, activity.type === 'bid' ? 'sell' : 'buy', false, latestCounter?.by);
 
     // Determine card background color based on status
     const getCardBgClass = () => {
@@ -383,13 +383,8 @@ const MyBidsOffersTab = () => {
                   // Determine if this row represents "Me" or "Them"
                   const isMe = isBid ? !isSellerCounter : isSellerCounter;
                   
-                  // Price Display Logic
-                  let rowPrice;
-                  if (isBid) {
-                    rowPrice = isSellerCounter ? calculateBuyerPays(counter.price) : counter.price;
-                  } else {
-                    rowPrice = !isSellerCounter ? calculateSellerGets(counter.price) : counter.price;
-                  }
+                  // Use universal helper for row price
+                  const rowPrice = getNetPriceForUser(counter, activity.type === 'bid' ? 'sell' : 'buy', false, counter.by);
                   
                   const isLatestRound = idx === counterHistory.length - 1;
                   const rowBgClass = isLatestRound 

@@ -143,13 +143,21 @@ router.get('/activities', protect, async (req, res, next) => {
     const transactions = await Transaction.find({
       $or: [{ buyerId: userId }, { sellerId: userId }]
     })
-      .populate('listingId', 'companyName')
+      .populate({
+        path: 'listingId',
+        select: 'companyName companyId',
+        populate: {
+          path: 'companyId',
+          select: 'name scriptName Logo logo'
+        }
+      })
       .sort({ createdAt: -1 })
       .limit(limit);
 
     // Get user's own listings (posts they created) - Include bids/offers for activity tracking
     const userListings = await Listing.find({ userId: userId })
-      .select('companyName listingType price quantity status createdAt updatedAt bids offers')
+      .select('companyName companyId type price quantity status createdAt updatedAt bids offers')
+      .populate('companyId', 'name scriptName scriptName Logo logo')
       .sort({ createdAt: -1 })
       .limit(limit);
 
@@ -160,7 +168,8 @@ router.get('/activities', protect, async (req, res, next) => {
         { 'offers.userId': userId }
       ]
     })
-      .select('companyName listingType bids offers createdAt')
+      .select('companyName companyId type bids offers createdAt')
+      .populate('companyId', 'name scriptName scriptName Logo logo')
       .sort({ createdAt: -1 });
       // .limit(limit); // Removed limit to ensure we catch recent bids on older listings
 
@@ -169,49 +178,58 @@ router.get('/activities', protect, async (req, res, next) => {
 
     // 1. Add user's own listings (posts)
     userListings.forEach(listing => {
+      const companyName = listing.companyId?.name || listing.companyId?.scriptName || listing.companyName || 'Unknown';
+      
       activities.push({
         type: 'listing',
-        action: listing.listingType === 'sell' ? 'listed_sell' : 'listed_buy',
-        companyName: listing.companyName || 'Unknown',
+        action: listing.type === 'sell' ? 'listed_sell' : 'listed_buy',
+        companyName: companyName,
         quantity: listing.quantity,
         price: listing.price,
         status: listing.status,
         date: listing.createdAt,
-        description: listing.listingType === 'sell' 
-          ? `Listed ${listing.quantity} shares of ${listing.companyName} for sale at ₹${listing.price}`
-          : `Created buy order for ${listing.quantity} shares of ${listing.companyName} at ₹${listing.price}`
+        description: listing.type === 'sell' 
+          ? `Listed ${listing.quantity} shares of ${companyName} for sale at ₹${listing.price}`
+          : `Created buy order for ${listing.quantity} shares of ${companyName} at ₹${listing.price}`
       });
 
       // Check for actions on incoming bids/offers (Accept/Reject/Counter by me)
-      const incomingItems = listing.listingType === 'sell' ? listing.bids : listing.offers;
+      const incomingItems = listing.type === 'sell' ? listing.bids : listing.offers;
       
       incomingItems?.forEach(item => {
+        // Determine display price for the owner
+        const displayPrice = listing.type === 'sell' ? (item.sellerReceivesPrice || item.price / 1.02) : (item.buyerOfferedPrice || item.price / 0.98);
+        
         // If I accepted or rejected
         if (item.status === 'accepted' || item.status === 'rejected') {
           activities.push({
             type: 'action',
             action: item.status === 'accepted' ? 'accepted_bid' : 'rejected_bid',
-            companyName: listing.companyName || 'Unknown',
+            companyName: companyName,
             quantity: item.quantity,
-            price: item.price,
+            price: displayPrice,
             status: item.status,
             date: listing.updatedAt, // Best approximation
-            description: `${item.status === 'accepted' ? 'Accepted' : 'Rejected'} ${listing.listingType === 'sell' ? 'bid' : 'offer'} for ${item.quantity} shares of ${listing.companyName}`
+            description: `${item.status === 'accepted' ? 'Accepted' : 'Rejected'} ${listing.type === 'sell' ? 'bid' : 'offer'} for ${item.quantity} shares of ${companyName} at ₹${displayPrice.toFixed(2)}`
           });
         }
 
         // If I countered (as seller)
         item.counterHistory?.forEach(counter => {
           if (counter.by === 'seller') { // I am the seller
+            // If I am seller on SELL listing, I entered what I get.
+            // If I am seller on BUY listing, I entered what I get.
+            const counterPrice = counter.price;
+            
             activities.push({
               type: 'action',
               action: 'countered_bid',
-              companyName: listing.companyName || 'Unknown',
+              companyName: companyName,
               quantity: counter.quantity || item.quantity,
-              price: counter.price,
+              price: counterPrice,
               status: 'countered',
               date: counter.timestamp,
-              description: `Countered ${listing.listingType === 'sell' ? 'bid' : 'offer'} for ${listing.companyName} at ₹${counter.price}`
+              description: `Countered ${listing.type === 'sell' ? 'bid' : 'offer'} for ${companyName} at ₹${counterPrice}`
             });
           }
         });
@@ -223,36 +241,40 @@ router.get('/activities', protect, async (req, res, next) => {
       if (!tx.buyerId || !tx.sellerId) return; // Skip incomplete transactions
       
       const isBuyer = tx.buyerId.toString() === userId.toString();
+      const companyName = tx.listingId?.companyId?.name || tx.listingId?.companyName || 'Unknown';
+      
       activities.push({
         type: 'transaction',
         action: isBuyer ? 'buy' : 'sell',
-        companyName: tx.listingId?.companyName || 'Unknown',
+        companyName: companyName,
         quantity: tx.quantity,
         price: tx.price,
         status: tx.status,
         date: tx.createdAt,
         description: isBuyer 
-          ? `Bought ${tx.quantity} shares of ${tx.listingId?.companyName || 'Unknown'} at ₹${tx.price}`
-          : `Sold ${tx.quantity} shares of ${tx.listingId?.companyName || 'Unknown'} at ₹${tx.price}`
+          ? `Bought ${tx.quantity} shares of ${companyName} at ₹${tx.price}`
+          : `Sold ${tx.quantity} shares of ${companyName} at ₹${tx.price}`
       });
     });
 
     // 3. Add bids/offers placed by user on others' listings
     listingsWithBidsOffers.forEach(listing => {
+      const companyName = listing.companyId?.name || listing.companyId?.scriptName || listing.companyName || 'Unknown';
       const userBids = listing.bids?.filter(b => b.userId.toString() === userId.toString()) || [];
       const userOffers = listing.offers?.filter(o => o.userId.toString() === userId.toString()) || [];
 
       userBids.forEach(bid => {
         // Placed Bid
+        const displayPrice = bid.buyerOfferedPrice || bid.price;
         activities.push({
           type: 'bid',
           action: 'placed_bid',
-          companyName: listing.companyName || 'Unknown',
+          companyName: companyName,
           quantity: bid.quantity,
-          price: bid.price,
+          price: displayPrice,
           status: bid.status,
           date: bid.createdAt,
-          description: `Placed bid for ${bid.quantity} shares of ${listing.companyName} at ₹${bid.price}`
+          description: `Placed bid for ${bid.quantity} shares of ${companyName} at ₹${displayPrice.toFixed(2)}`
         });
 
         // If I accepted my own bid (buyer accepts their bid)
@@ -289,16 +311,19 @@ router.get('/activities', protect, async (req, res, next) => {
       });
 
       userOffers.forEach(offer => {
-        // Placed Offer
+        // I am the offerer on a BUY listing. I see sellerReceivesPrice.
+        const displayPrice = offer.sellerReceivesPrice || offer.price;
+        
+        // Made Offer
         activities.push({
           type: 'offer',
           action: 'placed_offer',
-          companyName: listing.companyName || 'Unknown',
+          companyName: companyName,
           quantity: offer.quantity,
-          price: offer.price,
+          price: displayPrice,
           status: offer.status,
           date: offer.createdAt,
-          description: `Placed offer for ${offer.quantity} shares of ${listing.companyName} at ₹${offer.price}`
+          description: `Made offer for ${offer.quantity} shares of ${companyName} at ₹${displayPrice.toFixed(2)}`
         });
 
         // If I accepted my own offer (seller accepts their offer on a buy listing)

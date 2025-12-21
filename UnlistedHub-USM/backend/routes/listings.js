@@ -334,13 +334,11 @@ router.post('/', protect, async (req, res, next) => {
     }
 
     // Prepare response message
-    let message = `${type === 'sell' ? 'Sell post' : 'Buy request'} created successfully`;
+    let message = `${type === 'sell' ? 'Sell post' : 'Buy request'} submitted successfully`;
     if (isNewCompany) {
-      message += `. Note: "${company.name}" is a new company and pending admin verification. It will appear in the marketplace once verified.`;
+      message = `Post submitted! "${company.name}" is a new company and has been sent to Admin for verification. Your listing will be live once approved.`;
     } else if (company && company.verificationStatus === 'pending') {
-      message += `. Note: "${company.name}" is currently pending admin verification. Your listing will be visible in the marketplace once the company is verified.`;
-    } else if (company && company.isActive === false) {
-      message += `. Note: "${company.name}" is currently inactive. Please contact admin to activate this company.`;
+      message = `Post submitted! "${company.name}" is currently awaiting admin verification. Your listing will be visible in the marketplace shortly.`;
     }
 
     res.status(201).json({

@@ -25,7 +25,7 @@ const BidOfferModal = ({ listing, onClose, onSuccess }) => {
     : calculateSellerGets(listing.price);   // Seller receives -2%
   
   const [formData, setFormData] = useState({
-    price: '',
+    price: displayPrice.toString(),
     quantity: listing.minLot.toString()
   });
   const [loading, setLoading] = useState(false);
@@ -42,14 +42,14 @@ const BidOfferModal = ({ listing, onClose, onSuccess }) => {
     // Buyer is bidding on a SELL post
     // User enters: amount they'll pay (total including fee)
     buyerPays = userPrice * quantity;
-    sellerGets = buyerPays * 0.98; // Seller gets 98%
-    platformFee = buyerPays * 0.02; // Platform takes 2%
+    sellerGets = buyerPays * 0.98; // Seller gets 98% (matches backend)
+    platformFee = buyerPays - sellerGets;
     totalAmount = buyerPays;
   } else {
     // Seller is offering on a BUY request
     // User enters: amount they want (net after fee)
     sellerGets = userPrice * quantity;
-    buyerPays = sellerGets / 0.98; // Buyer pays more to cover fee
+    buyerPays = sellerGets * 1.02; // Buyer pays 2% more (matches backend)
     platformFee = buyerPays - sellerGets;
     totalAmount = buyerPays;
   }

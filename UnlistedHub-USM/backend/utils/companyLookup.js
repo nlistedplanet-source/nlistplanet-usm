@@ -148,7 +148,7 @@ export async function createNewCompanyFromListing(companyName, userId, additiona
       totalListings: 1
     });
 
-    // Notify all admins about new company
+    // Notify all admins about new company with Push Notifications
     await notifyAdminsAboutNewCompany(newCompany, userId);
 
     return {
@@ -183,25 +183,27 @@ async function notifyAdminsAboutNewCompany(company, addedByUserId) {
     const addedByUser = await User.findById(addedByUserId);
     const username = addedByUser?.username || 'Unknown User';
 
-    // Create notification for each admin
-    const notifications = admins.map(admin => ({
-      userId: admin._id,
-      type: 'admin_alert',
-      title: '🏢 New Company Added - Verification Required',
-      message: `User @${username} added "${company.name}" (${company.sector}). Please verify company details.`,
-      data: {
-        companyId: company._id,
-        companyName: company.name,
-        sector: company.sector,
-        addedBy: addedByUserId,
-        addedByUsername: username,
-        verificationStatus: 'pending',
-        action: 'verify_company'
-      },
-      priority: 'high'
-    }));
+    // Send Push Notification to each admin
+    for (const admin of admins) {
+      try {
+        await createAndSendNotification(admin._id, {
+          type: 'admin_alert',
+          title: '🏢 New Company Added',
+          message: `@${username} added "${company.name}". Verification required.`,
+          data: {
+            companyId: company._id.toString(),
+            companyName: company.name,
+            addedBy: addedByUserId.toString(),
+            action: 'verify_company'
+          },
+          priority: 'high',
+          actionUrl: '/admin/dashboard?tab=admin-companies'
+        });
+      } catch (err) {
+        console.error(`Failed to send push to admin ${admin.username}:`, err.message);
+      }
+    }
 
-    await Notification.insertMany(notifications);
     console.log(`Notified ${admins.length} admins about new company: ${company.name}`);
 
   } catch (error) {

@@ -28,16 +28,13 @@ const companySchema = new mongoose.Schema({
   isin: {
     type: String,
     unique: true,
-    sparse: true,
-    match: [/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/, 'Invalid ISIN format']
+    sparse: true
   },
   pan: {
-    type: String,
-    match: [/^[A-Z]{5}[0-9]{4}[A-Z]$/, 'Invalid PAN format']
+    type: String
   },
   cin: {
-    type: String,
-    match: [/^[UL][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{5,6}$/, 'Invalid CIN format']
+    type: String
   },
   website: String,
   foundedYear: Number,
@@ -63,13 +60,13 @@ const companySchema = new mongoose.Schema({
   verificationStatus: {
     type: String,
     enum: ['verified', 'pending', 'rejected'],
-    default: 'verified'
+    default: 'pending'
   },
   // Who added this company
   addedBy: {
     type: String,
     enum: ['admin', 'system', 'user'],
-    default: 'admin'
+    default: 'user'
   },
   // User who added this company (if addedBy is 'user')
   addedByUser: {

@@ -36,6 +36,54 @@ export const calculateSellerGets = (price) => {
   return price * (1 - PLATFORM_FEE_PERCENTAGE / 100);
 };
 
+// SELL listing: BuyerPays = SellerGets * 1.02 => SellerGets = BuyerPays / 1.02
+export const calculateSellerGetsFromBuyerPrice = (buyerPrice) => {
+  return buyerPrice / (1 + PLATFORM_FEE_PERCENTAGE / 100);
+};
+
+// BUY listing: SellerGets = BuyerPays * 0.98 => BuyerPays = SellerGets / 0.98
+export const calculateBuyerPaysFromSellerPrice = (sellerPrice) => {
+  return sellerPrice / (1 - PLATFORM_FEE_PERCENTAGE / 100);
+};
+
+/**
+ * Universal helper to get the correct price for a specific user
+ * @param {object} item - The bid, offer, or counter object
+ * @param {string} listingType - 'sell' or 'buy'
+ * @param {boolean} isOwner - Is the current user the listing owner?
+ * @param {string} counterBy - If this is a counter, who made it? ('buyer' or 'seller')
+ * @returns {number} - The price the user should see
+ */
+export const getNetPriceForUser = (item, listingType, isOwner, counterBy = null) => {
+  if (!item) return 0;
+  
+  const isSell = listingType === 'sell';
+  const price = item.price;
+  
+  // Determine if the current user is the Seller or Buyer in this transaction
+  const isCurrentUserSeller = (isSell && isOwner) || (!isSell && !isOwner);
+  
+  // Who made this price?
+  // If no counterBy, we determine based on context:
+  // If I am owner, the initial bid/offer was made by the other party.
+  // If I am not owner, the initial bid/offer was made by me.
+  const maker = counterBy || (isOwner ? (isSell ? 'buyer' : 'seller') : (isSell ? 'buyer' : 'seller'));
+  
+  if (isCurrentUserSeller) {
+    // I am Seller. I want to see what I GET.
+    if (maker === 'buyer') {
+      return isSell ? (item.sellerReceivesPrice || price / 1.02) : (item.sellerReceivesPrice || price * 0.98);
+    }
+    return price;
+  } else {
+    // I am Buyer. I want to see what I PAY.
+    if (maker === 'seller') {
+      return isSell ? (item.buyerOfferedPrice || price * 1.02) : (item.buyerOfferedPrice || price / 0.98);
+    }
+    return price;
+  }
+};
+
 /**
  * Get display price based on listing type and viewer
  * Platform fee model: Company always earns 2%

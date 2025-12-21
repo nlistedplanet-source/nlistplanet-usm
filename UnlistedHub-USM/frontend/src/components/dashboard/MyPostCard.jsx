@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import SoldConfirmModal from '../SoldConfirmModal';
 import { Share2, Zap, Edit, Trash2, CheckCircle, XCircle, MessageSquare, Loader, Eye, Info, ChevronDown, ChevronUp, History, Clock, AlertCircle } from 'lucide-react';
-import { formatCurrency, formatDate, formatNumber, numberToWords, formatShortAmount, formatShortQuantity, calculateSellerGets } from '../../utils/helpers';
+import { formatCurrency, formatDate, formatNumber, numberToWords, formatShortAmount, formatShortQuantity, calculateSellerGets, getNetPriceForUser } from '../../utils/helpers';
 import { listingsAPI } from '../../utils/api';
 import toast from 'react-hot-toast';
 
@@ -64,32 +64,48 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
 
   // Helper to get latest counter info for a bid
   const getLatestCounterInfo = (bid) => {
+    const isSell = listing.type === 'sell';
+    
+    // Helper to get price visible to the OWNER of this listing
+    const getVisibleToOwner = (price, by) => {
+      return getNetPriceForUser({ price }, listing.type, true, by);
+    };
+
     if (!bid.counterHistory || bid.counterHistory.length === 0) {
-      return { buyerBid: bid.price, buyerQty: bid.quantity, yourPrice: null, yourQty: null, rounds: 0, latestBy: 'buyer' };
+      const oppositeParty = isSell ? 'buyer' : 'seller';
+      return { 
+        buyerBid: getVisibleToOwner(bid.price, oppositeParty), 
+        buyerQty: bid.quantity, 
+        yourPrice: null, 
+        yourQty: null, 
+        rounds: 0, 
+        latestBy: oppositeParty 
+      };
     }
     
     const history = bid.counterHistory;
-    let latestBuyerCounter = null;
-    let latestSellerCounter = null;
+    let latestOppositeCounter = null;
+    let latestOwnerCounter = null;
+    const oppositeParty = isSell ? 'buyer' : 'seller';
+    const ownerParty = isSell ? 'seller' : 'buyer';
     
-    // Find latest buyer and seller counters
     for (let i = history.length - 1; i >= 0; i--) {
-      if (!latestBuyerCounter && history[i].by === 'buyer') {
-        latestBuyerCounter = history[i];
+      if (!latestOppositeCounter && history[i].by === oppositeParty) {
+        latestOppositeCounter = history[i];
       }
-      if (!latestSellerCounter && history[i].by === 'seller') {
-        latestSellerCounter = history[i];
+      if (!latestOwnerCounter && history[i].by === ownerParty) {
+        latestOwnerCounter = history[i];
       }
-      if (latestBuyerCounter && latestSellerCounter) break;
+      if (latestOppositeCounter && latestOwnerCounter) break;
     }
     
     const latestEntry = history[history.length - 1];
     
     return {
-      buyerBid: latestBuyerCounter ? latestBuyerCounter.price : bid.price,
-      buyerQty: latestBuyerCounter ? latestBuyerCounter.quantity : bid.quantity,
-      yourPrice: latestSellerCounter ? latestSellerCounter.price : null,
-      yourQty: latestSellerCounter ? latestSellerCounter.quantity : null,
+      buyerBid: getVisibleToOwner(latestOppositeCounter ? latestOppositeCounter.price : bid.price, oppositeParty),
+      buyerQty: latestOppositeCounter ? latestOppositeCounter.quantity : bid.quantity,
+      yourPrice: latestOwnerCounter ? getVisibleToOwner(latestOwnerCounter.price, ownerParty) : null,
+      yourQty: latestOwnerCounter ? latestOwnerCounter.quantity : null,
       rounds: history.length,
       latestBy: latestEntry.by
     };
@@ -518,10 +534,14 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                                         </thead>
                                         <tbody className="divide-y divide-gray-200">
                                           {bid.counterHistory.map((counter, cIdx) => {
-                                            // Show actual counter price (no fee calculation)
-                                            const counterDisplayPrice = counter.price;
+                                            // Show adjusted price to owner
+                                            const isSell = listing.type === 'sell';
+                                            const counterDisplayPrice = isSell 
+                                              ? (counter.by === 'buyer' ? counter.price * 0.98 : counter.price)
+                                              : (counter.by === 'seller' ? counter.price * 1.02 : counter.price);
+                                            
                                             return (
-                                              <tr key={cIdx} className={counter.by === 'seller' ? 'bg-purple-50' : 'bg-white'}>
+                                              <tr key={cIdx} className={counter.by === (isSell ? 'seller' : 'buyer') ? 'bg-purple-50' : 'bg-white'}>
                                                 <td className="px-2 py-1 text-[10px] font-semibold text-gray-700 border-r border-gray-200">#{counter.round || cIdx + 1}</td>
                                                 <td className="px-2 py-1 text-[10px] border-r border-gray-200">
                                                   <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
@@ -577,7 +597,8 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                     </thead>
                     <tbody className="divide-y divide-green-200">
                       {buyerAcceptedBids.map((bid, index) => {
-                        const displayPrice = bid.originalPrice || bid.price;
+                        const isSell = listing.type === 'sell';
+                        const displayPrice = isSell ? bid.price * 0.98 : bid.price * 1.02;
                         const bidTotal = displayPrice * bid.quantity;
                         
                         return (
@@ -662,8 +683,9 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                       </thead>
                       <tbody className="divide-y divide-orange-200">
                         {pendingBids.map((bid, index) => {
-                          // Show the actual bid price (what buyer is paying)
-                          const displayPrice = bid.originalPrice || bid.price;
+                          // Show adjusted price to owner
+                          const isSell = listing.type === 'sell';
+                          const displayPrice = isSell ? bid.price * 0.98 : bid.price * 1.02;
                           const bidTotal = displayPrice * bid.quantity;
                           
                           return (

@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { portfolioAPI, listingsAPI, adminAPI, notificationsAPI } from '../utils/api';
-import { calculateTotalWithFee, calculateBuyerPays, calculateSellerGets, formatCurrency, formatRelativeTime } from '../utils/helpers';
+import { calculateTotalWithFee, calculateBuyerPays, calculateSellerGets, formatCurrency, formatRelativeTime, getNetPriceForUser } from '../utils/helpers';
 import toast from 'react-hot-toast';
 import MyPostsTab from '../components/dashboard/MyPostsTab';
 import MyBidsOffersTab from '../components/dashboard/MyBidsOffersTab';
@@ -182,7 +182,7 @@ const DashboardPage = () => {
                 logo: listing.companyId?.logo || listing.companyId?.Logo,
                 listPrice: listing.price, // Seller sees raw list price
                 myActionPrice: latestSellerCounter ? latestSellerCounter.price : listing.price, // My Counter or List Price
-                otherActionPrice: latestBuyerCounter ? latestBuyerCounter.price : bid.price, // Buyer's Bid or Counter
+                otherActionPrice: getNetPriceForUser(bid, 'sell', true), // Seller sees what they receive
                 quantity: bid.quantity,
                 user: bid.userId?.username || bid.username,
                 date: bid.buyerAcceptedAt || bid.createdAt,
@@ -209,7 +209,7 @@ const DashboardPage = () => {
                 logo: listing.companyId?.logo || listing.companyId?.Logo,
                 listPrice: listing.price, // Buyer sees raw list price
                 myActionPrice: latestBuyerCounter ? latestBuyerCounter.price : listing.price,
-                otherActionPrice: latestSellerCounter ? latestSellerCounter.price : offer.price,
+                otherActionPrice: getNetPriceForUser(offer, 'buy', true), // Buyer sees what they pay
                 quantity: offer.quantity,
                 user: offer.userId?.username,
                 date: offer.createdAt,
@@ -240,17 +240,12 @@ const DashboardPage = () => {
               ? calculateBuyerPays(rawListingPrice)
               : calculateSellerGets(rawListingPrice);
 
-            // Calculate Other Party's Counter Price with fees
-            // CRITICAL: latestCounter.price is BASE price (what was entered)
-            // Buyer viewing Seller's counter: apply +2%
-            // Seller viewing Buyer's counter: apply -2%
-            let otherPrice = activity.price; // Fallback
+            // Use universal helper for the counter received
+            const otherPrice = getNetPriceForUser(activity, activity.type === 'bid' ? 'sell' : 'buy', false, latestCounter?.by);
             
-            if (latestCounter) {
-              otherPrice = isBuyer 
-                ? calculateBuyerPays(latestCounter.price)   // Buyer: Seller's 59 → 60.18
-                : calculateSellerGets(latestCounter.price); // Seller: Buyer's 60 → 58.80
-            }
+            // Find my last action price
+            const myLastCounter = [...counterHistory].reverse().find(h => h.by === (isBuyer ? 'buyer' : 'seller'));
+            const myLastPrice = myLastCounter ? myLastCounter.price : activity.originalPrice;
 
             actions.push({
               type: 'counter_received',
@@ -260,7 +255,7 @@ const DashboardPage = () => {
               companySymbol: activity.listing.companyId?.scriptName || activity.listing.companyId?.ScripName || activity.listing.companyId?.symbol || activity.listing.companyName,
               logo: activity.listing.companyId?.logo || activity.listing.companyId?.Logo,
               listPrice: listPrice,
-              myActionPrice: activity.originalPrice || activity.price, // My ORIGINAL bid/offer (never changes)
+              myActionPrice: myLastPrice, // My last bid/counter
               otherActionPrice: otherPrice, // The counter I received (with fees applied)
               quantity: activity.quantity,
               user: activity.listing.userId?.username || 'Seller',
@@ -1429,23 +1424,23 @@ const DashboardPage = () => {
                     return 0;
                   })
                   .map((listing) => {
-                    // For SELL listings: show buyer price (seller price + platform fee)
-                    // For BUY requests: show original offer price
+                    // For SELL listings: show buyer price (seller price + 2%)
+                    // For BUY requests: show seller price (buyer price - 2%)
                     const displayPrice = listing.type === 'sell' 
-                      ? calculateTotalWithFee(listing.price) 
-                      : listing.price;
+                      ? calculateBuyerPays(listing.price) 
+                      : calculateSellerGets(listing.price);
                     
                     return (
                       <MarketplaceCard
                         key={listing._id}
                         type={listing.type}
                         companyLogo={listing.companyId?.Logo || listing.companyId?.logo}
-                        companyName={listing.companyName}
+                        companyName={listing.companyId?.CompanyName || listing.companyId?.name || listing.companyName}
                         companySymbol={listing.companyId?.scriptName || listing.companyId?.ScripName || listing.companyId?.symbol}
                         companySector={listing.companyId?.Sector || listing.companyId?.sector || 'Financial Services'}
-                        companyPan={listing.companyId?.PAN || listing.companyId?.pan}
-                        companyIsin={listing.companyId?.ISIN || listing.companyId?.isin}
-                        companyCin={listing.companyId?.CIN || listing.companyId?.cin}
+                        companyPan={listing.companyId?.PAN || listing.companyId?.pan || listing.companyPan}
+                        companyIsin={listing.companyId?.ISIN || listing.companyId?.isin || listing.companyISIN}
+                        companyCin={listing.companyId?.CIN || listing.companyId?.cin || listing.companyCIN}
                         companyRegistrationDate={listing.companyId?.registrationDate}
                         companySegmentation={listing.companySegmentation || listing.companyId?.companySegmentation}
                         price={displayPrice}
