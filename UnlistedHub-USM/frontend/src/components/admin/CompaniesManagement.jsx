@@ -537,13 +537,14 @@ const CompaniesManagement = () => {
                     )}
                     <td className="px-3 py-2">
                       {activeTab === 'manual-entries' ? (
-                        <div className="flex items-center justify-center gap-1">
+                        <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => handleEdit(company)}
-                            className="p-1 text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                            className="px-2 py-1 text-[10px] bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors flex items-center gap-1"
                             title="Edit Details"
                           >
-                            <Edit2 size={14} />
+                            <Edit2 size={12} />
+                            Edit
                           </button>
                           <button
                             onClick={() => handleApproveManualEntry(company._id)}
