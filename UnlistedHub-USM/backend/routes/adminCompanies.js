@@ -436,10 +436,29 @@ router.put('/companies/:id', protect, authorize('admin'), upload.single('logo'),
 
     await company.save();
 
+    // Update all associated listings with this company's data
+    const Listing = (await import('../models/Listing.js')).default;
+    const updatedListings = await Listing.updateMany(
+      { companyId: company._id },
+      {
+        $set: {
+          companyName: company.name,
+          companyPan: company.pan,
+          companyISIN: company.isin,
+          companyCIN: company.cin,
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    console.log(`✅ Company updated: ${company.name}`);
+    console.log(`📋 Associated listings updated: ${updatedListings.modifiedCount}`);
+
     res.json({
       success: true,
       message: 'Company updated successfully',
-      company
+      company,
+      listingsUpdated: updatedListings.modifiedCount
     });
   } catch (error) {
     next(error);

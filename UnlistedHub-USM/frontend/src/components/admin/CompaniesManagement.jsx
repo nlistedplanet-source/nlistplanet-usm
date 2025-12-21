@@ -6,6 +6,7 @@ import { BASE_API_URL, adminAPI } from '../../utils/api';
 
 // Force webpack recompile - Edit button fix
 const CompaniesManagement = () => {
+  console.log('🔄 CompaniesManagement loaded - Version: 2024-12-21-11:00 - Edit button ENABLED');
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -540,7 +541,10 @@ const CompaniesManagement = () => {
                       {activeTab === 'manual-entries' ? (
                         <div className="flex items-center justify-center gap-2">
                           <button
-                            onClick={() => handleEdit(company)}
+                            onClick={() => {
+                              console.log('Edit clicked for company:', company);
+                              handleEdit(company);
+                            }}
                             className="px-2 py-1 text-[10px] bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors flex items-center gap-1"
                             title="Edit Details"
                           >
