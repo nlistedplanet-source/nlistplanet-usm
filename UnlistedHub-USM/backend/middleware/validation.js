@@ -23,7 +23,7 @@ export const handleValidationErrors = (req, res, next) => {
  */
 export const validateListing = [
   body('type').isIn(['sell', 'buy']).withMessage('Type must be sell or buy'),
-  body('companyId').isMongoId().withMessage('Invalid company ID'),
+  body('companyId').optional({ checkFalsy: true }).isMongoId().withMessage('Invalid company ID'),
   body('price').isFloat({ min: 1, max: 1000000000 }).withMessage('Price must be between 1 and 1000000000'),
   body('quantity').isInt({ min: 1, max: 100000000 }).withMessage('Quantity must be between 1 and 100000000'),
   body('minLot').isInt({ min: 1 }).withMessage('Minimum lot must be at least 1'),
@@ -86,12 +86,12 @@ export const validatePagination = [
  */
 export const validateCompany = [
   body('name').isString().isLength({ min: 2, max: 200 }).trim().withMessage('Company name 2-200 characters'),
-  body('symbol').isString().isLength({ min: 2, max: 20 }).trim().toUpperCase().withMessage('Symbol 2-20 characters'),
+  body('scriptName').optional().isString().isLength({ max: 100 }).trim().withMessage('Script name max 100 characters'),
   body('sector').isString().isLength({ min: 2, max: 100 }).trim().withMessage('Sector 2-100 characters'),
-  body('logo').optional().isURL().withMessage('Logo must be a valid URL'),
-  body('pan').optional().matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/).withMessage('Invalid PAN format'),
-  body('isin').optional().matches(/^[A-Z]{2}[A-Z0-9]{10}$/).withMessage('Invalid ISIN format'),
-  body('cin').optional().matches(/^[LU][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/).withMessage('Invalid CIN format'),
+  body('logo').optional().isString().withMessage('Logo must be a string'),
+  body('pan').optional().isString().trim().withMessage('Invalid PAN format'),
+  body('isin').optional().isString().trim().withMessage('Invalid ISIN format'),
+  body('cin').optional().isString().trim().withMessage('Invalid CIN format'),
   handleValidationErrors
 ];
 
