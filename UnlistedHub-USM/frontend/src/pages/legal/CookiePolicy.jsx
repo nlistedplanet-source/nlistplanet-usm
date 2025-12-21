@@ -1,9 +1,21 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
 const CookiePolicy = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Add noindex meta tag
+    const meta = document.createElement('meta');
+    meta.name = 'robots';
+    meta.content = 'noindex, follow';
+    document.head.appendChild(meta);
+
+    return () => {
+      document.head.removeChild(meta);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/30 to-purple-50/20">
