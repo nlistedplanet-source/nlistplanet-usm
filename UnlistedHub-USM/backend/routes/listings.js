@@ -66,10 +66,15 @@ router.get('/', optionalAuth, async (req, res, next) => {
 
     // Filter out listings with unverified companies (manual entries pending approval)
     listings = listings.filter(listing => {
-      // If no companyId, allow (manual companyName only)
-      if (!listing.companyId) return true;
+      // If no companyId, it's a manual entry that hasn't been processed/verified yet
+      if (!listing.companyId) return false;
+      
+      // Check if company is active
+      if (listing.companyId.isActive === false) return false;
+
       // If verificationStatus field doesn't exist (old companies), treat as verified
       if (!listing.companyId.verificationStatus) return true;
+      
       // Only show verified companies or admin-added companies
       return listing.companyId.verificationStatus === 'verified' || listing.companyId.addedBy === 'admin';
     });
@@ -276,8 +281,10 @@ router.post('/', protect, async (req, res, next) => {
           console.log(`New company "${company.name}" created by user ${req.user.username}, pending admin verification`);
         } else {
           console.error('Failed to create new company:', result.error);
-          // Continue without company reference
-          finalCompanyName = manualCompanyName;
+          return res.status(400).json({
+            success: false,
+            message: `Failed to process company "${manualCompanyName}". Please try again or contact support.`
+          });
         }
       }
     } else {
@@ -329,7 +336,11 @@ router.post('/', protect, async (req, res, next) => {
     // Prepare response message
     let message = `${type === 'sell' ? 'Sell post' : 'Buy request'} created successfully`;
     if (isNewCompany) {
-      message += `. Note: "${company.name}" is a new company and pending admin verification.`;
+      message += `. Note: "${company.name}" is a new company and pending admin verification. It will appear in the marketplace once verified.`;
+    } else if (company && company.verificationStatus === 'pending') {
+      message += `. Note: "${company.name}" is currently pending admin verification. Your listing will be visible in the marketplace once the company is verified.`;
+    } else if (company && company.isActive === false) {
+      message += `. Note: "${company.name}" is currently inactive. Please contact admin to activate this company.`;
     }
 
     res.status(201).json({
@@ -517,14 +528,18 @@ router.post('/:id/bid', protect, async (req, res, next) => {
 
     // Calculate platform fee fields
     if (listing.type === 'sell') {
-      // Buyer is bidding - buyer enters amount they'll pay
+      // Buyer is bidding on a SELL listing.
+      // Buyer enters the price they want to pay (which includes the 2% fee).
+      // Seller receives: BuyerPays / 1.02
       bidData.buyerOfferedPrice = price;
-      bidData.sellerReceivesPrice = price * 0.98; // Seller gets 2% less
+      bidData.sellerReceivesPrice = price / 1.02;
       bidData.platformFee = price - bidData.sellerReceivesPrice;
     } else {
-      // Seller is offering - seller enters amount they want to receive
+      // Seller is offering on a BUY listing.
+      // Seller enters the price they want to receive (which is after the 2% fee).
+      // Buyer pays: SellerGets / 0.98
       bidData.sellerReceivesPrice = price;
-      bidData.buyerOfferedPrice = price / 0.98; // Buyer pays 2% more
+      bidData.buyerOfferedPrice = price / 0.98;
       bidData.platformFee = bidData.buyerOfferedPrice - price;
     }
 
@@ -542,9 +557,10 @@ router.post('/:id/bid', protect, async (req, res, next) => {
       : listing.offers[listing.offers.length - 1];
 
     // Create notification with push for listing owner
+    const displayPriceForOwner = listing.type === 'sell' ? bidData.sellerReceivesPrice : bidData.buyerOfferedPrice;
     const notifTemplate = listing.type === 'sell' 
-      ? NotificationTemplates.NEW_BID(req.user.username, price, quantity, listing.companyName, listing._id.toString())
-      : NotificationTemplates.NEW_OFFER(req.user.username, price, quantity, listing.companyName, listing._id.toString());
+      ? NotificationTemplates.NEW_BID(req.user.username, displayPriceForOwner, quantity, listing.companyName, listing._id.toString())
+      : NotificationTemplates.NEW_OFFER(req.user.username, displayPriceForOwner, quantity, listing.companyName, listing._id.toString());
     
     await createAndSendNotification(
       listing.userId,
@@ -852,9 +868,10 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
         const waitingForUsername = isBidder ? sellerUsername : buyerUsername;
         
         // Notify the person who accepted with push
-        const acceptTemplate = listing.type === 'sell' 
-          ? NotificationTemplates.BID_ACCEPTED(listing.companyName, buyerPaysPerShare * bid.quantity, bid.quantity)
-          : NotificationTemplates.OFFER_ACCEPTED(listing.companyName, sellerReceivesPerShare * bid.quantity, bid.quantity);
+        const displayPriceForAcceptor = isBidder ? buyerPaysPerShare : sellerReceivesPerShare;
+        const acceptTemplate = isBidder 
+          ? NotificationTemplates.BID_ACCEPTED(listing.companyName, displayPriceForAcceptor * bid.quantity, bid.quantity)
+          : NotificationTemplates.OFFER_ACCEPTED(listing.companyName, displayPriceForAcceptor * bid.quantity, bid.quantity);
         
         await createAndSendNotification(acceptorId, {
           type: 'deal_accepted',
@@ -864,7 +881,7 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
             listingId: listing._id.toString(),
             bidId: bid._id.toString(),
             dealId: deal._id.toString(),
-            amount: isBidder ? buyerPaysPerShare * bid.quantity : sellerReceivesPerShare * bid.quantity,
+            amount: displayPriceForAcceptor * bid.quantity,
             quantity: bid.quantity,
             companyName: listing.companyName
           },
@@ -872,9 +889,10 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
         });
         
         // Notify the other party to CONFIRM with push
+        const displayPriceForWaiting = isBidder ? sellerReceivesPerShare : buyerPaysPerShare;
         const confirmTemplate = NotificationTemplates.CONFIRMATION_REQUIRED(
           listing.companyName,
-          isBidder ? sellerReceivesPerShare * bid.quantity : buyerPaysPerShare * bid.quantity,
+          displayPriceForWaiting * bid.quantity,
           bid.quantity
         );
         
@@ -1205,7 +1223,9 @@ router.put('/:listingId/bids/:bidId/counter', protect, async (req, res, next) =>
     }
 
     // Determine who is sending the counter
-    const counterBy = isOwner ? 'seller' : 'buyer';
+    const counterBy = listing.type === 'sell' 
+      ? (isOwner ? 'seller' : 'buyer')
+      : (isOwner ? 'buyer' : 'seller');
 
     // Add to counter history
     const round = (bid.counterHistory?.length || 0) + 1;
@@ -1226,16 +1246,28 @@ router.put('/:listingId/bids/:bidId/counter', protect, async (req, res, next) =>
 
     // Recalculate platform fee fields
     if (listing.type === 'sell') {
-      // Seller is countering - seller enters desired amount
-      bid.sellerReceivesPrice = price;
-      bid.buyerOfferedPrice = price / 0.98; // Buyer pays 2% more
-      bid.platformFee = bid.buyerOfferedPrice - price;
+      if (counterBy === 'seller') {
+        // Seller wants 'price'. Buyer pays 'price * 1.02'
+        bid.sellerReceivesPrice = price;
+        bid.buyerOfferedPrice = price * 1.02;
+      } else {
+        // Buyer wants to pay 'price'. Seller gets 'price / 1.02'
+        bid.buyerOfferedPrice = price;
+        bid.sellerReceivesPrice = price / 1.02;
+      }
     } else {
-      // Seller is countering on BUY post - seller enters desired amount
-      bid.sellerReceivesPrice = price;
-      bid.buyerOfferedPrice = price / 0.98; // Buyer pays 2% more
-      bid.platformFee = bid.buyerOfferedPrice - price;
+      // BUY listing
+      if (counterBy === 'buyer') {
+        // Buyer wants to pay 'price'. Seller gets 'price * 0.98'
+        bid.buyerOfferedPrice = price;
+        bid.sellerReceivesPrice = price * 0.98;
+      } else {
+        // Seller wants to get 'price'. Buyer pays 'price / 0.98'
+        bid.sellerReceivesPrice = price;
+        bid.buyerOfferedPrice = price / 0.98;
+      }
     }
+    bid.platformFee = bid.buyerOfferedPrice - bid.sellerReceivesPrice;
     
     await listing.save();
 
@@ -1247,12 +1279,16 @@ router.put('/:listingId/bids/:bidId/counter', protect, async (req, res, next) =>
 
     // Determine recipient (if owner countered, notify bidder; if bidder countered, notify owner)
     const recipientId = isOwner ? bid.userId : listing.userId;
+    const isRecipientOwner = recipientId.toString() === listing.userId.toString();
+    const displayPriceForRecipient = isRecipientOwner
+      ? (listing.type === 'sell' ? bid.sellerReceivesPrice : bid.buyerOfferedPrice)
+      : (listing.type === 'sell' ? bid.buyerOfferedPrice : bid.sellerReceivesPrice);
 
     // Create notification with push for recipient
     await createAndSendNotification(recipientId, {
-      ...NotificationTemplates.BID_COUNTERED(senderUsername, price, quantity || bid.quantity, companyName),
+      ...NotificationTemplates.BID_COUNTERED(senderUsername, displayPriceForRecipient, quantity || bid.quantity, companyName),
       data: {
-        ...NotificationTemplates.BID_COUNTERED(senderUsername, price, quantity || bid.quantity, companyName).data,
+        ...NotificationTemplates.BID_COUNTERED(senderUsername, displayPriceForRecipient, quantity || bid.quantity, companyName).data,
         listingId: listing._id.toString(),
         bidId: bid._id.toString(),
         round
