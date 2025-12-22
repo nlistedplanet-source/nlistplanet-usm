@@ -1,4 +1,13 @@
 {
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  },
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "installCommand": "npm install --legacy-peer-deps",
+  "framework": "create-react-app",
   "redirects": [
     {
       "source": "/:path*",
@@ -19,13 +28,38 @@
       "destination": "/index.html"
     }
   ],
-  "buildCommand": "npm run build",
-  "outputDirectory": "build",
-  "installCommand": "npm install",
-  "framework": null,
+  "headers": [
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ],
   "env": {
     "CI": "false",
     "DISABLE_ESLINT_PLUGIN": "true",
-    "GENERATE_SOURCEMAP": "false"
+    "GENERATE_SOURCEMAP": "false",
+    "NODE_OPTIONS": "--max-old-space-size=4096"
   }
 }
