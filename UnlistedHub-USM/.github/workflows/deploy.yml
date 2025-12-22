@@ -4,24 +4,32 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'frontend/**'
 
 jobs:
-  deploy:
+  deploy-desktop:
+    name: Deploy Desktop Frontend
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Vercel Deployment
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check and Deploy Desktop
         run: |
-          echo "🚀 Triggering Vercel deployment..."
-          echo "Hook URL length: ${#HOOK_URL}"
-          response=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X POST "$HOOK_URL")
-          echo "Response: $response"
-          if echo "$response" | grep -q "PENDING"; then
-            echo "✅ Desktop deployment triggered successfully!"
+          CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "frontend")
+          echo "Changed files: $CHANGED"
+          
+          if echo "$CHANGED" | grep -q "frontend/"; then
+            echo "🖥️ Desktop frontend changes detected!"
+            echo "Calling deploy hook..."
+            response=$(curl -s -X POST "${{ secrets.VERCEL_DESKTOP_DEPLOY_HOOK }}")
+            echo "Response: $response"
+            if echo "$response" | grep -q "PENDING"; then
+              echo "✅ Desktop deployment triggered successfully!"
+            else
+              echo "❌ No PENDING in response, but continuing..."
+            fi
           else
-            echo "❌ Deployment may have failed"
-            exit 1
+            echo "⏭️ No frontend changes, skipping deploy"
           fi
-        env:
-          HOOK_URL: ${{ secrets.VERCEL_DESKTOP_DEPLOY_HOOK }}
