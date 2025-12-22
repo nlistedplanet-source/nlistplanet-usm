@@ -14,5 +14,14 @@ jobs:
       - name: Trigger Vercel Deployment
         run: |
           echo "🚀 Triggering Vercel deployment..."
-          curl -X POST "${{ secrets.VERCEL_DESKTOP_DEPLOY_HOOK }}"
-          echo "✅ Desktop deployment triggered!"
+          echo "Hook URL length: ${#HOOK_URL}"
+          response=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X POST "$HOOK_URL")
+          echo "Response: $response"
+          if echo "$response" | grep -q "PENDING"; then
+            echo "✅ Desktop deployment triggered successfully!"
+          else
+            echo "❌ Deployment may have failed"
+            exit 1
+          fi
+        env:
+          HOOK_URL: ${{ secrets.VERCEL_DESKTOP_DEPLOY_HOOK }}
