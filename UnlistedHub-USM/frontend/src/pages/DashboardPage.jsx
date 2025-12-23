@@ -1122,19 +1122,42 @@ const DashboardPage = () => {
 
           {/* Notifications & Activity Sidebar */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+            {/* Header with Notification Bell */}
+            <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-purple-50 via-indigo-50 to-blue-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <div className="w-9 h-9 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                      <Bell className="text-white" size={18} />
+                    </div>
+                    {notifications.filter(n => !n.isRead).length > 0 && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white">
+                        <span className="text-white text-[9px] font-bold">
+                          {notifications.filter(n => !n.isRead).length}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900">Updates</h3>
+                    <p className="text-[10px] text-gray-500">Stay informed</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleTabChange('notifications')}
+                  className="px-3 py-1.5 bg-white text-purple-600 text-xs font-semibold rounded-lg hover:bg-purple-50 transition-colors border border-purple-200 shadow-sm"
+                >
+                  View All
+                </button>
+              </div>
+            </div>
+            
             {/* Notifications Section */}
             <div className="p-4 border-b border-gray-100">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Bell className="text-purple-600" size={18} />
-                  <h3 className="text-base font-bold text-gray-900">Notifications</h3>
+                  <h3 className="text-base font-bold text-gray-900">Latest Notifications</h3>
                 </div>
-                <button
-                  onClick={() => handleTabChange('notifications')}
-                  className="text-purple-600 text-xs font-semibold hover:text-purple-700"
-                >
-                  View All →
-                </button>
               </div>
               
               <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
