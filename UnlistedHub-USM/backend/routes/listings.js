@@ -779,7 +779,7 @@ router.put('/:listingId/bids/:bidId/accept', protect, async (req, res, next) => 
         platformFee: platformFeePerShare * bid.quantity,
         buyerPaysPerShare,
         sellerReceivesPerShare,
-        status: newStatus,
+        status: newStatus === 'pending_confirmation' ? 'pending_seller_confirmation' : newStatus,
         buyerAcceptedAt: bid.buyerAcceptedAt,
         sellerAcceptedAt: bid.sellerAcceptedAt,
         buyerAcceptedPrice: buyerPaysPerShare
