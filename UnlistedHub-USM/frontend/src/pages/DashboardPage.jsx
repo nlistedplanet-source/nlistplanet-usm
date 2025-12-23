@@ -961,8 +961,12 @@ const DashboardPage = () => {
               <div className="flex items-center gap-4">
                 {/* Christmas Logo */}
                 <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg relative animate-pulse-subtle">
-                    <span className="text-2xl">🎄</span>
+                  <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg p-1 relative">
+                    <img 
+                      src="/crismas logo.png" 
+                      alt="Christmas Logo" 
+                      className="w-full h-full object-contain"
+                    />
                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white animate-pulse"></div>
                   </div>
                   <div>
