@@ -102,6 +102,7 @@ const DashboardPage = () => {
   const [favoritedListings, setFavoritedListings] = useState(new Set());
   const [actionItems, setActionItems] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [confirmedDeals, setConfirmedDeals] = useState([]);
   const [viewMode, setViewMode] = useState('user'); // 'user' or 'admin'
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -339,6 +340,20 @@ const DashboardPage = () => {
         setNotifications(notificationsRes.data.data || []);
       } catch (error) {
         console.error('❌ Failed to fetch notifications:', error);
+      }
+
+      // 5. Fetch Confirmed Deals (for code display)
+      try {
+        const dealsRes = await listingsAPI.getCompletedDeals();
+        console.log('📊 All completed deals:', dealsRes.data.data);
+        const confirmedOnly = (dealsRes.data.data || []).filter(deal => 
+          deal.status === 'confirmed' || deal.status === 'pending_rm_contact' || deal.status === 'rm_contacted'
+        );
+        console.log('✅ Confirmed deals filtered:', confirmedOnly);
+        setConfirmedDeals(confirmedOnly.slice(0, 3)); // Show top 3
+        console.log('🎯 Showing top 3 deals:', confirmedOnly.slice(0, 3));
+      } catch (error) {
+        console.error('❌ Failed to fetch confirmed deals:', error);
       }
 
       // 3. Fetch Portfolio Data (Only for Overview/Portfolio tabs)
@@ -1299,6 +1314,99 @@ const DashboardPage = () => {
             </button>
           </div>
         </div>
+
+        {/* Confirmed Deals Section */}
+        {confirmedDeals.length > 0 && (
+          <div className="mb-6 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-2xl shadow-md border-2 border-green-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <CheckCircle className="text-white" size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    Confirmed Deals
+                    <span className="bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                      {confirmedDeals.length}
+                    </span>
+                  </h2>
+                  <p className="text-sm text-gray-600">Your verification codes for completed deals</p>
+                </div>
+              </div>
+              <button
+                onClick={() => handleTabChange('history')}
+                className="px-4 py-2 bg-white border-2 border-green-600 text-green-700 font-semibold rounded-lg hover:bg-green-50 transition-all flex items-center gap-2"
+              >
+                View All Codes
+                <ArrowUpRight size={16} />
+              </button>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              {confirmedDeals.map((deal) => {
+                const isSeller = deal.sellerId === user._id || deal.sellerId._id === user._id;
+                const myCode = isSeller ? deal.sellerVerificationCode : deal.buyerVerificationCode;
+                const otherPartyCode = isSeller ? deal.buyerVerificationCode : deal.sellerVerificationCode;
+                const otherPartyName = isSeller 
+                  ? (deal.buyerName || deal.buyerUsername) 
+                  : (deal.sellerName || deal.sellerUsername);
+
+                return (
+                  <div key={deal._id} className="bg-white rounded-xl border-2 border-green-300 p-4 shadow-sm hover:shadow-md transition-all">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h3 className="font-bold text-gray-900 text-sm">{deal.companyName}</h3>
+                        <p className="text-xs text-gray-600 mt-0.5">
+                          {deal.quantity} shares @ ₹{isSeller ? deal.sellerReceivesPerShare : deal.buyerPaysPerShare}
+                        </p>
+                      </div>
+                      <span className={`px-2 py-1 rounded-lg text-xs font-bold ${
+                        isSeller ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {isSeller ? 'SELL' : 'BUY'}
+                      </span>
+                    </div>
+
+                    {/* My Code */}
+                    <div className="bg-green-50 border-2 border-green-200 rounded-lg p-3 mb-2">
+                      <p className="text-xs text-green-700 font-semibold mb-1">Your Code:</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-2xl font-bold text-green-700 tracking-widest">{myCode}</p>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(myCode);
+                            toast.success('Code copied!');
+                          }}
+                          className="p-1.5 hover:bg-green-100 rounded transition-colors"
+                        >
+                          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Other Party Info */}
+                    <div className="bg-gray-50 rounded-lg p-2 border border-gray-200">
+                      <p className="text-xs text-gray-600">
+                        {isSeller ? 'Buyer' : 'Seller'}: <span className="font-semibold text-gray-900">@{otherPartyName}</span>
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Their Code: <span className="font-mono font-bold text-gray-700">{otherPartyCode}</span>
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-xs text-blue-900">
+                <span className="font-bold">ℹ️ Important:</span> Share your verification code only with our official RM during the confirmation call. Never share codes publicly.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Action Center & Recent Activity Grid */}
         <div className="grid lg:grid-cols-3 gap-6">
