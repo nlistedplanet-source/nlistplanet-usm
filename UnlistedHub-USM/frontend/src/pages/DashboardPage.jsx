@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import axios from 'axios';
 import { 
   FileText, 
   TrendingUp, 
@@ -30,10 +31,12 @@ import {
   CheckCircle,
   RotateCcw,
   XCircle,
-  Plus
+  Plus,
+  Phone,
+  X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { portfolioAPI, listingsAPI, adminAPI, notificationsAPI } from '../utils/api';
+import { portfolioAPI, listingsAPI, adminAPI, notificationsAPI, BASE_API_URL } from '../utils/api';
 import { calculateTotalWithFee, calculateBuyerPays, calculateSellerGets, formatCurrency, formatRelativeTime, getNetPriceForUser } from '../utils/helpers';
 import toast from 'react-hot-toast';
 import MyPostsTab from '../components/dashboard/MyPostsTab';
@@ -102,6 +105,11 @@ const DashboardPage = () => {
   const [showAcceptConfirmation, setShowAcceptConfirmation] = useState(false);
   const [listingToAccept, setListingToAccept] = useState(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showProfileCompleteModal, setShowProfileCompleteModal] = useState(false);
+  const [profileFormData, setProfileFormData] = useState({ fullName: '', phone: '' });
+  const [profileOtp, setProfileOtp] = useState('');
+  const [profileStep, setProfileStep] = useState(1);
+  const [profileLoading, setProfileLoading] = useState(false);
   
   // Admin View As functionality
   const viewAsUserId = searchParams.get('viewAs');
@@ -129,6 +137,17 @@ const DashboardPage = () => {
       fetchViewingUser();
     }
   }, [viewAsUserId, user]);
+
+  // Check if user needs to complete profile (no phone number)
+  useEffect(() => {
+    if (user && !user.phone) {
+      setShowProfileCompleteModal(true);
+      // Pre-fill name if available
+      if (user.fullName) {
+        setProfileFormData(prev => ({ ...prev, fullName: user.fullName }));
+      }
+    }
+  }, [user]);
 
   // Unified Dashboard Data Fetching
   useEffect(() => {
@@ -519,6 +538,70 @@ const DashboardPage = () => {
       handleTabChange('posts');
     }
     toast.info('Please counter the offer in the detailed view');
+  };
+
+  // Profile completion handlers
+  const handleProfileFormChange = (e) => {
+    setProfileFormData({ ...profileFormData, [e.target.name]: e.target.value });
+  };
+
+  const handleProfileSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!profileFormData.fullName || profileFormData.fullName.trim().length < 2) {
+      toast.error('Full name must be at least 2 characters');
+      return;
+    }
+
+    if (!/^[0-9]{10}$/.test(profileFormData.phone)) {
+      toast.error('Please enter a valid 10-digit phone number');
+      return;
+    }
+
+    setProfileLoading(true);
+    try {
+      const response = await axios.post(`${BASE_API_URL}/auth/complete-profile`, {
+        fullName: profileFormData.fullName,
+        phone: profileFormData.phone
+      });
+
+      toast.success(response.data.message || 'OTP sent to your phone!');
+      setProfileStep(2);
+    } catch (error) {
+      console.error('Profile completion error:', error);
+      toast.error(error.response?.data?.message || 'Failed to send OTP');
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleProfileOtpSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!/^[0-9]{6}$/.test(profileOtp)) {
+      toast.error('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    setProfileLoading(true);
+    try {
+      const response = await axios.post(`${BASE_API_URL}/auth/verify-profile-otp`, {
+        phone: profileFormData.phone,
+        otp: profileOtp
+      });
+
+      toast.success('Profile completed successfully! 🎉');
+      
+      // Update user in AuthContext
+      const updatedUserResponse = await axios.get(`${BASE_API_URL}/auth/me`);
+      // Assuming you have access to setUser from AuthContext
+      window.location.reload(); // Reload to update user context
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      toast.error(error.response?.data?.message || 'Invalid OTP');
+    } finally {
+      setProfileLoading(false);
+    }
   };
 
   const tabs = [
@@ -1948,6 +2031,123 @@ const DashboardPage = () => {
                 Confirm & Buy
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Completion Modal */}
+      {showProfileCompleteModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-full flex items-center justify-center">
+                  <UserIcon className="text-white" size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Complete Your Profile</h2>
+                  <p className="text-sm text-gray-600">Required to continue</p>
+                </div>
+              </div>
+            </div>
+
+            {profileStep === 1 ? (
+              /* Step 1: Enter Details */
+              <form onSubmit={handleProfileSubmit}>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={profileFormData.fullName}
+                      onChange={handleProfileFormChange}
+                      placeholder="Enter your full name"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Mobile Number *
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={profileFormData.phone}
+                        onChange={handleProfileFormChange}
+                        placeholder="10-digit mobile number"
+                        maxLength="10"
+                        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        required
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">We'll send an OTP to verify your number</p>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={profileLoading}
+                    className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {profileLoading ? 'Sending OTP...' : 'Send OTP'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* Step 2: Enter OTP */
+              <form onSubmit={handleProfileOtpSubmit}>
+                <div className="space-y-4">
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-purple-900">
+                      OTP sent to <span className="font-bold">{profileFormData.phone}</span>
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Enter OTP *
+                    </label>
+                    <input
+                      type="text"
+                      value={profileOtp}
+                      onChange={(e) => setProfileOtp(e.target.value)}
+                      placeholder="6-digit OTP"
+                      maxLength="6"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-center text-2xl tracking-widest"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setProfileStep(1)}
+                      className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={profileLoading}
+                      className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {profileLoading ? 'Verifying...' : 'Verify OTP'}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )}
+
+            <p className="text-xs text-gray-500 text-center mt-6">
+              This information is required for secure transactions
+            </p>
           </div>
         </div>
       )}
