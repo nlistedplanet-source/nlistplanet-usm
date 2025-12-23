@@ -41,6 +41,7 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
   const [markedSold, setMarkedSold] = useState(false);
   const [soldPricePerShare, setSoldPricePerShare] = useState(null);
   const [isTableCollapsed, setIsTableCollapsed] = useState(false);
+  const [collapseTimer, setCollapseTimer] = useState(null);
 
   const isSell = listing.type === 'sell';
   const bidsArray = (isSell ? listing.bids : listing.offers) || [];
@@ -256,101 +257,100 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
 
   return (
     <>
-      <div className="bg-white rounded-md shadow-sm hover:shadow transition-all border border-gray-300 overflow-hidden mb-3">
-        {/* Header - Status Bar */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-1 border-b border-gray-300 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
-              markedSold ? 'bg-amber-100 text-amber-800 border-2 border-amber-400' : (
-              listing.status === 'active' ? 'bg-green-100 text-green-700 border-2 border-green-400' :
-              listing.status === 'negotiating' ? 'bg-amber-100 text-amber-700 border-2 border-amber-400' :
-              'bg-gray-100 text-gray-700 border-2 border-gray-400')
-            }`}>
-              {markedSold ? '🟠 SOLD' : 
-               listing.status === 'negotiating' ? '🟠 NEGOTIATING' :
-               `🟢 ${listing.status?.toUpperCase() || 'ACTIVE'}`}
-            </div>
-            <div className={`px-2 py-0.5 rounded-full text-[11px] font-bold border-2 ${
-              isSell ? 'bg-red-50 text-red-700 border-red-400' : 'bg-green-50 text-green-700 border-green-400'
-            }`}>
-              {isSell ? 'SELL' : 'BUY'} Post
-            </div>
-          </div>
-          <div className="flex items-center gap-3 text-[11px] font-semibold">
-            <span className="flex items-center gap-1">
-              <span className="text-gray-500">{isSell ? 'Bids' : 'Offers'} Received</span>
-              <span className="bg-blue-600 text-white px-3 py-1 rounded-full ml-1">{activeBidsCount}</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <Eye className="w-4 h-4 text-gray-500" />
-              <span className="font-bold text-gray-900">{listing.views || 0}</span>
-            </span>
-            {markedSold && soldPricePerShare && (
-              <span className="flex items-center gap-1 text-amber-800">
-                <span className="bg-amber-200 px-2 py-0.5 rounded-full border border-amber-400">Sold @ ₹{soldPricePerShare}</span>
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Company Info */}
-        <div className="px-3 py-2 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            {logoUrl ? (
-              <img 
-                src={logoUrl} 
-                alt={listing.companyId?.scriptName || listing.companyId?.ScriptName || listing.companyName}
-                className="w-10 h-10 rounded-md object-cover border border-purple-300 shadow-sm"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.style.display = 'none';
-                  e.target.nextElementSibling.style.display = 'flex';
-                }}
-              />
-            ) : null}
-            <div 
-              className="w-10 h-10 rounded-md bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-sm border border-purple-300"
-              style={{ display: logoUrl ? 'none' : 'flex' }}
-            >
-              {(listing.companyId?.scriptName || listing.companyId?.ScriptName || listing.companyName)?.charAt(0) || 'C'}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-gray-900">
-                  {listing.companyId?.scriptName || listing.companyId?.ScriptName || listing.companyName || 'Unknown'}
-                </h3>
-                <div className="group relative">
-                  <Info size={16} className="text-blue-500 cursor-help" />
-                  <div className="absolute left-0 top-6 hidden group-hover:block w-64 bg-gray-900 text-white text-xs rounded-lg p-3 shadow-2xl z-50">
-                    <p className="font-bold text-sm mb-2">{listing.companyName || 'Company Details'}</p>
-                    <div className="space-y-1.5">
-                      <p><span className="text-gray-400">Sector:</span> {listing.companyId?.sector || 'N/A'}</p>
-                      {listing.companyId?.isin && <p><span className="text-gray-400">ISIN:</span> {listing.companyId.isin}</p>}
-                      {listing.companyId?.pan && <p><span className="text-gray-400">PAN:</span> {listing.companyId.pan}</p>}
-                      {listing.companyId?.cin && <p><span className="text-gray-400">CIN:</span> {listing.companyId.cin}</p>}
-                      {listing.companyId?.website && <p><span className="text-gray-400">Website:</span> {listing.companyId.website}</p>}
-                      {listing.companyId?.foundedYear && <p><span className="text-gray-400">Founded:</span> {listing.companyId.foundedYear}</p>}
-                    </div>
-                  </div>
+      <div className="bg-white rounded-lg shadow-md border-2 border-purple-300 overflow-hidden mb-3">
+        {/* Enhanced Header - Clickable */}
+        <div 
+          className="px-4 py-3 border-b-2 border-purple-300 bg-gradient-to-r from-purple-50 to-blue-50 cursor-pointer hover:bg-gradient-to-r hover:from-purple-100 hover:to-blue-100 transition-all"
+          onClick={() => {
+            setIsTableCollapsed(!isTableCollapsed);
+            // Clear existing timer
+            if (collapseTimer) clearTimeout(collapseTimer);
+            // Set new timer for auto-collapse after 30 seconds of inactivity
+            if (!isTableCollapsed) {
+              const timer = setTimeout(() => {
+                setIsTableCollapsed(true);
+              }, 30000); // 30 seconds
+              setCollapseTimer(timer);
+            }
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* Company Logo/Icon */}
+              <div className="flex-shrink-0">
+                {logoUrl ? (
+                  <img 
+                    src={logoUrl} 
+                    alt={listing.companyId?.scriptName || listing.companyId?.ScriptName || listing.companyName}
+                    className="w-12 h-12 rounded-lg object-cover border-2 border-purple-400 shadow-sm"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.style.display = 'none';
+                      e.target.nextElementSibling.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div 
+                  className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold shadow-sm border-2 border-purple-400"
+                  style={{ display: logoUrl ? 'none' : 'flex' }}
+                >
+                  {(listing.companyId?.scriptName || listing.companyId?.ScriptName || listing.companyName)?.charAt(0) || 'C'}
                 </div>
               </div>
-              <p className="text-[11px] text-gray-600 mt-0.5">{listing.companyId?.Sector || listing.companyId?.sector || 'N/A'}</p>
+              
+              {/* Company Name and Post ID */}
+              <div>
+                <h3 className="text-base font-bold text-gray-900">
+                  {listing.companyId?.scriptName || listing.companyId?.ScriptName || listing.companyName || 'Unknown'}
+                </h3>
+                <p className="text-xs text-gray-600 font-medium">
+                  Post ID: <span className="font-mono font-bold text-purple-700">#{listing._id?.slice(-8).toUpperCase()}</span>
+                  <span className="mx-2 text-gray-400">•</span>
+                  {listing.companyId?.Sector || listing.companyId?.sector || 'N/A'}
+                </p>
+              </div>
+            </div>
+
+            {/* Status Badges and Toggle */}
+            <div className="flex items-center gap-2">
+              <div className={`px-3 py-1.5 rounded-full text-xs font-bold border-2 ${
+                markedSold ? 'bg-amber-100 text-amber-800 border-amber-400' : (
+                listing.status === 'active' ? 'bg-green-100 text-green-700 border-green-400' :
+                listing.status === 'negotiating' ? 'bg-orange-100 text-orange-700 border-orange-400' :
+                'bg-gray-100 text-gray-700 border-gray-400')
+              }`}>
+                {markedSold ? '🟠 SOLD' : 
+                 listing.status === 'negotiating' ? '🟠 NEGOTIATING' :
+                 `🟢 ${listing.status?.toUpperCase() || 'ACTIVE'}`}
+              </div>
+              <div className={`px-3 py-1.5 rounded-full text-xs font-bold border-2 ${
+                isSell ? 'bg-red-50 text-red-700 border-red-400' : 'bg-green-50 text-green-700 border-green-400'
+              }`}>
+                {isSell ? 'SELL' : 'BUY'} Post
+              </div>
+              <div className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 border-2 border-blue-700">
+                <span>{isSell ? 'Bids' : 'Offers'}:</span>
+                <span>{activeBidsCount}</span>
+              </div>
+              <div className="flex items-center gap-1 text-gray-600">
+                <Eye className="w-4 h-4" />
+                <span className="font-bold text-sm">{listing.views || 0}</span>
+              </div>
+              {markedSold && soldPricePerShare && (
+                <span className="bg-amber-200 px-2 py-1 rounded-full border border-amber-400 text-xs font-bold text-amber-800">
+                  Sold @ ₹{soldPricePerShare}
+                </span>
+              )}
+              {/* Collapse Toggle Icon */}
+              <div className="ml-2 text-purple-700">
+                {isTableCollapsed ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Price Table */}
         <div className="px-3 py-2 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-xs font-semibold text-gray-700">Price Details</h3>
-            <button
-              onClick={() => setIsTableCollapsed(!isTableCollapsed)}
-              className="text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              {isTableCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
-            </button>
-          </div>
-          
           {!isTableCollapsed && (
             <table className="w-full border-2 border-gray-400">
               <thead>
