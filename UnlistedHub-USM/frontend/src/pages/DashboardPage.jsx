@@ -1143,10 +1143,10 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Action Center & Recent Activity Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        {/* Action Center & Activity Grid */}
+        <div className="grid lg:grid-cols-2 gap-6">
           {/* Action Center */}
-          <div id="dashboard-action-center" className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 min-h-[500px] flex flex-col">
+          <div id="dashboard-action-center" className="bg-white rounded-2xl shadow-sm border border-gray-100 min-h-[500px] flex flex-col">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-gray-900">Action Center</h2>
@@ -1298,7 +1298,7 @@ const DashboardPage = () => {
                 </button>
               </div>
               
-              <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
+              <div className="space-y-2 max-h-[200px] overflow-y-auto">
                   {notifications.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-6 text-center">
                       <Bell size={28} className="text-gray-300 mb-2" />
@@ -1346,20 +1346,20 @@ const DashboardPage = () => {
                     return (
                       <div
                         key={notification._id}
-                        className={`flex items-start gap-1.5 p-1.5 rounded-md border transition-all hover:shadow-sm ${colorClass} ${
+                        className={`flex items-start gap-2 p-2 rounded-lg border transition-all hover:shadow-sm ${colorClass} ${
                           notification.isRead ? 'opacity-50' : ''
                         }`}
                       >
-                        <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${colorClass.replace('50', '100')}`}>
-                          <Icon size={12} />
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass.replace('50', '100')}`}>
+                          <Icon size={14} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-900 text-[11px] leading-tight">{notification.title}</p>
-                          <p className="text-[9px] text-gray-600 mt-0.5 line-clamp-1">{notification.message}</p>
-                          <p className="text-[8px] text-gray-400 mt-0.5">{formatRelativeTime(notification.createdAt)}</p>
+                          <p className="font-semibold text-gray-900 text-xs leading-tight">{notification.title}</p>
+                          <p className="text-[10px] text-gray-600 mt-0.5 line-clamp-2">{notification.message}</p>
+                          <p className="text-[9px] text-gray-400 mt-0.5">{formatRelativeTime(notification.createdAt)}</p>
                         </div>
                         {!notification.isRead && (
-                          <div className="w-1.5 h-1.5 bg-purple-500 rounded-full flex-shrink-0 mt-1"></div>
+                          <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0 mt-1"></div>
                         )}
                       </div>
                     );
