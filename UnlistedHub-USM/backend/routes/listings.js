@@ -1463,9 +1463,14 @@ router.get('/completed-deals', protect, async (req, res, next) => {
         myVerificationCode: isBuyer ? deal.buyerVerificationCode : deal.sellerVerificationCode,
         // RM code is the same for everyone to verify RM
         rmVerificationCode: deal.rmVerificationCode,
-        // Hide the other party's verification code
-        buyerVerificationCode: undefined,
-        sellerVerificationCode: undefined
+        // Keep verification codes for dashboard display
+        buyerVerificationCode: deal.buyerVerificationCode,
+        sellerVerificationCode: deal.sellerVerificationCode,
+        // Add other party details
+        buyerName: deal.buyerId?.username,
+        buyerUsername: deal.buyerId?.username,
+        sellerName: deal.sellerId?.username,
+        sellerUsername: deal.sellerId?.username
       };
     });
     
