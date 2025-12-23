@@ -793,6 +793,76 @@ const DashboardPage = () => {
 
       {/* Main Content Area */}
       <main className={`flex-1 ml-56 overflow-x-auto ${isViewingAsAdmin ? 'mt-[68px]' : ''}`}>
+        {/* Dashboard Header - Similar to Probus */}
+        <div className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between">
+              {/* Left side - Greeting */}
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                  {(() => {
+                    const hour = new Date().getHours();
+                    if (hour < 12) return 'Good Morning';
+                    if (hour < 17) return 'Good Afternoon';
+                    return 'Good Evening';
+                  })()}, {(isViewingAsAdmin && viewingUser) ? (viewingUser.fullName || viewingUser.username) : (user.fullName || user.username)}!
+                </h1>
+                <p className="text-sm text-gray-600">
+                  Monitor your portfolio, trades, and updates for a successful day ahead
+                </p>
+              </div>
+
+              {/* Right side - User profile & notification bell */}
+              <div className="flex items-center gap-4">
+                {/* Notification Bell */}
+                <button
+                  onClick={() => handleTabChange('notifications')}
+                  className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <Bell size={22} className="text-gray-700" />
+                  {notifications.filter(n => !n.isRead).length > 0 && (
+                    <div className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-[10px] font-bold">
+                        {notifications.filter(n => !n.isRead).length}
+                      </span>
+                    </div>
+                  )}
+                </button>
+
+                {/* User Profile */}
+                <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleTabChange('profile')}>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-gray-900">
+                      {(isViewingAsAdmin && viewingUser) ? (viewingUser.fullName || viewingUser.username) : (user.fullName || user.username)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      @{(isViewingAsAdmin && viewingUser) ? viewingUser.username : user.username}
+                      {((isViewingAsAdmin && viewingUser) ? viewingUser.role : user.role) === 'admin' && (
+                        <span className="ml-1 text-blue-600 font-semibold">• Admin</span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold ring-2 ring-purple-200">
+                    {(isViewingAsAdmin && viewingUser) ? (
+                      viewingUser.avatar ? (
+                        <img src={viewingUser.avatar} alt={viewingUser.username} className="w-full h-full rounded-full object-cover" />
+                      ) : (
+                        viewingUser.username?.charAt(0).toUpperCase()
+                      )
+                    ) : (
+                      user.avatar ? (
+                        <img src={user.avatar} alt={user.username} className="w-full h-full rounded-full object-cover" />
+                      ) : (
+                        user.username?.charAt(0).toUpperCase()
+                      )
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="p-6 min-w-0">
         
         {/* Viewing User Header - Only shown when admin is viewing another user */}
@@ -1122,42 +1192,19 @@ const DashboardPage = () => {
 
           {/* Notifications & Activity Sidebar */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col">
-            {/* Header with Notification Bell */}
-            <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-purple-50 via-indigo-50 to-blue-50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <div className="w-9 h-9 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                      <Bell className="text-white" size={18} />
-                    </div>
-                    {notifications.filter(n => !n.isRead).length > 0 && (
-                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white">
-                        <span className="text-white text-[9px] font-bold">
-                          {notifications.filter(n => !n.isRead).length}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-900">Updates</h3>
-                    <p className="text-[10px] text-gray-500">Stay informed</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleTabChange('notifications')}
-                  className="px-3 py-1.5 bg-white text-purple-600 text-xs font-semibold rounded-lg hover:bg-purple-50 transition-colors border border-purple-200 shadow-sm"
-                >
-                  View All
-                </button>
-              </div>
-            </div>
-            
             {/* Notifications Section */}
             <div className="p-4 border-b border-gray-100">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base font-bold text-gray-900">Latest Notifications</h3>
+                  <Bell className="text-purple-600" size={18} />
+                  <h3 className="text-base font-bold text-gray-900">Notifications</h3>
                 </div>
+                <button
+                  onClick={() => handleTabChange('notifications')}
+                  className="text-purple-600 text-xs font-semibold hover:text-purple-700"
+                >
+                  View All →
+                </button>
               </div>
               
               <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
