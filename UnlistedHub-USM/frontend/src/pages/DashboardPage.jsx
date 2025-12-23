@@ -1345,6 +1345,9 @@ const DashboardPage = () => {
 
           <div className="grid md:grid-cols-3 gap-3">
             {confirmedDeals.map((deal) => {
+              console.log('📦 Full deal object:', deal);
+              console.log('🔑 Keys in deal:', Object.keys(deal));
+              
               const isSeller = deal.sellerId === user._id || deal.sellerId._id === user._id;
               const myCode = isSeller ? deal.sellerVerificationCode : deal.buyerVerificationCode;
               const otherPartyCode = isSeller ? deal.buyerVerificationCode : deal.sellerVerificationCode;
@@ -1352,7 +1355,9 @@ const DashboardPage = () => {
                 ? (deal.buyerName || deal.buyerUsername) 
                 : (deal.sellerName || deal.sellerUsername);
 
-              console.log('🔍 Deal:', deal._id, 'isSeller:', isSeller, 'myCode:', myCode, 'visible:', visibleCodes[deal._id]);
+              console.log('🔍 Deal:', deal._id, 'Status:', deal.status, 'isSeller:', isSeller);
+              console.log('📝 Codes - buyer:', deal.buyerVerificationCode, 'seller:', deal.sellerVerificationCode);
+              console.log('👁️ Visible state:', visibleCodes[deal._id]);
 
               return (
                 <div key={deal._id} className="bg-white rounded-xl border-2 border-green-300 p-3 shadow-sm hover:shadow-md transition-all">
