@@ -1352,6 +1352,8 @@ const DashboardPage = () => {
                 ? (deal.buyerName || deal.buyerUsername) 
                 : (deal.sellerName || deal.sellerUsername);
 
+              console.log('🔍 Deal:', deal._id, 'isSeller:', isSeller, 'myCode:', myCode, 'visible:', visibleCodes[deal._id]);
+
               return (
                 <div key={deal._id} className="bg-white rounded-xl border-2 border-green-300 p-3 shadow-sm hover:shadow-md transition-all">
                   <div className="flex items-start justify-between mb-2">
@@ -1373,10 +1375,13 @@ const DashboardPage = () => {
                     <p className="text-xs text-green-700 font-semibold mb-1">Your Code:</p>
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-xl font-bold text-green-700 tracking-widest flex-1">
-                        {visibleCodes[deal._id] ? myCode : '••••••'}
+                        {visibleCodes[deal._id] ? (myCode || 'N/A') : '••••••'}
                       </p>
                       <button
-                        onClick={() => setVisibleCodes(prev => ({ ...prev, [deal._id]: !prev[deal._id] }))}
+                        onClick={() => {
+                          console.log('👁️ Toggling code for:', deal._id, 'current:', visibleCodes[deal._id]);
+                          setVisibleCodes(prev => ({ ...prev, [deal._id]: !prev[deal._id] }));
+                        }}
                         className="p-1.5 hover:bg-green-100 rounded transition-colors"
                         title={visibleCodes[deal._id] ? 'Hide code' : 'View code'}
                       >
