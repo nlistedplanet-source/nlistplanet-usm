@@ -40,6 +40,7 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
   const [showSoldModal, setShowSoldModal] = useState(false);
   const [markedSold, setMarkedSold] = useState(false);
   const [soldPricePerShare, setSoldPricePerShare] = useState(null);
+  const [isTableCollapsed, setIsTableCollapsed] = useState(false);
 
   const isSell = listing.type === 'sell';
   const bidsArray = (isSell ? listing.bids : listing.offers) || [];
@@ -340,40 +341,52 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
 
         {/* Price Table */}
         <div className="px-3 py-2 border-b border-gray-200">
-          <table className="w-full border-2 border-gray-400">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border-2 border-gray-400 px-2 py-1 text-center text-[11px] font-bold text-gray-700 uppercase">{isSell ? 'Selling Price' : 'Buying Price'}</th>
-                <th className="border-2 border-gray-400 px-2 py-1 text-center text-[11px] font-bold text-gray-700 uppercase">Quantity</th>
-                <th className="border-2 border-gray-400 px-2 py-1 text-center text-[11px] font-bold text-gray-700 uppercase">Min Lot</th>
-                <th className="border-2 border-gray-400 px-2 py-1 text-center text-[11px] font-bold text-gray-700 uppercase">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="bg-white">
-                <td className="border-2 border-gray-400 px-2 py-2 text-center">
-                  <div className="text-sm font-bold text-gray-900 cursor-help" title={numberToWords(sellerPrice)}>
-                    {formatCurrency(sellerPrice)}
-                  </div>
-                </td>
-                <td className="border-2 border-gray-400 px-2 py-2 text-center">
-                  <div className="text-sm font-bold text-gray-900 cursor-help" title={`${listing.quantity?.toLocaleString('en-IN')} shares`}>
-                    {formatShortQuantity(listing.quantity || 0)}
-                  </div>
-                </td>
-                <td className="border-2 border-gray-400 px-2 py-2 text-center">
-                  <div className="text-sm font-bold text-gray-900 cursor-help" title={`${(listing.minLot || 1).toLocaleString('en-IN')} shares`}>
-                    {formatShortQuantity(listing.minLot || 1)}
-                  </div>
-                </td>
-                <td className="border-2 border-gray-400 px-2 py-2 text-center">
-                  <div className="text-sm font-bold text-green-600 cursor-help" title={numberToWords(totalAmount)}>
-                    {formatShortAmount(totalAmount)}
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-xs font-semibold text-gray-700">Price Details</h3>
+            <button
+              onClick={() => setIsTableCollapsed(!isTableCollapsed)}
+              className="text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              {isTableCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+            </button>
+          </div>
+          
+          {!isTableCollapsed && (
+            <table className="w-full border-2 border-gray-400">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border-2 border-gray-400 px-2 py-1 text-center text-[11px] font-bold text-gray-700 uppercase">{isSell ? 'Selling Price' : 'Buying Price'}</th>
+                  <th className="border-2 border-gray-400 px-2 py-1 text-center text-[11px] font-bold text-gray-700 uppercase">Quantity</th>
+                  <th className="border-2 border-gray-400 px-2 py-1 text-center text-[11px] font-bold text-gray-700 uppercase">Min Lot</th>
+                  <th className="border-2 border-gray-400 px-2 py-1 text-center text-[11px] font-bold text-gray-700 uppercase">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="bg-white">
+                  <td className="border-2 border-gray-400 px-2 py-2 text-center">
+                    <div className="text-sm font-bold text-gray-900 cursor-help" title={numberToWords(sellerPrice)}>
+                      {formatCurrency(sellerPrice)}
+                    </div>
+                  </td>
+                  <td className="border-2 border-gray-400 px-2 py-2 text-center">
+                    <div className="text-sm font-bold text-gray-900 cursor-help" title={`${listing.quantity?.toLocaleString('en-IN')} shares`}>
+                      {formatShortQuantity(listing.quantity || 0)}
+                    </div>
+                  </td>
+                  <td className="border-2 border-gray-400 px-2 py-2 text-center">
+                    <div className="text-sm font-bold text-gray-900 cursor-help" title={`${(listing.minLot || 1).toLocaleString('en-IN')} shares`}>
+                      {formatShortQuantity(listing.minLot || 1)}
+                    </div>
+                  </td>
+                  <td className="border-2 border-gray-400 px-2 py-2 text-center">
+                    <div className="text-sm font-bold text-green-600 cursor-help" title={numberToWords(totalAmount)}>
+                      {formatShortAmount(totalAmount)}
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* Actions */}
