@@ -893,6 +893,68 @@ const DashboardPage = () => {
               </div>
             </div>
           </div>
+          
+          {/* Moving Announcement Banner for New Listings */}
+          {marketplaceListings.length > 0 && marketplaceListings.slice(0, 5).filter(listing => {
+            const listingDate = new Date(listing.createdAt);
+            const now = new Date();
+            const hoursDiff = (now - listingDate) / (1000 * 60 * 60);
+            return hoursDiff <= 24; // Show listings from last 24 hours
+          }).length > 0 && (
+            <div className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 border-t border-gray-200 py-2 overflow-hidden">
+              <div className="flex items-center gap-3 px-4">
+                <span className="text-purple-600 font-bold text-sm whitespace-nowrap flex-shrink-0">🔥 NEW LISTINGS:</span>
+                <div className="flex-1 overflow-hidden relative">
+                  <div className="flex">
+                    <div className="animate-marquee flex whitespace-nowrap">
+                      {/* First copy */}
+                      {marketplaceListings.slice(0, 5).filter(listing => {
+                        const listingDate = new Date(listing.createdAt);
+                        const now = new Date();
+                        const hoursDiff = (now - listingDate) / (1000 * 60 * 60);
+                        return hoursDiff <= 24;
+                      }).map((listing, index, filteredArray) => (
+                        <span key={`${listing._id}-1`} className="inline-flex items-center gap-2 mx-4">
+                          <span className="text-sm font-semibold text-gray-800">
+                            {listing.companyId?.CompanyName || listing.companyId?.name || 'Unknown Company'}
+                          </span>
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
+                            {listing.listingType === 'sell' ? '🔴 SELL' : '🟢 BUY'}
+                          </span>
+                          <span className="text-sm text-gray-700">
+                            @ ₹{listing.pricePerShare} • {listing.quantity} shares
+                          </span>
+                          <span className="text-xs text-green-600 font-semibold">is now LIVE! 🚀</span>
+                          <span className="text-gray-400 mx-2">•</span>
+                        </span>
+                      ))}
+                      {/* Second copy for seamless loop */}
+                      {marketplaceListings.slice(0, 5).filter(listing => {
+                        const listingDate = new Date(listing.createdAt);
+                        const now = new Date();
+                        const hoursDiff = (now - listingDate) / (1000 * 60 * 60);
+                        return hoursDiff <= 24;
+                      }).map((listing, index, filteredArray) => (
+                        <span key={`${listing._id}-2`} className="inline-flex items-center gap-2 mx-4">
+                          <span className="text-sm font-semibold text-gray-800">
+                            {listing.companyId?.CompanyName || listing.companyId?.name || 'Unknown Company'}
+                          </span>
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
+                            {listing.listingType === 'sell' ? '🔴 SELL' : '🟢 BUY'}
+                          </span>
+                          <span className="text-sm text-gray-700">
+                            @ ₹{listing.pricePerShare} • {listing.quantity} shares
+                          </span>
+                          <span className="text-xs text-green-600 font-semibold">is now LIVE! 🚀</span>
+                          <span className="text-gray-400 mx-2">•</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="p-6 min-w-0">

@@ -180,6 +180,25 @@ body {
 .badge {
   @apply absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5;
 }
+
+/* Marquee Animation for Announcement Banner */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
 /* Deploy: 2025-12-21 20:58:20 */
 /* Auto-deploy test: 2025-12-21 21:34:13 */
 /* Final test: 21:45:34 */
