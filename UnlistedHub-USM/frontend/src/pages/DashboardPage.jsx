@@ -950,46 +950,44 @@ const DashboardPage = () => {
 
       {/* Main Content Area */}
       <main className={`flex-1 ml-56 overflow-x-auto ${isViewingAsAdmin ? 'mt-[68px]' : ''}`}>
-        {/* Dashboard Header - Similar to Probus */}
+        {/* Dashboard Header - Modern Clean Design */}
         <div className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
-          <div className="px-6 py-2.5">
+          <div className="px-6 py-3">
             <div className="flex items-center justify-between">
-              {/* Left side - Greeting */}
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 mb-1">
-                  {(() => {
-                    const hour = new Date().getHours();
-                    if (hour < 12) return 'Good Morning';
-                    if (hour < 17) return 'Good Afternoon';
-                    return 'Good Evening';
-                  })()}, {(isViewingAsAdmin && viewingUser) ? (viewingUser.fullName || viewingUser.username) : (user.fullName || user.username)}!
-                </h1>
-                {/* Daily Motivational Quote */}
-                <div className="flex items-center gap-1.5">
-                  <span className="text-purple-600 text-sm">💡</span>
-                  <p className="text-xs font-medium text-purple-700 italic">
+              {/* Left side - Platform Branding & Greeting */}
+              <div className="flex items-center gap-4">
+                {/* Logo */}
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-soft">
+                    <Building2 size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-lg font-bold text-gray-900">
+                      NListPlanet
+                    </h1>
+                    <p className="text-xs text-gray-500 font-medium">
+                      {(() => {
+                        const hour = new Date().getHours();
+                        if (hour < 12) return 'Good Morning';
+                        if (hour < 17) return 'Good Afternoon';
+                        return 'Good Evening';
+                      })()}!
+                    </p>
+                  </div>
+                </div>
+                {/* Daily Quote */}
+                <div className="hidden xl:flex items-center gap-1.5 ml-6 px-4 py-1.5 bg-purple-50 rounded-lg border border-purple-200">
+                  <span className="text-purple-600">💡</span>
+                  <p className="text-xs font-medium text-purple-700 italic max-w-md truncate">
                     "{(() => {
                       const quotes = [
-                        "Success is not final, failure is not fatal: it is the courage to continue that counts.",
-                        "The stock market is filled with individuals who know the price of everything, but the value of nothing.",
-                        "In investing, what is comfortable is rarely profitable.",
-                        "Risk comes from not knowing what you're doing.",
-                        "The best investment you can make is in yourself.",
-                        "Do not save what is left after spending, but spend what is left after saving.",
-                        "An investment in knowledge pays the best interest.",
-                        "The four most dangerous words in investing are: 'This time it's different.'",
-                        "Opportunities don't happen. You create them.",
-                        "The only way to do great work is to love what you do.",
-                        "Fortune favors the bold investor.",
-                        "Price is what you pay. Value is what you get.",
-                        "The stock market is a device for transferring money from the impatient to the patient.",
-                        "Know what you own, and know why you own it.",
-                        "Time in the market beats timing the market.",
-                        "Investing should be more like watching paint dry or watching grass grow.",
-                        "The goal is to be the tortoise, not the hare.",
                         "Never invest in a business you cannot understand.",
-                        "Wide diversification is only required when investors do not understand what they are doing.",
-                        "It's far better to buy a wonderful company at a fair price than a fair company at a wonderful price."
+                        "Price is what you pay. Value is what you get.",
+                        "Time in the market beats timing the market.",
+                        "The best investment you can make is in yourself.",
+                        "Risk comes from not knowing what you're doing.",
+                        "Know what you own, and know why you own it.",
+                        "Fortune favors the bold investor."
                       ];
                       const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
                       return quotes[dayOfYear % quotes.length];
@@ -999,15 +997,15 @@ const DashboardPage = () => {
               </div>
 
               {/* Right side - User profile & notification bell */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 {/* Notification Bell */}
                 <button
                   onClick={() => handleTabChange('notifications')}
-                  className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="relative p-2 hover:bg-gray-100 rounded-lg transition-smooth"
                 >
-                  <Bell size={22} className="text-gray-700" />
+                  <Bell size={20} className="text-gray-700" />
                   {notifications.filter(n => !n.isRead).length > 0 && (
-                    <div className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                    <div className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center px-1.5 shadow-medium animate-pulse-subtle">
                       <span className="text-white text-[10px] font-bold">
                         {notifications.filter(n => !n.isRead).length}
                       </span>
@@ -1016,19 +1014,8 @@ const DashboardPage = () => {
                 </button>
 
                 {/* User Profile */}
-                <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleTabChange('profile')}>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-gray-900">
-                      {(isViewingAsAdmin && viewingUser) ? (viewingUser.fullName || viewingUser.username) : (user.fullName || user.username)}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      @{(isViewingAsAdmin && viewingUser) ? viewingUser.username : user.username}
-                      {((isViewingAsAdmin && viewingUser) ? viewingUser.role : user.role) === 'admin' && (
-                        <span className="ml-1 text-blue-600 font-semibold">• Admin</span>
-                      )}
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold ring-2 ring-purple-200">
+                <div className="flex items-center gap-2.5 cursor-pointer hover:bg-gray-50 rounded-lg px-3 py-1.5 transition-smooth" onClick={() => handleTabChange('profile')}>
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold ring-2 ring-purple-200 shadow-soft">
                     {(isViewingAsAdmin && viewingUser) ? (
                       viewingUser.avatar ? (
                         <img src={viewingUser.avatar} alt={viewingUser.username} className="w-full h-full rounded-full object-cover" />
@@ -1042,6 +1029,17 @@ const DashboardPage = () => {
                         user.username?.charAt(0).toUpperCase()
                       )
                     )}
+                  </div>
+                  <div className="text-left hidden sm:block">
+                    <p className="text-sm font-bold text-gray-900">
+                      {(isViewingAsAdmin && viewingUser) ? (viewingUser.fullName || viewingUser.username) : (user.fullName || user.username)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      @{(isViewingAsAdmin && viewingUser) ? viewingUser.username : user.username}
+                      {((isViewingAsAdmin && viewingUser) ? viewingUser.role : user.role) === 'admin' && (
+                        <span className="ml-1 text-blue-600 font-semibold">• Admin</span>
+                      )}
+                    </p>
                   </div>
                 </div>
               </div>

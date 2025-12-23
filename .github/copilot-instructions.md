@@ -1,5 +1,48 @@
 # Copilot Instructions — NListPlanet / UnlistedHub
 
+## Quick Reference Card
+
+**Essential Commands:**
+```bash
+# Validate Environment First (⚠️ ALWAYS RUN BEFORE STARTING)
+cd UnlistedHub-USM/backend && node scripts/validateEnv.js
+
+# Backend Dev
+cd UnlistedHub-USM/backend && npm run dev
+
+# Desktop Frontend  
+cd UnlistedHub-USM/frontend && npm start
+
+# Mobile PWA
+cd nlistplanet-mobile/frontend && $env:PORT='3001'; npm start
+
+# Quick API Test (before pushing code)
+node scripts/quickTest.js
+
+# Test Push Notification
+node test-push-notification.js <username>
+
+# Create Admin
+node scripts/createAdmin.js
+```
+
+**Critical Rules:**
+- ✅ Update fee helpers in BOTH frontends when changing pricing
+- ✅ Always use fallback: `company.CompanyName || company.name`
+- ✅ Never show raw prices - use `getNetPriceForUser()`
+- ✅ ES modules only (`import`/`export`, no `require`)
+- ✅ Use `toast.success()` not `alert()` for user feedback
+
+**Tech Stack:**
+- Backend: Express + MongoDB (ES modules, port 5000)
+- Desktop: React 18 + Tailwind (port 3000)
+- Mobile: React 19 PWA (port 3001)
+- Auth: JWT + Argon2id, auto-logout on 401
+- Notifications: Firebase Cloud Messaging
+- AI: OpenAI (news summaries, translations)
+
+---
+
 ## Architecture & Purpose
 **P2P unlisted shares marketplace** with anonymous `@trader_xxx` identities; admin mediates deals.
 
@@ -98,6 +141,21 @@ Show companies only when:
 ```javascript
 verificationStatus === 'verified' || addedBy === 'admin'
 ```
+
+### Bid/Offer Status Flow
+**Critical state machine** (see `models/Listing.js` bidSchema):
+- `pending` - Initial bid/offer, awaiting seller/buyer response
+- `countered` - Counter-offer made (max 4 rounds in `counterHistory[]`)
+- `pending_confirmation` - One party accepted, waiting for other party
+- `confirmed` - Both parties confirmed (deal locked)
+- `rejected` / `cancelled` / `expired` - Terminal states
+
+**Status transitions:**
+1. Buyer bids → `pending`
+2. Seller counters → `countered` (round 1)
+3. Buyer counters back → `countered` (round 2)
+4. Seller accepts → `pending_confirmation`
+5. Buyer confirms → `confirmed` (admin completes transaction)
 
 ## Security & Auth
 
@@ -247,6 +305,24 @@ Stop-Process -Name "node" -Force
 **Check:** `/api/health` endpoint - scheduler status should be "running"  
 **Manual trigger:** `node scripts/fetchNews.js`
 
+### 401 Unauthorized Errors
+**Symptom:** User suddenly logged out or API calls fail with 401.  
+**Root cause:** Axios interceptor in `AuthContext.jsx` auto-logout on invalid/expired JWT  
+**Debug:** Check browser localStorage for `token`, verify JWT_SECRET matches between backend .env and token generation
+
+### Price Discrepancies in Listings
+**Symptom:** Buyer/seller see different prices than expected.  
+**Root cause:** Not using `getNetPriceForUser()` helper correctly  
+**Fix pattern:**
+```javascript
+// WRONG - shows raw price without fee adjustment
+<span>{listing.price}</span>
+
+// CORRECT - shows user's actual price
+const netPrice = getNetPriceForUser(bid, listing.type, isOwner);
+<span>{formatCurrency(netPrice)}</span>
+```
+
 ## File Locations Reference
 
 **Fee logic:**
@@ -289,7 +365,107 @@ Located in `UnlistedHub-USM/backend/` and `/scripts/`:
 - `node scripts/makeUserAdmin.js` - Promote user to admin
 - `node scripts/checkAllUsers.js` - List all users with stats
 
+## React Component Patterns
+
+### State Management
+**Context-based architecture** - No Redux/Zustand:
+- `UnlistedHub-USM/frontend/src/context/AuthContext.jsx` - Global auth state
+- Use `useAuth()` hook: `const { user, login, logout, loading } = useAuth()`
+- Auto-logout after 30min inactivity (configured in AuthContext)
+
+**Data fetching:**
+- Axios with JWT interceptor (auto-logout on 401)
+- Base API utilities in `src/utils/api.js` (listingsAPI, companiesAPI, etc.)
+- No React Query - direct API calls with `useState`/`useEffect`
+
+### UI/UX Standards
+**Styling:** Tailwind CSS with modern design system
+- **Modern UI Library:** `src/modern-ui.css` - 100+ utility classes
+- **Effects:** Glassmorphism, gradients, animations, glow effects
+- Primary colors: `bg-gray-900` (dark backgrounds), `text-emerald-500` (CTAs)
+- Modern components: `.btn-modern`, `.card-modern`, `.input-modern`, `.badge-modern`
+- Visual effects: `.hover-lift`, `.glow-emerald`, `.glass-effect`, `.transition-smooth`
+- Use shadcn/ui component patterns (see `components.json`, `tailwind.config.js`)
+- Dark theme design system: `dark-50` through `dark-900` scale
+- Responsive: Mobile-first, breakpoint at `2xl:1400px`
+
+**User feedback:**
+- `react-hot-toast` for all notifications (no alerts)
+- Standard patterns: `toast.success('✅ Message')`, `toast.error('Error message')`
+- Loading states: `<Loader>` component from `lucide-react`
+- Skeleton loading: `.skeleton-modern` class
+
+**Icons:** `lucide-react` only (consistent across app)
+
+### Component Organization
+**File structure conventions:**
+- Pages: `src/pages/*Page.jsx` (LoginPage, DashboardPage, etc.)
+- Reusable UI: `src/components/` (modals, cards, forms)
+- Dashboard widgets: `src/components/dashboard/` (MyPostCard, HistoryTab, etc.)
+
+**Naming patterns:**
+- Components: PascalCase with descriptive suffixes (`Modal`, `Card`, `Tab`)
+- Utilities: camelCase functions in `src/utils/helpers.js`
+- API modules: `*API` suffix (e.g., `listingsAPI`, `authAPI`)
+
+## API Integration Patterns
+
+### Request/Response Flow
+**All API calls through centralized modules:**
+```javascript
+import { listingsAPI } from '../utils/api';
+const listings = await listingsAPI.getAll();
+```
+
+**Error handling standard:**
+```javascript
+try {
+  const result = await api.call();
+  toast.success('Action completed!');
+} catch (error) {
+  toast.error(error.response?.data?.message || 'Operation failed');
+}
+```
+
+**Protected routes:** Always check `user` from `useAuth()` before rendering admin/protected UI
+
+### Data Transformation
+**Company field access - always use fallbacks:**
+```javascript
+const name = company.CompanyName || company.name;
+const logo = company.Logo || company.logo;
+const scrip = company.ScripName || company.scriptName;
+```
+
+**Price display - never show raw prices:**
+```javascript
+import { getNetPriceForUser, formatCurrency } from '../utils/helpers';
+const visiblePrice = getNetPriceForUser(bid, listing.type, isOwner);
+const formatted = formatCurrency(visiblePrice);
+```
+
+## Development Tools & Validation
+
+### Pre-Start Validation
+**Always validate environment before starting server:**
+```bash
+cd UnlistedHub-USM/backend
+node scripts/validateEnv.js  # Checks all env vars, exits with errors if misconfigured
+```
+
+**Quick API health check:**
+```bash
+node scripts/quickTest.js    # Tests all public endpoints, CORS, rate limiting
+```
+
+### Quality Checks
+- **Environment validation** - `scripts/validateEnv.js` catches config issues early
+- **API testing** - `scripts/quickTest.js` validates endpoints without Postman
+- **Build verification** - Always `npm run build` before pushing to test production builds
+- **Database checks** - `scripts/checkDatabase.js` verifies schema integrity
+
 ## Additional Documentation
+- `DEV_GUIDE.md` - **START HERE** - Daily workflows, troubleshooting, commands
 - `NLISTPLANET_MASTER_DOCS.md` - Comprehensive project documentation
 - `PUSH_NOTIFICATIONS_COMPLETE.md` - FCM implementation guide
 - `REFERRAL_TRACKING_SYSTEM.md` - Referral/share tracking architecture

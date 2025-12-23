@@ -1,0 +1,338 @@
+/* Modern UI Enhancements for Desktop Version */
+
+/* Enhanced Button Styles */
+.btn-modern {
+  @apply px-4 py-2.5 rounded-xl font-semibold transition-all duration-300 transform active-scale;
+  @apply shadow-soft hover:shadow-medium;
+}
+
+.btn-primary-modern {
+  @apply bg-gradient-to-r from-emerald-500 to-emerald-600 text-white;
+  @apply hover:from-emerald-600 hover:to-emerald-700;
+  @apply focus:ring-4 focus:ring-emerald-200;
+}
+
+.btn-secondary-modern {
+  @apply bg-gradient-to-r from-gray-500 to-gray-600 text-white;
+  @apply hover:from-gray-600 hover:to-gray-700;
+  @apply focus:ring-4 focus:ring-gray-200;
+}
+
+.btn-danger-modern {
+  @apply bg-gradient-to-r from-red-500 to-red-600 text-white;
+  @apply hover:from-red-600 hover:to-red-700;
+  @apply focus:ring-4 focus:ring-red-200;
+}
+
+.btn-success-modern {
+  @apply bg-gradient-to-r from-green-500 to-green-600 text-white;
+  @apply hover:from-green-600 hover:to-green-700;
+  @apply focus:ring-4 focus:ring-green-200;
+}
+
+.btn-outline-modern {
+  @apply border-2 border-gray-300 bg-white text-gray-700;
+  @apply hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50;
+  @apply transition-all duration-300;
+}
+
+/* Modern Card Styles */
+.card-modern {
+  @apply bg-white rounded-2xl shadow-soft border border-gray-100;
+  @apply transition-smooth hover-lift hover:shadow-medium;
+  @apply overflow-hidden;
+}
+
+.card-header-modern {
+  @apply px-6 py-4 border-b border-gray-100;
+  @apply bg-gradient-to-br from-gray-50 to-white;
+}
+
+.card-body-modern {
+  @apply p-6;
+}
+
+.card-footer-modern {
+  @apply px-6 py-4 border-t border-gray-100 bg-gray-50;
+}
+
+/* Modern Input Styles */
+.input-modern {
+  @apply w-full px-4 py-3 rounded-xl border-2 border-gray-200;
+  @apply focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100;
+  @apply transition-all duration-300 outline-none;
+  @apply bg-white hover:border-gray-300;
+}
+
+.input-error-modern {
+  @apply border-red-300 focus:border-red-500 focus:ring-red-100;
+}
+
+/* Modern Badge Styles */
+.badge-modern {
+  @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold;
+  @apply transition-smooth;
+}
+
+.badge-success-modern {
+  @apply bg-emerald-100 text-emerald-700 border-2 border-emerald-300;
+  @apply hover:bg-emerald-200;
+}
+
+.badge-warning-modern {
+  @apply bg-yellow-100 text-yellow-700 border-2 border-yellow-300;
+  @apply hover:bg-yellow-200;
+}
+
+.badge-danger-modern {
+  @apply bg-red-100 text-red-700 border-2 border-red-300;
+  @apply hover:bg-red-200;
+}
+
+.badge-info-modern {
+  @apply bg-blue-100 text-blue-700 border-2 border-blue-300;
+  @apply hover:bg-blue-200;
+}
+
+.badge-premium-modern {
+  @apply bg-gradient-to-r from-amber-400 to-orange-500 text-white;
+  @apply shadow-medium hover:shadow-strong;
+  @apply animate-pulse-subtle;
+}
+
+/* Modern Table Styles */
+.table-modern {
+  @apply w-full bg-white rounded-xl overflow-hidden shadow-soft;
+}
+
+.table-header-modern {
+  @apply bg-gradient-to-r from-gray-50 to-gray-100;
+}
+
+.table-header-modern th {
+  @apply px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider;
+  @apply border-b-2 border-gray-200;
+}
+
+.table-row-modern {
+  @apply transition-smooth hover:bg-gray-50;
+  @apply border-b border-gray-100;
+}
+
+.table-row-modern td {
+  @apply px-4 py-3 text-sm text-gray-700;
+}
+
+/* Modern Modal Styles */
+.modal-overlay-modern {
+  @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50;
+  @apply flex items-center justify-center p-4;
+  @apply animate-fade-in;
+}
+
+.modal-content-modern {
+  @apply bg-white rounded-2xl shadow-strong max-w-2xl w-full;
+  @apply animate-slideUp;
+  @apply max-h-[90vh] overflow-y-auto;
+}
+
+.modal-header-modern {
+  @apply px-6 py-4 border-b border-gray-200;
+  @apply bg-gradient-to-br from-gray-50 to-white;
+  @apply flex items-center justify-between;
+}
+
+.modal-title-modern {
+  @apply text-xl font-bold text-gray-900;
+}
+
+.modal-body-modern {
+  @apply p-6;
+}
+
+.modal-footer-modern {
+  @apply px-6 py-4 border-t border-gray-200 bg-gray-50;
+  @apply flex items-center justify-end gap-3;
+}
+
+/* Modern Alert Styles */
+.alert-modern {
+  @apply p-4 rounded-xl border-l-4;
+  @apply flex items-start gap-3;
+}
+
+.alert-success-modern {
+  @apply bg-emerald-50 border-emerald-500;
+}
+
+.alert-warning-modern {
+  @apply bg-yellow-50 border-yellow-500;
+}
+
+.alert-danger-modern {
+  @apply bg-red-50 border-red-500;
+}
+
+.alert-info-modern {
+  @apply bg-blue-50 border-blue-500;
+}
+
+/* Modern Tooltip */
+.tooltip-modern {
+  @apply absolute z-50 px-3 py-2 rounded-lg;
+  @apply bg-gray-900 text-white text-xs font-medium;
+  @apply shadow-strong whitespace-nowrap;
+  @apply opacity-0 invisible transition-all duration-200;
+}
+
+.tooltip-trigger:hover .tooltip-modern {
+  @apply opacity-100 visible;
+}
+
+/* Modern Skeleton Loader */
+.skeleton-modern {
+  @apply bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200;
+  @apply bg-[length:200%_100%] animate-shimmer;
+  @apply rounded-lg;
+}
+
+/* Modern Dropdown */
+.dropdown-modern {
+  @apply absolute mt-2 w-56 rounded-xl shadow-strong;
+  @apply bg-white border border-gray-100;
+  @apply py-2 z-50;
+  @apply animate-slideDown;
+}
+
+.dropdown-item-modern {
+  @apply px-4 py-2.5 text-sm text-gray-700;
+  @apply hover:bg-gray-50 transition-smooth;
+  @apply flex items-center gap-3;
+  @apply cursor-pointer;
+}
+
+/* Modern Tab Styles */
+.tabs-modern {
+  @apply flex border-b-2 border-gray-200 gap-1;
+}
+
+.tab-modern {
+  @apply px-6 py-3 text-sm font-semibold;
+  @apply text-gray-600 border-b-2 border-transparent;
+  @apply transition-all duration-300;
+  @apply hover:text-emerald-600 hover:border-emerald-200;
+}
+
+.tab-active-modern {
+  @apply text-emerald-600 border-emerald-500;
+  @apply bg-emerald-50/50;
+}
+
+/* Modern Progress Bar */
+.progress-modern {
+  @apply w-full h-2 bg-gray-200 rounded-full overflow-hidden;
+}
+
+.progress-bar-modern {
+  @apply h-full bg-gradient-to-r from-emerald-500 to-emerald-600;
+  @apply transition-all duration-500 ease-out;
+}
+
+/* Modern Toggle Switch */
+.toggle-modern {
+  @apply relative inline-block w-12 h-6;
+}
+
+.toggle-input-modern {
+  @apply opacity-0 w-0 h-0;
+}
+
+.toggle-slider-modern {
+  @apply absolute cursor-pointer inset-0;
+  @apply bg-gray-300 rounded-full;
+  @apply transition-all duration-300;
+}
+
+.toggle-slider-modern:before {
+  @apply absolute content-[''] h-5 w-5;
+  @apply left-0.5 bottom-0.5;
+  @apply bg-white rounded-full;
+  @apply transition-all duration-300;
+  @apply shadow-soft;
+}
+
+.toggle-input-modern:checked + .toggle-slider-modern {
+  @apply bg-emerald-500;
+}
+
+.toggle-input-modern:checked + .toggle-slider-modern:before {
+  @apply translate-x-6;
+}
+
+/* Modern Breadcrumb */
+.breadcrumb-modern {
+  @apply flex items-center gap-2 text-sm;
+}
+
+.breadcrumb-item-modern {
+  @apply text-gray-500 hover:text-emerald-600;
+  @apply transition-smooth;
+}
+
+.breadcrumb-separator-modern {
+  @apply text-gray-400;
+}
+
+/* Modern Stats Card */
+.stats-card-modern {
+  @apply card-modern p-6;
+  @apply bg-gradient-to-br from-white to-gray-50;
+}
+
+.stats-value-modern {
+  @apply text-3xl font-bold text-gray-900 mb-1;
+}
+
+.stats-label-modern {
+  @apply text-sm text-gray-600 font-medium;
+}
+
+.stats-icon-modern {
+  @apply w-12 h-12 rounded-xl;
+  @apply flex items-center justify-center;
+  @apply bg-gradient-to-br from-emerald-400 to-emerald-600;
+  @apply text-white shadow-medium;
+}
+
+/* Modern Empty State */
+.empty-state-modern {
+  @apply flex flex-col items-center justify-center py-12 px-4;
+  @apply text-center;
+}
+
+.empty-state-icon-modern {
+  @apply w-20 h-20 text-gray-300 mb-4;
+}
+
+.empty-state-title-modern {
+  @apply text-xl font-bold text-gray-900 mb-2;
+}
+
+.empty-state-description-modern {
+  @apply text-gray-600 mb-6 max-w-md;
+}
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+  .card-modern {
+    @apply rounded-xl;
+  }
+  
+  .modal-content-modern {
+    @apply rounded-xl;
+  }
+  
+  .btn-modern {
+    @apply text-sm px-3 py-2;
+  }
+}

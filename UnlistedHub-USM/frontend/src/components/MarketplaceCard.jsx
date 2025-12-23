@@ -68,31 +68,39 @@ const MarketplaceCard = ({
   const logoUrl = companyLogo || `https://ui-avatars.com/api/?name=${companyName}&background=random&size=64`;
   
   return (
-    <div className={`${boostedGradient} rounded-lg shadow-sm p-3 w-full ${boostedBorder} ${!isBoosted && borderAccent} relative hover:shadow-md transition-all overflow-hidden ${isBoosted && 'transform hover:scale-[1.02]'}`}>
+    <div className={`${
+      boostedGradient
+    } rounded-2xl shadow-soft hover:shadow-medium p-4 w-full ${
+      boostedBorder
+    } ${!isBoosted && borderAccent} relative transition-smooth overflow-hidden ${
+      isBoosted ? 'hover-lift glow-emerald' : 'hover-lift'
+    }`}>
       {/* Full-width Colored Line at Top */}
-      <div className={`h-1 rounded-t-lg absolute left-0 top-0 right-0 ${boostedTopBar}`}></div>
+      <div className={`h-1.5 rounded-t-2xl absolute left-0 top-0 right-0 ${boostedTopBar} transition-all duration-300`}></div>
       
       {/* Premium Badge for Boosted Listings */}
       {isBoosted && (
-        <div className="absolute top-2 right-2 z-10">
-          <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 shadow-lg">
-            <Star size={10} className="fill-current" />
+        <div className="absolute top-3 right-3 z-10 animate-pulse-subtle">
+          <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-strong">
+            <Star size={12} className="fill-current animate-pulse" />
             PREMIUM
           </div>
         </div>
       )}
       
       {/* Top Row with Badges (Flipped for marketplace: SELL post = BUY opportunity for others) */}
-      <div className="flex items-center justify-between mb-1.5 mt-1">
-        <div className="flex gap-1">
-          <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${isSell ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'}`}>
+      <div className="flex items-center justify-between mb-2 mt-1.5">
+        <div className="flex gap-2">
+          <span className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-smooth ${
+            isSell ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+          }`}>
             {isSell ? 'Buy' : 'Sell'}
           </span>
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-700">
+          <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-smooth">
             Unlisted
           </span>
         </div>
-        <span className="text-[10px] text-gray-500 font-semibold">
+        <span className="text-xs text-gray-500 font-medium">
           {new Date(createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
         </span>
       </div>
