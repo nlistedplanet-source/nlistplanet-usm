@@ -1299,8 +1299,9 @@ const DashboardPage = () => {
           </div>
         </div>
 
-      {/* Action Center & Recent Activity Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">\n          {/* Action Center */}
+        {/* Action Center & Recent Activity Grid */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Action Center */}
           <div id="dashboard-action-center" className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 min-h-[500px] flex flex-col">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2">
