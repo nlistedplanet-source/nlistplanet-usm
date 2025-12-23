@@ -1348,15 +1348,23 @@ const DashboardPage = () => {
               console.log('📦 Full deal object:', deal);
               console.log('🔑 Keys in deal:', Object.keys(deal));
               
-              const isSeller = deal.sellerId === user._id || deal.sellerId._id === user._id;
+              // Properly compare ObjectIds as strings
+              const userIdStr = user._id?.toString() || user._id;
+              const sellerIdStr = deal.sellerId?._id?.toString() || deal.sellerId?.toString() || deal.sellerId;
+              const buyerIdStr = deal.buyerId?._id?.toString() || deal.buyerId?.toString() || deal.buyerId;
+              
+              const isSeller = sellerIdStr === userIdStr;
+              const isBuyer = buyerIdStr === userIdStr;
+              
               const myCode = isSeller ? deal.sellerVerificationCode : deal.buyerVerificationCode;
               const otherPartyCode = isSeller ? deal.buyerVerificationCode : deal.sellerVerificationCode;
               const otherPartyName = isSeller 
-                ? (deal.buyerName || deal.buyerUsername) 
-                : (deal.sellerName || deal.sellerUsername);
+                ? (deal.buyerId?.username || deal.buyerName || deal.buyerUsername) 
+                : (deal.sellerId?.username || deal.sellerName || deal.sellerUsername);
 
-              console.log('🔍 Deal:', deal._id, 'Status:', deal.status, 'isSeller:', isSeller);
-              console.log('📝 Codes - buyer:', deal.buyerVerificationCode, 'seller:', deal.sellerVerificationCode);
+              console.log('🔍 User ID:', userIdStr, 'Seller ID:', sellerIdStr, 'Buyer ID:', buyerIdStr);
+              console.log('👤 isSeller:', isSeller, 'isBuyer:', isBuyer);
+              console.log('📝 My Code:', myCode, 'Other Code:', otherPartyCode);
               console.log('👁️ Visible state:', visibleCodes[deal._id]);
 
               return (
