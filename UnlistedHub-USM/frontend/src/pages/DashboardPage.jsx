@@ -1400,12 +1400,14 @@ const DashboardPage = () => {
           </div>
 
           <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-2">
-              </p>
-            </div>
+            <p className="text-xs text-blue-900">
+              <span className="font-bold">ℹ️ Important:</span> Share your verification code only with our official RM during the confirmation call. Never share codes publicly.
+            </p>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Action Center & Recent Activity Grid */}
+      {/* Action Center & Recent Activity Grid */}
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Action Center */}
           <div id="dashboard-action-center" className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 min-h-[500px] flex flex-col">
