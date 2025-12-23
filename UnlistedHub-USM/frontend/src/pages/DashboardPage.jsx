@@ -1067,7 +1067,14 @@ const DashboardPage = () => {
                         const now = new Date();
                         const hoursDiff = (now - listingDate) / (1000 * 60 * 60);
                         return hoursDiff <= 24;
-                      }).map((listing, index, filteredArray) => (
+                      }).map((listing, index, filteredArray) => {
+                        const formatQuantity = (qty) => {
+                          if (qty >= 10000000) return `${(qty / 10000000).toFixed(1)}Cr`;
+                          if (qty >= 100000) return `${(qty / 100000).toFixed(1)}L`;
+                          if (qty >= 1000) return `${(qty / 1000).toFixed(1)}K`;
+                          return qty.toString();
+                        };
+                        return (
                         <span key={`${listing._id}-1`} className="inline-flex items-center gap-2 mx-4">
                           <span className="text-sm font-semibold text-gray-800">
                             {listing.companyId?.CompanyName || listing.companyId?.name || 'Unknown Company'}
@@ -1075,20 +1082,31 @@ const DashboardPage = () => {
                           <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
                             {listing.listingType === 'sell' ? '🔴 SELL' : '🟢 BUY'}
                           </span>
+                          <span className="text-sm font-bold text-blue-600">
+                            @ ₹{listing.pricePerShare}
+                          </span>
                           <span className="text-sm text-gray-700">
-                            @ ₹{listing.pricePerShare} • {listing.quantity} shares
+                            • {formatQuantity(listing.quantity)} shares
                           </span>
                           <span className="text-xs text-green-600 font-semibold">is now LIVE! 🚀</span>
                           <span className="text-gray-400 mx-2">•</span>
                         </span>
-                      ))}
+                        );
+                      })}
                       {/* Second copy for seamless loop */}
                       {marketplaceListings.slice(0, 5).filter(listing => {
                         const listingDate = new Date(listing.createdAt);
                         const now = new Date();
                         const hoursDiff = (now - listingDate) / (1000 * 60 * 60);
                         return hoursDiff <= 24;
-                      }).map((listing, index, filteredArray) => (
+                      }).map((listing, index, filteredArray) => {
+                        const formatQuantity = (qty) => {
+                          if (qty >= 10000000) return `${(qty / 10000000).toFixed(1)}Cr`;
+                          if (qty >= 100000) return `${(qty / 100000).toFixed(1)}L`;
+                          if (qty >= 1000) return `${(qty / 1000).toFixed(1)}K`;
+                          return qty.toString();
+                        };
+                        return (
                         <span key={`${listing._id}-2`} className="inline-flex items-center gap-2 mx-4">
                           <span className="text-sm font-semibold text-gray-800">
                             {listing.companyId?.CompanyName || listing.companyId?.name || 'Unknown Company'}
@@ -1096,13 +1114,17 @@ const DashboardPage = () => {
                           <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
                             {listing.listingType === 'sell' ? '🔴 SELL' : '🟢 BUY'}
                           </span>
+                          <span className="text-sm font-bold text-blue-600">
+                            @ ₹{listing.pricePerShare}
+                          </span>
                           <span className="text-sm text-gray-700">
-                            @ ₹{listing.pricePerShare} • {listing.quantity} shares
+                            • {formatQuantity(listing.quantity)} shares
                           </span>
                           <span className="text-xs text-green-600 font-semibold">is now LIVE! 🚀</span>
                           <span className="text-gray-400 mx-2">•</span>
                         </span>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
