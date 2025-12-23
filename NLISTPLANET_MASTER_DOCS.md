@@ -1491,5 +1491,153 @@ router.post('/:id/accept', protect, async (req, res, next) => {
 
 *For questions or updates, contact the development team.*
 
-**Last Updated:** December 17, 2025  
-**Document Version:** 2.1.1
+**Last Updated:** December 23, 2025  
+**Document Version:** 2.2.0
+
+---
+
+## Appendix A: Push Notifications System
+
+### Overview
+Real-time push notification system using Firebase Cloud Messaging (FCM) for instant notifications on bid, counter offer, accept, and reject actions.
+
+### Backend Implementation
+
+**Core Module:** `backend/utils/pushNotifications.js`
+
+**Key Functions:**
+- `sendPushNotification(userId, payload)` - Sends FCM push to all user devices
+- `createAndSendNotification(userId, data)` - Creates in-app + sends push (non-blocking)
+- `NotificationTemplates` - Predefined templates for all notification types
+
+**User Model FCM Support:**
+```javascript
+fcmTokens: [String],  // Multiple devices per user
+notificationPreferences: {
+  pushEnabled: Boolean,
+  bidNotifications: Boolean,
+  offerNotifications: Boolean,
+  dealNotifications: Boolean
+}
+```
+
+**Token Management:**
+- `POST /api/notifications/register-token` - Register FCM token
+- `DELETE /api/notifications/remove-token` - Remove token
+- Automatic invalid token cleanup
+
+**Testing:**
+```bash
+node test-push-notification.js <username>
+node scripts/checkUserTokenDebug.js <username>
+```
+
+### Frontend Integration
+
+**Firebase Config:** `src/config/firebase.js`
+**Service Workers:**
+- Desktop: `public/firebase-messaging-sw.js`
+- Mobile: `public/firebase-messaging-sw.js`
+
+**Token Registration Flow:**
+1. Request notification permission
+2. Get FCM token from Firebase
+3. Send token to backend via `/api/notifications/register-token`
+4. Backend stores in `user.fcmTokens[]`
+
+---
+
+## Appendix B: Referral & Share Tracking System
+
+### Architecture
+
+**Share Link Generation:**
+```
+https://nlistplanet.com/listing/{listingId}?ref={shareId}
+```
+
+**Tracking Metrics:**
+- Views (unique by IP)
+- Clicks
+- Conversions (completed transactions)
+- Earnings (1% of platform fee on conversions)
+
+**Models:**
+- `ShareTracking` - Track individual share links
+- `ReferralTracking` - User referral statistics
+
+**API Endpoints:**
+```
+POST   /api/share/create           - Create share link
+GET    /api/share/track/:shareId   - Track click/view
+GET    /api/share/my-shares        - User's shares
+GET    /api/admin/referrals        - Admin analytics
+```
+
+**Referral Rewards:**
+- Platform Fee: 2% of transaction
+- Referral Reward: 50% of fee = 1% of transaction
+- Example: ₹1,00,000 deal → ₹1,000 referral reward
+
+---
+
+## Appendix C: Deployment Guide
+
+### Vercel (Frontends)
+
+**Desktop:** `UnlistedHub-USM/frontend`
+- Build: `npm run build`
+- Output: `build/`
+- Framework: Create React App (React 18)
+
+**Mobile:** `nlistplanet-mobile/frontend`
+- Build: `npm run build`
+- Output: `build/`
+- Framework: Create React App (React 19)
+
+**Manual Deploy:**
+```powershell
+cd UnlistedHub-USM/frontend
+npx vercel --prod
+
+cd ../../nlistplanet-mobile/frontend  
+npx vercel --prod
+```
+
+**Auto-Deploy Setup:**
+1. Vercel Dashboard → Project → Settings → Git
+2. Connect to repo: `nlistedplanet-source/nlistplanet-usm`
+3. Root Directory: `UnlistedHub-USM/frontend` (or `nlistplanet-mobile/frontend`)
+4. Production Branch: `main`
+5. Build Command: Auto-detected
+6. Install Command: `npm install --legacy-peer-deps`
+
+### Render (Backend)
+
+**Service:** `nlistplanet-usm-api`
+- Start Command: `node server-fast.js`
+- Build: `npm ci --omit=dev --ignore-scripts`
+- Region: Oregon (Free Tier)
+- Auto-Deploy: Push to `main` branch
+
+**Health Check:** `https://nlistplanet-usm-v8dc.onrender.com/api/health`
+
+**render.yaml Config:**
+```yaml
+services:
+  - type: web
+    name: nlistplanet-usm-api
+    env: node
+    startCommand: node server-fast.js
+    buildCommand: npm ci --omit=dev --ignore-scripts
+    healthCheckPath: /api/health
+```
+
+---
+
+**End of Master Documentation**
+
+*For questions or updates, contact the development team.*
+
+**Last Updated:** December 23, 2025  
+**Document Version:** 2.2.0
