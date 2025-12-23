@@ -1,4 +1,4 @@
-// Deploy trigger: 2025-12-22 10:12 IST
+// Deploy trigger: 2025-12-23 - Auto-deploy test (repo now public)
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
