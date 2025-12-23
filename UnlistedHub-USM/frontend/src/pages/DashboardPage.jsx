@@ -403,7 +403,8 @@ const DashboardPage = () => {
       }
     };
 
-    if (activeTab === 'marketplace') {
+    // Fetch for both overview and marketplace tabs (for announcement banner)
+    if (activeTab === 'marketplace' || activeTab === 'overview') {
       fetchMarketplaceListings();
     }
   }, [activeTab, user]);
