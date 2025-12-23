@@ -33,7 +33,10 @@ import {
   XCircle,
   Plus,
   Phone,
-  X
+  X,
+  CheckSquare,
+  Square,
+  Trash2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { portfolioAPI, listingsAPI, adminAPI, notificationsAPI, BASE_API_URL } from '../utils/api';
@@ -110,6 +113,8 @@ const DashboardPage = () => {
   const [profileOtp, setProfileOtp] = useState('');
   const [profileStep, setProfileStep] = useState(1);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [adminTodos, setAdminTodos] = useState([]);
+  const [newTodoText, setNewTodoText] = useState('');
   
   // Admin View As functionality
   const viewAsUserId = searchParams.get('viewAs');
@@ -145,6 +150,29 @@ const DashboardPage = () => {
       // Pre-fill name if available
       if (user.fullName) {
         setProfileFormData(prev => ({ ...prev, fullName: user.fullName }));
+      }
+    }
+  }, [user]);
+
+  // Load admin todos from localStorage
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      const savedTodos = localStorage.getItem('adminTodos');
+      if (savedTodos) {
+        setAdminTodos(JSON.parse(savedTodos));
+      } else {
+        // Initialize with default important tasks
+        const defaultTodos = [
+          { id: 1, text: 'Review and approve pending manual listings', completed: false, createdAt: new Date().toISOString(), priority: 'high' },
+          { id: 2, text: 'Complete finalized deals - verify buyer/seller codes', completed: false, createdAt: new Date().toISOString(), priority: 'high' },
+          { id: 3, text: 'Check and respond to user support queries', completed: false, createdAt: new Date().toISOString(), priority: 'medium' },
+          { id: 4, text: 'Review flagged transactions for suspicious activity', completed: false, createdAt: new Date().toISOString(), priority: 'high' },
+          { id: 5, text: 'Update company information and verify new company requests', completed: false, createdAt: new Date().toISOString(), priority: 'medium' },
+          { id: 6, text: 'Publish new blog post/market insights', completed: false, createdAt: new Date().toISOString(), priority: 'low' },
+          { id: 7, text: 'Monitor platform health and check system logs', completed: false, createdAt: new Date().toISOString(), priority: 'medium' },
+        ];
+        setAdminTodos(defaultTodos);
+        localStorage.setItem('adminTodos', JSON.stringify(defaultTodos));
       }
     }
   }, [user]);
@@ -604,6 +632,51 @@ const DashboardPage = () => {
     }
   };
 
+  // Admin Todo List Handlers
+  const handleAddTodo = () => {
+    if (!newTodoText.trim()) {
+      toast.error('Please enter a task');
+      return;
+    }
+
+    const newTodo = {
+      id: Date.now(),
+      text: newTodoText.trim(),
+      completed: false,
+      createdAt: new Date().toISOString(),
+      priority: 'medium'
+    };
+
+    const updatedTodos = [...adminTodos, newTodo];
+    setAdminTodos(updatedTodos);
+    localStorage.setItem('adminTodos', JSON.stringify(updatedTodos));
+    setNewTodoText('');
+    toast.success('Task added!');
+  };
+
+  const handleToggleTodo = (id) => {
+    const updatedTodos = adminTodos.map(todo =>
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
+    );
+    setAdminTodos(updatedTodos);
+    localStorage.setItem('adminTodos', JSON.stringify(updatedTodos));
+  };
+
+  const handleDeleteTodo = (id) => {
+    const updatedTodos = adminTodos.filter(todo => todo.id !== id);
+    setAdminTodos(updatedTodos);
+    localStorage.setItem('adminTodos', JSON.stringify(updatedTodos));
+    toast.success('Task deleted');
+  };
+
+  const handleChangePriority = (id, priority) => {
+    const updatedTodos = adminTodos.map(todo =>
+      todo.id === id ? { ...todo, priority } : todo
+    );
+    setAdminTodos(updatedTodos);
+    localStorage.setItem('adminTodos', JSON.stringify(updatedTodos));
+  };
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Activity },
     { id: 'marketplace', label: 'Marketplace', icon: Radio },
@@ -618,6 +691,7 @@ const DashboardPage = () => {
 
   // Admin-only tabs
   const adminTabs = [
+    { id: 'admin-todos', label: 'Admin Tasks', icon: CheckSquare },
     { id: 'admin-users', label: 'User Management', icon: Users },
     { id: 'admin-listings', label: 'Listings Management', icon: FileText },
     { id: 'admin-transactions', label: 'Transactions', icon: IndianRupee },
@@ -767,7 +841,7 @@ const DashboardPage = () => {
                   setViewMode('admin');
                   // Switch to first admin tab when entering admin mode
                   if (!activeTab.startsWith('admin-')) {
-                    handleTabChange('admin-users');
+                    handleTabChange('admin-todos');
                   }
                 }}
                 className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-all ${
@@ -1799,6 +1873,160 @@ const DashboardPage = () => {
         )}
 
         {/* Admin Tabs */}
+        {user?.role === 'admin' && viewMode === 'admin' && activeTab === 'admin-todos' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center">
+                    <CheckSquare className="text-white" size={24} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Admin Task Manager</h2>
+                    <p className="text-sm text-gray-600">Track and manage pending administrative tasks</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">Total Tasks</p>
+                    <p className="text-2xl font-bold text-gray-900">{adminTodos.length}</p>
+                  </div>
+                  <div className="w-px h-12 bg-gray-200"></div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">Pending</p>
+                    <p className="text-2xl font-bold text-orange-600">{adminTodos.filter(t => !t.completed).length}</p>
+                  </div>
+                  <div className="w-px h-12 bg-gray-200"></div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">Completed</p>
+                    <p className="text-2xl font-bold text-green-600">{adminTodos.filter(t => t.completed).length}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Add New Task */}
+              <div className="mb-6">
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    value={newTodoText}
+                    onChange={(e) => setNewTodoText(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddTodo()}
+                    placeholder="Add a new admin task..."
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                  <button
+                    onClick={handleAddTodo}
+                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all flex items-center gap-2"
+                  >
+                    <Plus size={18} />
+                    Add Task
+                  </button>
+                </div>
+              </div>
+
+              {/* Task List */}
+              <div className="space-y-3">
+                {adminTodos.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CheckSquare size={48} className="mx-auto text-gray-300 mb-3" />
+                    <p className="text-gray-500 font-medium">No tasks yet. Add your first task above!</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Pending Tasks */}
+                    {adminTodos.filter(t => !t.completed).length > 0 && (
+                      <div className="mb-6">
+                        <h3 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
+                          <span className="w-3 h-3 bg-orange-500 rounded-full"></span>
+                          Pending Tasks ({adminTodos.filter(t => !t.completed).length})
+                        </h3>
+                        <div className="space-y-2">
+                          {adminTodos.filter(t => !t.completed).map((todo) => (
+                            <div
+                              key={todo.id}
+                              className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all hover:shadow-md ${
+                                todo.priority === 'high' ? 'border-red-200 bg-red-50' :
+                                todo.priority === 'medium' ? 'border-orange-200 bg-orange-50' :
+                                'border-blue-200 bg-blue-50'
+                              }`}
+                            >
+                              <button
+                                onClick={() => handleToggleTodo(todo.id)}
+                                className="flex-shrink-0"
+                              >
+                                <Square size={24} className="text-gray-400 hover:text-purple-600 transition-colors" />
+                              </button>
+                              <div className="flex-1">
+                                <p className="text-gray-900 font-medium">{todo.text}</p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Added: {new Date(todo.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                </p>
+                              </div>
+                              <select
+                                value={todo.priority}
+                                onChange={(e) => handleChangePriority(todo.id, e.target.value)}
+                                className="px-3 py-1 text-xs font-semibold rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                              >
+                                <option value="high">🔴 High</option>
+                                <option value="medium">🟠 Medium</option>
+                                <option value="low">🔵 Low</option>
+                              </select>
+                              <button
+                                onClick={() => handleDeleteTodo(todo.id)}
+                                className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Completed Tasks */}
+                    {adminTodos.filter(t => t.completed).length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
+                          <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                          Completed Tasks ({adminTodos.filter(t => t.completed).length})
+                        </h3>
+                        <div className="space-y-2">
+                          {adminTodos.filter(t => t.completed).map((todo) => (
+                            <div
+                              key={todo.id}
+                              className="flex items-center gap-3 p-4 rounded-xl border-2 border-green-200 bg-green-50 opacity-75"
+                            >
+                              <button
+                                onClick={() => handleToggleTodo(todo.id)}
+                                className="flex-shrink-0"
+                              >
+                                <CheckSquare size={24} className="text-green-600" />
+                              </button>
+                              <div className="flex-1">
+                                <p className="text-gray-600 font-medium line-through">{todo.text}</p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Added: {new Date(todo.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => handleDeleteTodo(todo.id)}
+                                className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {user?.role === 'admin' && viewMode === 'admin' && activeTab === 'admin-companies' && (
           <CompaniesManagement />
         )}
