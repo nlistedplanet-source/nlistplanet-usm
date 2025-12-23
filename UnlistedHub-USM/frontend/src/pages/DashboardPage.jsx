@@ -1318,104 +1318,88 @@ const DashboardPage = () => {
 
         {/* Confirmed Deals Section */}
         {confirmedDeals.length > 0 && (
-          <div className="mb-6 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-2xl shadow-md border-2 border-green-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <CheckCircle className="text-white" size={24} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    Confirmed Deals
-                    <span className="bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                      {confirmedDeals.length}
-                    </span>
-                  </h2>
-                  <p className="text-sm text-gray-600">Your verification codes for completed deals</p>
-                </div>
+        <div className="mb-6 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-2xl shadow-md border-2 border-green-200 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                <CheckCircle className="text-white" size={20} />
               </div>
-              <button
-                onClick={() => handleTabChange('history')}
-                className="px-4 py-2 bg-white border-2 border-green-600 text-green-700 font-semibold rounded-lg hover:bg-green-50 transition-all flex items-center gap-2"
-              >
-                View All Codes
-                <ArrowUpRight size={16} />
-              </button>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  Confirmed Deals
+                  <span className="bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    {confirmedDeals.length}
+                  </span>
+                </h2>
+                <p className="text-xs text-gray-600">Your verification codes for completed deals</p>
+              </div>
             </div>
+            <button
+              onClick={() => handleTabChange('history')}
+              className="px-3 py-1.5 bg-white border-2 border-green-600 text-green-700 text-sm font-semibold rounded-lg hover:bg-green-50 transition-all flex items-center gap-2"
+            >
+              View All Codes
+              <ArrowUpRight size={14} />
+            </button>
+          </div>
 
-            <div className="grid md:grid-cols-3 gap-4">
-              {confirmedDeals.map((deal) => {
-                const isSeller = deal.sellerId === user._id || deal.sellerId._id === user._id;
-                const myCode = isSeller ? deal.sellerVerificationCode : deal.buyerVerificationCode;
-                const otherPartyCode = isSeller ? deal.buyerVerificationCode : deal.sellerVerificationCode;
-                const otherPartyName = isSeller 
-                  ? (deal.buyerName || deal.buyerUsername) 
-                  : (deal.sellerName || deal.sellerUsername);
+          <div className="grid md:grid-cols-3 gap-3">
+            {confirmedDeals.map((deal) => {
+              const isSeller = deal.sellerId === user._id || deal.sellerId._id === user._id;
+              const myCode = isSeller ? deal.sellerVerificationCode : deal.buyerVerificationCode;
+              const otherPartyCode = isSeller ? deal.buyerVerificationCode : deal.sellerVerificationCode;
+              const otherPartyName = isSeller 
+                ? (deal.buyerName || deal.buyerUsername) 
+                : (deal.sellerName || deal.sellerUsername);
 
-                return (
-                  <div key={deal._id} className="bg-white rounded-xl border-2 border-green-300 p-4 shadow-sm hover:shadow-md transition-all">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="font-bold text-gray-900 text-sm">{deal.companyName}</h3>
-                        <p className="text-xs text-gray-600 mt-0.5">
-                          {deal.quantity} shares @ ₹{isSeller ? deal.sellerReceivesPerShare : deal.buyerPaysPerShare}
-                        </p>
-                      </div>
-                      <span className={`px-2 py-1 rounded-lg text-xs font-bold ${
-                        isSeller ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {isSeller ? 'SELL' : 'BUY'}
-                      </span>
-                    </div>
-
-                    {/* My Code */}
-                    <div className="bg-green-50 border-2 border-green-200 rounded-lg p-3 mb-2">
-                      <p className="text-xs text-green-700 font-semibold mb-1">Your Code:</p>
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-2xl font-bold text-green-700 tracking-widest flex-1">
-                          {visibleCodes[deal._id] ? myCode : '••••••'}
-                        </p>
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => setVisibleCodes(prev => ({ ...prev, [deal._id]: !prev[deal._id] }))}
-                            className="p-1.5 hover:bg-green-100 rounded transition-colors"
-                            title={visibleCodes[deal._id] ? 'Hide code' : 'View code'}
-                          >
-                            <Eye className={`w-4 h-4 text-green-600 ${visibleCodes[deal._id] ? 'fill-green-600' : ''}`} />
-                          </button>
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(myCode);
-                              toast.success('Code copied!');
-                            }}
-                            className="p-1.5 hover:bg-green-100 rounded transition-colors"
-                            title="Copy code"
-                          >
-                            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Other Party Info */}
-                    <div className="bg-gray-50 rounded-lg p-2 border border-gray-200">
-                      <p className="text-xs text-gray-600">
-                        {isSeller ? 'Buyer' : 'Seller'}: <span className="font-semibold text-gray-900">@{otherPartyName}</span>
+              return (
+                <div key={deal._id} className="bg-white rounded-xl border-2 border-green-300 p-3 shadow-sm hover:shadow-md transition-all">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h3 className="font-bold text-gray-900 text-sm">{deal.companyName}</h3>
+                      <p className="text-xs text-gray-600 mt-0.5">
+                        {deal.quantity} shares @ ₹{isSeller ? deal.sellerReceivesPerShare : deal.buyerPaysPerShare}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Their Code: <span className="font-mono font-bold text-gray-700">{otherPartyCode}</span>
+                    </div>
+                    <span className={`px-2 py-1 rounded-lg text-xs font-bold ${
+                      isSeller ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {isSeller ? 'SELL' : 'BUY'}
+                    </span>
+                  </div>
+
+                  {/* My Code */}
+                  <div className="bg-green-50 border-2 border-green-200 rounded-lg p-2 mb-2">
+                    <p className="text-xs text-green-700 font-semibold mb-1">Your Code:</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xl font-bold text-green-700 tracking-widest flex-1">
+                        {visibleCodes[deal._id] ? myCode : '••••••'}
                       </p>
+                      <button
+                        onClick={() => setVisibleCodes(prev => ({ ...prev, [deal._id]: !prev[deal._id] }))}
+                        className="p-1.5 hover:bg-green-100 rounded transition-colors"
+                        title={visibleCodes[deal._id] ? 'Hide code' : 'View code'}
+                      >
+                        <Eye className={`w-5 h-5 text-green-600 ${visibleCodes[deal._id] ? 'fill-green-600' : ''}`} />
+                      </button>
                     </div>
                   </div>
-                );
-              })}
-            </div>
 
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-xs text-blue-900">
-                <span className="font-bold">ℹ️ Important:</span> Share your verification code only with our official RM during the confirmation call. Never share codes publicly.
+                  {/* Other Party Info */}
+                  <div className="bg-gray-50 rounded-lg p-2 border border-gray-200">
+                    <p className="text-xs text-gray-600">
+                      {isSeller ? 'Buyer' : 'Seller'}: <span className="font-semibold text-gray-900">@{otherPartyName}</span>
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Their Code: <span className="font-mono font-bold text-gray-700">{otherPartyCode}</span>
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-2">
               </p>
             </div>
           </div>
