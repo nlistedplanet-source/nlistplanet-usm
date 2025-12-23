@@ -795,11 +795,11 @@ const DashboardPage = () => {
       <main className={`flex-1 ml-56 overflow-x-auto ${isViewingAsAdmin ? 'mt-[68px]' : ''}`}>
         {/* Dashboard Header - Similar to Probus */}
         <div className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
-          <div className="px-6 py-4">
+          <div className="px-6 py-2.5">
             <div className="flex items-center justify-between">
               {/* Left side - Greeting */}
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                <h1 className="text-xl font-bold text-gray-900 mb-1">
                   {(() => {
                     const hour = new Date().getHours();
                     if (hour < 12) return 'Good Morning';
@@ -808,9 +808,9 @@ const DashboardPage = () => {
                   })()}, {(isViewingAsAdmin && viewingUser) ? (viewingUser.fullName || viewingUser.username) : (user.fullName || user.username)}!
                 </h1>
                 {/* Daily Motivational Quote */}
-                <div className="mt-2 mb-1 flex items-center gap-2">
-                  <span className="text-purple-600 text-lg">💡</span>
-                  <p className="text-sm font-medium text-purple-700 italic">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-purple-600 text-sm">💡</span>
+                  <p className="text-xs font-medium text-purple-700 italic">
                     "{(() => {
                       const quotes = [
                         "Success is not final, failure is not fatal: it is the courage to continue that counts.",
@@ -839,9 +839,6 @@ const DashboardPage = () => {
                     })()}"
                   </p>
                 </div>
-                <p className="text-sm text-gray-600">
-                  Monitor your portfolio, trades, and updates for a successful day ahead
-                </p>
               </div>
 
               {/* Right side - User profile & notification bell */}
