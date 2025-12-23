@@ -298,4 +298,75 @@ router.get('/preferences', protect, async (req, res, next) => {
   }
 });
 
+// @route   POST /api/notifications/send-query
+// @desc    Send query to admin
+// @access  Private
+router.post('/send-query', protect, async (req, res, next) => {
+  try {
+    const { subject, message, category } = req.body;
+    const User = (await import('../models/User.js')).default;
+
+    // Validate input
+    if (!subject || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'Subject and message are required'
+      });
+    }
+
+    // Get all admin users
+    const admins = await User.find({ role: 'admin' });
+
+    if (admins.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No admin found'
+      });
+    }
+
+    // Create notification for each admin
+    const notifications = await Promise.all(
+      admins.map(admin =>
+        Notification.create({
+          userId: admin._id,
+          type: 'query',
+          title: `${category ? `[${category.toUpperCase()}] ` : ''}Query from @${req.user.username}`,
+          message: `${subject}\n\n${message}`,
+          metadata: {
+            fromUserId: req.user._id,
+            fromUsername: req.user.username,
+            category: category || 'general',
+            subject,
+            originalMessage: message
+          }
+        })
+      )
+    );
+
+    // Send push notification to admins
+    const { sendPushNotification } = await import('../utils/pushNotifications.js');
+    for (const admin of admins) {
+      await sendPushNotification(
+        admin._id,
+        'userQuery',
+        {
+          username: req.user.username,
+          subject,
+          category: category || 'general'
+        }
+      );
+    }
+
+    res.json({
+      success: true,
+      message: 'Query sent to admin successfully',
+      data: {
+        notificationsSent: notifications.length
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

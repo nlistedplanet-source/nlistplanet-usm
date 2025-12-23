@@ -28,6 +28,8 @@ import {
   Building2,
   Shield,
   Newspaper,
+  MessageCircle,
+  HelpCircle,
   CheckCircle,
   RotateCcw,
   XCircle,
@@ -65,6 +67,7 @@ import VerificationCodesModal from '../components/VerificationCodesModal';
 import CreateListingModal from '../components/CreateListingModal';
 import { useDashboardTour } from '../components/TourGuide';
 import AdBanner from '../components/AdBanner';
+import QueryModal from '../components/QueryModal';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -73,6 +76,7 @@ const DashboardPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
   const [loading, setLoading] = useState(true);
+  const [isQueryModalOpen, setIsQueryModalOpen] = useState(false);
   const [portfolioStats, setPortfolioStats] = useState({
     totalValue: 0,
     totalInvested: 0,
@@ -996,8 +1000,18 @@ const DashboardPage = () => {
                 </div>
               </div>
 
-              {/* Right side - User profile & notification bell */}
+              {/* Right side - Query Help & Notifications */}
               <div className="flex items-center gap-3">
+                {/* Query/Help Icon */}
+                <button
+                  onClick={() => setIsQueryModalOpen(true)}
+                  className="relative p-2.5 hover:bg-emerald-50 rounded-xl transition-all duration-200 group"
+                  title="Send Query to Admin"
+                >
+                  <MessageCircle size={22} className="text-gray-700 group-hover:text-emerald-600 transition-colors" />
+                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
+                </button>
+
                 {/* Notification Bell */}
                 <button
                   onClick={() => handleTabChange('notifications')}
@@ -1012,36 +1026,6 @@ const DashboardPage = () => {
                     </div>
                   )}
                 </button>
-
-                {/* User Profile */}
-                <div className="flex items-center gap-2.5 cursor-pointer hover:bg-gray-50 rounded-lg px-3 py-1.5 transition-smooth" onClick={() => handleTabChange('profile')}>
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold ring-2 ring-purple-200 shadow-soft">
-                    {(isViewingAsAdmin && viewingUser) ? (
-                      viewingUser.avatar ? (
-                        <img src={viewingUser.avatar} alt={viewingUser.username} className="w-full h-full rounded-full object-cover" />
-                      ) : (
-                        viewingUser.username?.charAt(0).toUpperCase()
-                      )
-                    ) : (
-                      user.avatar ? (
-                        <img src={user.avatar} alt={user.username} className="w-full h-full rounded-full object-cover" />
-                      ) : (
-                        user.username?.charAt(0).toUpperCase()
-                      )
-                    )}
-                  </div>
-                  <div className="text-left hidden sm:block">
-                    <p className="text-sm font-bold text-gray-900">
-                      {(isViewingAsAdmin && viewingUser) ? (viewingUser.fullName || viewingUser.username) : (user.fullName || user.username)}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      @{(isViewingAsAdmin && viewingUser) ? viewingUser.username : user.username}
-                      {((isViewingAsAdmin && viewingUser) ? viewingUser.role : user.role) === 'admin' && (
-                        <span className="ml-1 text-blue-600 font-semibold">• Admin</span>
-                      )}
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -2399,6 +2383,12 @@ const DashboardPage = () => {
           </div>
         </div>
       )}
+
+      {/* Query Modal */}
+      <QueryModal 
+        isOpen={isQueryModalOpen} 
+        onClose={() => setIsQueryModalOpen(false)} 
+      />
     </div>
   );
 };

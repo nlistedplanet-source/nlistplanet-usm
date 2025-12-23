@@ -285,6 +285,13 @@ export const NotificationTemplates = {
     title: '⏳ Action Required!',
     message: `Please confirm your deal for ${quantity} shares of ${companyName} at ₹${amount}`,
     data: { amount, quantity, companyName }
+  }),
+
+  USER_QUERY: (username, subject, category) => ({
+    type: 'user_query',
+    title: `📩 New Query from @${username}`,
+    message: `[${category.toUpperCase()}] ${subject}`,
+    data: { username, subject, category }
   })
 };
 
