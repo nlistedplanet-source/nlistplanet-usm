@@ -40,7 +40,7 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
   const [showSoldModal, setShowSoldModal] = useState(false);
   const [markedSold, setMarkedSold] = useState(false);
   const [soldPricePerShare, setSoldPricePerShare] = useState(null);
-  const [isTableCollapsed, setIsTableCollapsed] = useState(false);
+  const [isTableCollapsed, setIsTableCollapsed] = useState(true);
   const [collapseTimer, setCollapseTimer] = useState(null);
 
   const isSell = listing.type === 'sell';
@@ -413,7 +413,7 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
         </div>
 
         {/* Two Sections: Counter Offers In-Progress + Pending Bids */}
-        {bidsArray.length > 0 && (
+        {!isTableCollapsed && bidsArray.length > 0 && (
           <div className="px-3 py-2 space-y-3">
             {/* Section 1: Counter Offers In-Progress */}
             {counterOfferBids.length > 0 && (
