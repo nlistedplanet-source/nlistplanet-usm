@@ -332,10 +332,6 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                 <span>{isSell ? 'Bids' : 'Offers'}:</span>
                 <span>{activeBidsCount}</span>
               </div>
-              <div className="flex items-center gap-1 text-gray-600">
-                <Eye className="w-4 h-4" />
-                <span className="font-bold text-sm">{listing.views || 0}</span>
-              </div>
               {markedSold && soldPricePerShare && (
                 <span className="bg-amber-200 px-2 py-1 rounded-full border border-amber-400 text-xs font-bold text-amber-800">
                   Sold @ ₹{soldPricePerShare}
@@ -387,30 +383,32 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
               </tbody>
             </table>
           )}
-        </div>
-
-        {/* Actions */}
-        <div className="px-3 py-1 border-b border-gray-200 bg-gray-50 flex items-center justify-end gap-2">
-          <button onClick={() => onShare && onShare(listing)} className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm">
-            <Share2 className="w-3.5 h-3.5" /> Share
-          </button>
-          <button onClick={() => onBoost && onBoost(listing._id)} className="px-3 py-1 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm" disabled={markedSold}>
-            <Zap className="w-3.5 h-3.5" /> Boost
-          </button>
-          {activeBidsCount === 0 && !markedSold && (
-            <>
-              <button onClick={handleModify} disabled={actionLoading === 'modify'} className="px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm disabled:opacity-50">
-                <Edit className="w-3.5 h-3.5" /> Modify
+          
+          {/* Actions - Inside Collapsible */}
+          {!isTableCollapsed && (
+            <div className="mt-3 pt-3 border-t-2 border-gray-300 flex items-center justify-end gap-2">
+              <button onClick={() => onShare && onShare(listing)} className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm">
+                <Share2 className="w-3.5 h-3.5" /> Share
               </button>
-              <button onClick={handleDeleteClick} disabled={actionLoading === 'delete'} className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm disabled:opacity-50">
-                <Trash2 className="w-3.5 h-3.5" /> Delete
+              <button onClick={() => onBoost && onBoost(listing._id)} className="px-3 py-1 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm" disabled={markedSold}>
+                <Zap className="w-3.5 h-3.5" /> Boost
               </button>
-            </>
-          )}
-          {!markedSold && (
-            <button onClick={handleMarkSoldClick} className="px-3 py-1 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm">
-              <CheckCircle className="w-3.5 h-3.5" /> Sold
-            </button>
+              {activeBidsCount === 0 && !markedSold && (
+                <>
+                  <button onClick={handleModify} disabled={actionLoading === 'modify'} className="px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm disabled:opacity-50">
+                    <Edit className="w-3.5 h-3.5" /> Modify
+                  </button>
+                  <button onClick={handleDeleteClick} disabled={actionLoading === 'delete'} className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm disabled:opacity-50">
+                    <Trash2 className="w-3.5 h-3.5" /> Delete
+                  </button>
+                </>
+              )}
+              {!markedSold && (
+                <button onClick={handleMarkSoldClick} className="px-3 py-1 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors flex items-center gap-1 text-[11px] font-semibold shadow-sm">
+                  <CheckCircle className="w-3.5 h-3.5" /> Sold
+                </button>
+              )}
+            </div>
           )}
         </div>
 
