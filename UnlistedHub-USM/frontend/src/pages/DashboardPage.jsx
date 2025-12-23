@@ -401,17 +401,16 @@ const DashboardPage = () => {
         setMarketplaceListings(filteredListings);
       } catch (error) {
         console.error('Failed to fetch marketplace listings:', error);
-        toast.error('Failed to load marketplace listings');
       } finally {
         setMarketplaceLoading(false);
       }
     };
 
-    // Fetch for both overview and marketplace tabs (for announcement banner)
-    if (activeTab === 'marketplace' || activeTab === 'overview') {
+    // Always fetch to show announcement banner
+    if (user) {
       fetchMarketplaceListings();
     }
-  }, [activeTab, user]);
+  }, [user]);
 
   // Handlers for marketplace card actions
   const handlePlaceBid = (listing) => {
@@ -954,20 +953,21 @@ const DashboardPage = () => {
 
       {/* Main Content Area */}
       <main className={`flex-1 ml-56 overflow-x-auto ${isViewingAsAdmin ? 'mt-[68px]' : ''}`}>
-        {/* Dashboard Header - Modern Clean Design */}
-        <div className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
+        {/* Dashboard Header - Christmas Special Edition */}
+        <div className="sticky top-0 z-20 bg-gradient-to-r from-red-50 via-white to-green-50 border-b border-gray-200 shadow-sm">
           <div className="px-6 py-3">
             <div className="flex items-center justify-between">
-              {/* Left side - Platform Branding & Greeting */}
+              {/* Left side - Christmas Logo & Greeting */}
               <div className="flex items-center gap-4">
-                {/* Logo */}
+                {/* Christmas Logo */}
                 <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-soft">
-                    <Building2 size={24} className="text-white" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg relative animate-pulse-subtle">
+                    <span className="text-2xl">🎄</span>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white animate-pulse"></div>
                   </div>
                   <div>
-                    <h1 className="text-lg font-bold text-gray-900">
-                      NListPlanet
+                    <h1 className="text-lg font-bold bg-gradient-to-r from-red-600 to-green-600 bg-clip-text text-transparent">
+                      NListPlanet 🎅
                     </h1>
                     <p className="text-xs text-gray-500 font-medium">
                       {(() => {
@@ -975,27 +975,15 @@ const DashboardPage = () => {
                         if (hour < 12) return 'Good Morning';
                         if (hour < 17) return 'Good Afternoon';
                         return 'Good Evening';
-                      })()}!
+                      })()}! 🎁
                     </p>
                   </div>
                 </div>
-                {/* Daily Quote */}
-                <div className="hidden xl:flex items-center gap-1.5 ml-6 px-4 py-1.5 bg-purple-50 rounded-lg border border-purple-200">
-                  <span className="text-purple-600">💡</span>
-                  <p className="text-xs font-medium text-purple-700 italic max-w-md truncate">
-                    "{(() => {
-                      const quotes = [
-                        "Never invest in a business you cannot understand.",
-                        "Price is what you pay. Value is what you get.",
-                        "Time in the market beats timing the market.",
-                        "The best investment you can make is in yourself.",
-                        "Risk comes from not knowing what you're doing.",
-                        "Know what you own, and know why you own it.",
-                        "Fortune favors the bold investor."
-                      ];
-                      const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-                      return quotes[dayOfYear % quotes.length];
-                    })()}"
+                {/* Merry Christmas Badge */}
+                <div className="hidden xl:flex items-center gap-1.5 ml-6 px-4 py-1.5 bg-gradient-to-r from-red-100 to-green-100 rounded-lg border border-red-200 shadow-sm">
+                  <span className="text-xl">🎄</span>
+                  <p className="text-xs font-bold text-red-700">
+                    Merry Christmas & Happy Trading! ✨
                   </p>
                 </div>
               </div>
@@ -1019,7 +1007,7 @@ const DashboardPage = () => {
                 >
                   <Bell size={20} className="text-gray-700" />
                   {notifications.filter(n => !n.isRead).length > 0 && (
-                    <div className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center px-1.5 shadow-medium animate-pulse-subtle">
+                    <div className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center px-1.5 shadow-md animate-pulse">
                       <span className="text-white text-[10px] font-bold">
                         {notifications.filter(n => !n.isRead).length}
                       </span>
