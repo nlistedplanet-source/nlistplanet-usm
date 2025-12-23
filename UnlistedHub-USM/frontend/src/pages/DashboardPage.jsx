@@ -807,6 +807,38 @@ const DashboardPage = () => {
                     return 'Good Evening';
                   })()}, {(isViewingAsAdmin && viewingUser) ? (viewingUser.fullName || viewingUser.username) : (user.fullName || user.username)}!
                 </h1>
+                {/* Daily Motivational Quote */}
+                <div className="mt-2 mb-1 flex items-center gap-2">
+                  <span className="text-purple-600 text-lg">💡</span>
+                  <p className="text-sm font-medium text-purple-700 italic">
+                    "{(() => {
+                      const quotes = [
+                        "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+                        "The stock market is filled with individuals who know the price of everything, but the value of nothing.",
+                        "In investing, what is comfortable is rarely profitable.",
+                        "Risk comes from not knowing what you're doing.",
+                        "The best investment you can make is in yourself.",
+                        "Do not save what is left after spending, but spend what is left after saving.",
+                        "An investment in knowledge pays the best interest.",
+                        "The four most dangerous words in investing are: 'This time it's different.'",
+                        "Opportunities don't happen. You create them.",
+                        "The only way to do great work is to love what you do.",
+                        "Fortune favors the bold investor.",
+                        "Price is what you pay. Value is what you get.",
+                        "The stock market is a device for transferring money from the impatient to the patient.",
+                        "Know what you own, and know why you own it.",
+                        "Time in the market beats timing the market.",
+                        "Investing should be more like watching paint dry or watching grass grow.",
+                        "The goal is to be the tortoise, not the hare.",
+                        "Never invest in a business you cannot understand.",
+                        "Wide diversification is only required when investors do not understand what they are doing.",
+                        "It's far better to buy a wonderful company at a fair price than a fair company at a wonderful price."
+                      ];
+                      const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+                      return quotes[dayOfYear % quotes.length];
+                    })()}"
+                  </p>
+                </div>
                 <p className="text-sm text-gray-600">
                   Monitor your portfolio, trades, and updates for a successful day ahead
                 </p>
