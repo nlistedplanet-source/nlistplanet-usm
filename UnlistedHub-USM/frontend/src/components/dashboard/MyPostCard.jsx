@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import SoldConfirmModal from '../SoldConfirmModal';
 import { Share2, Zap, Edit, Trash2, CheckCircle, XCircle, MessageSquare, Loader, Eye, Info, ChevronDown, ChevronUp, History, Clock, AlertCircle } from 'lucide-react';
 import { formatCurrency, formatDate, formatNumber, numberToWords, formatShortAmount, formatShortQuantity, calculateSellerGets, getNetPriceForUser } from '../../utils/helpers';
@@ -42,6 +42,14 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
   const [soldPricePerShare, setSoldPricePerShare] = useState(null);
   const [isTableCollapsed, setIsTableCollapsed] = useState(true);
   const [collapseTimer, setCollapseTimer] = useState(null);
+
+  // Sync markedSold state with listing data
+  useEffect(() => {
+    if (listing.status === 'sold' || listing.soldExternally) {
+      setMarkedSold(true);
+      setSoldPricePerShare(listing.soldPrice || null);
+    }
+  }, [listing.status, listing.soldExternally, listing.soldPrice]);
 
   const isSell = listing.type === 'sell';
   const bidsArray = (isSell ? listing.bids : listing.offers) || [];
