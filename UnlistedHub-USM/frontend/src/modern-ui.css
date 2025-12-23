@@ -2,8 +2,8 @@
 
 /* Enhanced Button Styles */
 .btn-modern {
-  @apply px-4 py-2.5 rounded-xl font-semibold transition-all duration-300 transform active-scale;
-  @apply shadow-soft hover:shadow-medium;
+  @apply px-4 py-2.5 rounded-xl font-semibold transition-all duration-300 transform active:scale-95;
+  @apply shadow-sm hover:shadow-md;
 }
 
 .btn-primary-modern {
@@ -38,8 +38,8 @@
 
 /* Modern Card Styles */
 .card-modern {
-  @apply bg-white rounded-2xl shadow-soft border border-gray-100;
-  @apply transition-smooth hover-lift hover:shadow-medium;
+  @apply bg-white rounded-2xl shadow-sm border border-gray-100;
+  @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-md;
   @apply overflow-hidden;
 }
 
@@ -71,7 +71,7 @@
 /* Modern Badge Styles */
 .badge-modern {
   @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold;
-  @apply transition-smooth;
+  @apply transition-all duration-200;
 }
 
 .badge-success-modern {
@@ -96,13 +96,13 @@
 
 .badge-premium-modern {
   @apply bg-gradient-to-r from-amber-400 to-orange-500 text-white;
-  @apply shadow-medium hover:shadow-strong;
-  @apply animate-pulse-subtle;
+  @apply shadow-md hover:shadow-lg;
+  @apply animate-pulse;
 }
 
 /* Modern Table Styles */
 .table-modern {
-  @apply w-full bg-white rounded-xl overflow-hidden shadow-soft;
+  @apply w-full bg-white rounded-xl overflow-hidden shadow-sm;
 }
 
 .table-header-modern {
@@ -115,7 +115,7 @@
 }
 
 .table-row-modern {
-  @apply transition-smooth hover:bg-gray-50;
+  @apply transition-all duration-200 hover:bg-gray-50;
   @apply border-b border-gray-100;
 }
 
@@ -131,7 +131,7 @@
 }
 
 .modal-content-modern {
-  @apply bg-white rounded-2xl shadow-strong max-w-2xl w-full;
+  @apply bg-white rounded-2xl shadow-2xl max-w-2xl w-full;
   @apply animate-slideUp;
   @apply max-h-[90vh] overflow-y-auto;
 }
@@ -181,7 +181,7 @@
 .tooltip-modern {
   @apply absolute z-50 px-3 py-2 rounded-lg;
   @apply bg-gray-900 text-white text-xs font-medium;
-  @apply shadow-strong whitespace-nowrap;
+  @apply shadow-lg whitespace-nowrap;
   @apply opacity-0 invisible transition-all duration-200;
 }
 
@@ -198,7 +198,7 @@
 
 /* Modern Dropdown */
 .dropdown-modern {
-  @apply absolute mt-2 w-56 rounded-xl shadow-strong;
+  @apply absolute mt-2 w-56 rounded-xl shadow-lg;
   @apply bg-white border border-gray-100;
   @apply py-2 z-50;
   @apply animate-slideDown;
@@ -206,7 +206,7 @@
 
 .dropdown-item-modern {
   @apply px-4 py-2.5 text-sm text-gray-700;
-  @apply hover:bg-gray-50 transition-smooth;
+  @apply hover:bg-gray-50 transition-all duration-200;
   @apply flex items-center gap-3;
   @apply cursor-pointer;
 }
@@ -258,7 +258,7 @@
   @apply left-0.5 bottom-0.5;
   @apply bg-white rounded-full;
   @apply transition-all duration-300;
-  @apply shadow-soft;
+  @apply shadow-sm;
 }
 
 .toggle-input-modern:checked + .toggle-slider-modern {
@@ -276,7 +276,7 @@
 
 .breadcrumb-item-modern {
   @apply text-gray-500 hover:text-emerald-600;
-  @apply transition-smooth;
+  @apply transition-all duration-200;
 }
 
 .breadcrumb-separator-modern {
@@ -301,7 +301,7 @@
   @apply w-12 h-12 rounded-xl;
   @apply flex items-center justify-center;
   @apply bg-gradient-to-br from-emerald-400 to-emerald-600;
-  @apply text-white shadow-medium;
+  @apply text-white shadow-md;
 }
 
 /* Modern Empty State */
