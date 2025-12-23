@@ -1370,19 +1370,31 @@ const DashboardPage = () => {
                     {/* My Code */}
                     <div className="bg-green-50 border-2 border-green-200 rounded-lg p-3 mb-2">
                       <p className="text-xs text-green-700 font-semibold mb-1">Your Code:</p>
-                      <div className="flex items-center justify-between">
-                        <p className="text-2xl font-bold text-green-700 tracking-widest">{myCode}</p>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(myCode);
-                            toast.success('Code copied!');
-                          }}
-                          className="p-1.5 hover:bg-green-100 rounded transition-colors"
-                        >
-                          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
-                        </button>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-2xl font-bold text-green-700 tracking-widest flex-1">
+                          {visibleCodes[deal._id] ? myCode : '••••••'}
+                        </p>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setVisibleCodes(prev => ({ ...prev, [deal._id]: !prev[deal._id] }))}
+                            className="p-1.5 hover:bg-green-100 rounded transition-colors"
+                            title={visibleCodes[deal._id] ? 'Hide code' : 'View code'}
+                          >
+                            <Eye className={`w-4 h-4 text-green-600 ${visibleCodes[deal._id] ? 'fill-green-600' : ''}`} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(myCode);
+                              toast.success('Code copied!');
+                            }}
+                            className="p-1.5 hover:bg-green-100 rounded transition-colors"
+                            title="Copy code"
+                          >
+                            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                     </div>
 
