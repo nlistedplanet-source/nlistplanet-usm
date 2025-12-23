@@ -103,6 +103,7 @@ const DashboardPage = () => {
   const [actionItems, setActionItems] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [confirmedDeals, setConfirmedDeals] = useState([]);
+  const [visibleCodes, setVisibleCodes] = useState({});
   const [viewMode, setViewMode] = useState('user'); // 'user' or 'admin'
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
