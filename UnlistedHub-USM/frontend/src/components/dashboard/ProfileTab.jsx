@@ -314,6 +314,16 @@ const ProfileTab = () => {
           
           {/* Action Buttons in Header */}
           <div className="flex gap-3 mt-6">
+            {!isEditing && (
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-semibold shadow-md"
+              >
+                <Edit2 size={18} />
+                Edit Profile
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setShowPasswordModal(true)}
@@ -321,14 +331,6 @@ const ProfileTab = () => {
             >
               <Key size={18} />
               Change Password
-            </button>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2.5 bg-red-500/90 hover:bg-red-600 text-white rounded-lg transition-colors font-semibold"
-            >
-              <LogOut size={18} />
-              Logout
             </button>
           </div>
         </div>
