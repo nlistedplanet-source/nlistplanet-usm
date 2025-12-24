@@ -311,6 +311,26 @@ const ProfileTab = () => {
               </div>
             </div>
           </div>
+          
+          {/* Action Buttons in Header */}
+          <div className="flex gap-3 mt-6">
+            <button
+              type="button"
+              onClick={() => setShowPasswordModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg transition-colors font-semibold"
+            >
+              <Key size={18} />
+              Change Password
+            </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2.5 bg-red-500/90 hover:bg-red-600 text-white rounded-lg transition-colors font-semibold"
+            >
+              <LogOut size={18} />
+              Logout
+            </button>
+          </div>
         </div>
       </div>
 
@@ -687,79 +707,49 @@ const ProfileTab = () => {
             )}
           </div>
 
-          {/* Action Buttons */}
-          <div className="border-t border-gray-200 p-6 bg-gray-50">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex gap-3">
+          {/* Save/Cancel Buttons */}
+          {isEditing && (
+            <div className="border-t border-gray-200 p-6 bg-gray-50">
+              <div className="flex items-center justify-end gap-3">(
                 <button
                   type="button"
-                  onClick={() => setShowPasswordModal(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold"
+                  onClick={() => {
+                    setIsEditing(false);
+                    setProfileData({
+                      username: user.username || '',
+                      fullName: user.fullName || '',
+                      email: user.email || '',
+                      phone: user.phone || '',
+                      dob: user.dob || '',
+                      gender: user.gender || '',
+                      addressLine1: user.addressLine1 || '',
+                      addressLine2: user.addressLine2 || '',
+                      city: user.city || '',
+                      state: user.state || '',
+                      pincode: user.pincode || '',
+                      country: user.country || 'India',
+                      accountType: user.bankAccount?.accountType || '',
+                      accountNumber: user.bankAccount?.accountNumber || '',
+                      ifsc: user.bankAccount?.ifsc || '',
+                      bankName: user.bankAccount?.bankName || '',
+                      nomineeName: user.nominee?.name || '',
+                      nomineeRelationship: user.nominee?.relationship || ''
+                    });
+                  }}
+                  className="px-6 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-semibold"
                 >
-                  <Key size={18} />
-                  Change Password
+                  Cancel
                 </button>
                 <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-semibold"
+                  type="submit"
+                  disabled={loading}
+                  className="px-8 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 font-semibold"
                 >
-                  <LogOut size={18} />
-                  Logout
+                  {loading ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
-              
-              {isEditing ? (
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsEditing(false);
-                      setProfileData({
-                        username: user.username || '',
-                        fullName: user.fullName || '',
-                        email: user.email || '',
-                        phone: user.phone || '',
-                        dob: user.dob || '',
-                        gender: user.gender || '',
-                        addressLine1: user.addressLine1 || '',
-                        addressLine2: user.addressLine2 || '',
-                        city: user.city || '',
-                        state: user.state || '',
-                        pincode: user.pincode || '',
-                        country: user.country || 'India',
-                        accountType: user.bankAccount?.accountType || '',
-                        accountNumber: user.bankAccount?.accountNumber || '',
-                        ifsc: user.bankAccount?.ifsc || '',
-                        bankName: user.bankAccount?.bankName || '',
-                        nomineeName: user.nominee?.name || '',
-                        nomineeRelationship: user.nominee?.relationship || ''
-                      });
-                    }}
-                    className="px-6 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-semibold"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="px-8 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 font-semibold"
-                  >
-                    {loading ? 'Saving...' : 'Save Changes'}
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all font-semibold"
-                >
-                  <Edit2 size={18} />
-                  Edit Profile
-                </button>
-              )}
             </div>
-          </div>
+          )}
         </form>
       </div>
 
