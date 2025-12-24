@@ -200,6 +200,14 @@ const userSchema = new mongoose.Schema({
       type: String,
       default: null
     },
+    aadharFront: {
+      type: String,
+      default: null
+    },
+    aadharBack: {
+      type: String,
+      default: null
+    },
     cancelledCheque: {
       type: String,
       default: null
