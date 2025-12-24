@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, Edit2, Key, LogOut, MapPin, Building2, CreditCard, Users, X, Check, Shuffle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { User, Mail, Phone, Edit2, Key, LogOut, MapPin, Building2, CreditCard, Users, X, Check, Shuffle, Camera, Upload, FileText, CheckCircle, XCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 
 const ProfileTab = () => {
   const { user, logout, updateProfile, changePassword } = useAuth();
@@ -40,6 +41,19 @@ const ProfileTab = () => {
     confirmPassword: ''
   });
 
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
+  const fileInputRef = useRef(null);
+  
+  const [kycDocuments, setKycDocuments] = useState({
+    pan: null,
+    aadhar: null,
+    cancelledCheque: null,
+    cml: null
+  });
+  
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+
   // Sync with user data
   useEffect(() => {
     if (user) {
@@ -63,6 +77,21 @@ const ProfileTab = () => {
         nomineeName: user.nominee?.name || '',
         nomineeRelationship: user.nominee?.relationship || ''
       });
+      
+      // Set profile image if exists
+      if (user.profileImage) {
+        setProfileImagePreview(user.profileImage);
+      }
+      
+      // Set KYC documents if exist
+      if (user.kycDocuments) {
+        setKycDocuments({
+          pan: user.kycDocuments.pan || null,
+          aadhar: user.kycDocuments.aadhar || null,
+          cancelledCheque: user.kycDocuments.cancelledCheque || null,
+          cml: user.kycDocuments.cml || null
+        });
+      }
     }
   }, [user]);
 
@@ -76,6 +105,73 @@ const ProfileTab = () => {
       cleaned = cleaned.slice(0, 5) + '/' + cleaned.slice(5, 9);
     }
     setProfileData({ ...profileData, dob: cleaned });
+  };
+
+  // Handle profile image change
+  const handleProfileImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB');
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select a valid image file');
+        return;
+      }
+      setProfileImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle KYC document upload
+  const handleKycDocumentUpload = async (docType, file) => {
+    if (!file) return;
+    
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size should be less than 10MB');
+      return;
+    }
+    
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Only JPG, PNG, and PDF files are allowed');
+      return;
+    }
+
+    setUploadingDoc(true);
+    try {
+      const formData = new FormData();
+      formData.append('document', file);
+      formData.append('docType', docType);
+
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/kyc/upload-document`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      setKycDocuments(prev => ({
+        ...prev,
+        [docType]: response.data.documentUrl
+      }));
+      
+      toast.success(`${docType.toUpperCase()} uploaded successfully!`);
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error(error.response?.data?.message || `Failed to upload ${docType}`);
+    } finally {
+      setUploadingDoc(false);
+    }
   };
 
   // Generate random username
@@ -94,9 +190,27 @@ const ProfileTab = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      // Upload profile image if changed
+      if (profileImage) {
+        const formData = new FormData();
+        formData.append('profileImage', profileImage);
+        
+        await axios.post(
+          `${process.env.REACT_APP_API_URL}/auth/upload-profile-image`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          }
+        );
+      }
+      
       const success = await updateProfile(profileData);
       if (success) {
         setIsEditing(false);
+        setProfileImage(null);
         toast.success('Profile updated successfully!');
       }
     } catch (error) {
@@ -146,8 +260,34 @@ const ProfileTab = () => {
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-6 mb-6 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-purple-600 text-3xl font-bold">
-              {user.fullName?.charAt(0) || 'U'}
+            <div className="relative group">
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-purple-600 text-3xl font-bold overflow-hidden">
+                {profileImagePreview || user.profileImage ? (
+                  <img 
+                    src={profileImagePreview || user.profileImage} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  user.fullName?.charAt(0) || 'U'
+                )}
+              </div>
+              {isEditing && (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-0 right-0 bg-white text-purple-600 rounded-full p-2 shadow-lg hover:bg-purple-50 transition-colors"
+                >
+                  <Camera size={16} />
+                </button>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleProfileImageChange}
+                className="hidden"
+              />
             </div>
             <div>
               <h2 className="text-2xl font-bold">{user.fullName || 'User'}</h2>
@@ -545,8 +685,55 @@ const ProfileTab = () => {
 
             {/* Documents Tab */}
             {activeTab === 'documents' && (
-              <div className="text-center py-12">
-                <p className="text-gray-500">CLM & Documents section coming soon...</p>
+              <div className="space-y-6">
+                <h4 className="text-lg font-bold text-gray-900 mb-4">KYC Documents</h4>
+                
+                {/* PAN Card */}
+                <KycDocumentCard
+                  title="PAN Card"
+                  docType="pan"
+                  document={kycDocuments.pan}
+                  onUpload={handleKycDocumentUpload}
+                  uploading={uploadingDoc}
+                  icon={<FileText size={20} className="text-blue-600" />}
+                />
+                
+                {/* Aadhar Card */}
+                <KycDocumentCard
+                  title="Aadhar Card"
+                  docType="aadhar"
+                  document={kycDocuments.aadhar}
+                  onUpload={handleKycDocumentUpload}
+                  uploading={uploadingDoc}
+                  icon={<FileText size={20} className="text-green-600" />}
+                />
+                
+                {/* Cancelled Cheque */}
+                <KycDocumentCard
+                  title="Cancelled Cheque"
+                  docType="cancelledCheque"
+                  document={kycDocuments.cancelledCheque}
+                  onUpload={handleKycDocumentUpload}
+                  uploading={uploadingDoc}
+                  icon={<CreditCard size={20} className="text-purple-600" />}
+                />
+                
+                {/* CML (Client Master List) */}
+                <KycDocumentCard
+                  title="CML (Client Master List)"
+                  docType="cml"
+                  document={kycDocuments.cml}
+                  onUpload={handleKycDocumentUpload}
+                  uploading={uploadingDoc}
+                  icon={<FileText size={20} className="text-orange-600" />}
+                  optional
+                />
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+                  <p className="text-sm text-blue-800">
+                    <strong>Note:</strong> Please upload clear, readable documents. Accepted formats: JPG, PNG, PDF (Max 10MB each)
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -645,5 +832,77 @@ const InfoField = ({ icon, label, value }) => (
     <p className="font-semibold text-gray-900">{value}</p>
   </div>
 );
+
+// KYC Document Upload Card Component
+const KycDocumentCard = ({ title, docType, document, onUpload, uploading, icon, optional = false }) => {
+  const fileInputRef = useRef(null);
+  
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      onUpload(docType, file);
+    }
+    e.target.value = '';
+  };
+  
+  return (
+    <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-white rounded-lg">
+            {icon}
+          </div>
+          <div>
+            <h5 className="font-semibold text-gray-900">
+              {title}
+              {optional && <span className="text-xs text-gray-500 ml-2">(Optional)</span>}
+            </h5>
+            <p className="text-sm text-gray-600">
+              {document ? (
+                <span className="flex items-center gap-1 text-green-600">
+                  <CheckCircle size={14} />
+                  Uploaded
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-orange-600">
+                  <XCircle size={14} />
+                  Not uploaded
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {document && (
+            <a
+              href={document}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              View
+            </a>
+          )}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="px-3 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+          >
+            <Upload size={16} />
+            {uploading ? 'Uploading...' : document ? 'Replace' : 'Upload'}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".jpg,.jpeg,.png,.pdf"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default ProfileTab;
