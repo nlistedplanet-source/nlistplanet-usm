@@ -32,19 +32,25 @@ const upload = multer({
 });
 
 // Helper function to upload to Cloudinary
-const uploadToCloudinary = (buffer, folder, userId, docType) => {
+const uploadToCloudinary = (buffer, folder, userId, docType, fileType) => {
   return new Promise((resolve, reject) => {
+    // Determine resource type based on file type
+    const isPDF = fileType === 'application/pdf';
+    const resourceType = isPDF ? 'raw' : 'image';
+    
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: `nlistplanet/${folder}/${userId}`,
         public_id: `${docType}_${Date.now()}`,
-        resource_type: 'auto',
-        transformation: folder === 'profile-images' ? [
+        resource_type: resourceType,
+        // Only apply transformations for images
+        transformation: folder === 'profile-images' && !isPDF ? [
           { width: 400, height: 400, crop: 'fill', gravity: 'face' },
           { quality: 'auto:good' }
-        ] : [
-          { quality: 'auto:good' }
-        ]
+        ] : undefined,
+        // For PDFs, add flags for better delivery
+        flags: isPDF ? 'attachment' : undefined,
+        format: isPDF ? 'pdf' : undefined
       },
       (error, result) => {
         if (error) {
@@ -72,7 +78,8 @@ router.post('/upload-profile-image', protect, upload.single('profileImage'), asy
       req.file.buffer,
       'profile-images',
       req.user._id.toString(),
-      'profile'
+      'profile',
+      req.file.mimetype
     );
 
     // Update user profile
@@ -116,7 +123,8 @@ router.post('/upload-document', protect, upload.single('document'), async (req, 
     const documentUrl = await uploadToCloudinary(
       req.file.buffer,
       'kyc-documents',
-      req.user._id.toString(),
+      req.use,
+      req.file.mimetyper._id.toString(),
       docType
     );
 

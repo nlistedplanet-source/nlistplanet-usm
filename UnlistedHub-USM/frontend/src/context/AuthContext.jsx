@@ -78,6 +78,21 @@ export const AuthProvider = ({ children }) => {
     loadUser();
   }, [token]);
 
+  // Function to refresh user data
+  const refreshUser = async () => {
+    if (token) {
+      try {
+        const response = await axios.get(`${BASE_API_URL}/auth/me`);
+        setUser(response.data.user);
+        return true;
+      } catch (error) {
+        console.error('Failed to refresh user:', error);
+        return false;
+      }
+    }
+    return false;
+  };
+
   // Register FCM token when user logs in
   useEffect(() => {
     if (!user || fcmToken) return;
@@ -404,6 +419,7 @@ export const AuthProvider = ({ children }) => {
     loginWithGoogle,
     completeProfile,
     verifyProfileOtp,
+    refreshUser, // Add refreshUser
     isAuthenticated: !!user
   };
 
