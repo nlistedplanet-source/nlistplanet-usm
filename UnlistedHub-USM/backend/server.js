@@ -29,6 +29,7 @@ import newsRoutes from './routes/news.js';
 import adminNewsRoutes from './routes/adminNews.js';
 import adminNewsAIRoutes from './routes/adminNewsAI.js';
 import shareRoutes from './routes/share.js';
+import uploadsRoutes from './routes/uploads.js';
 import { startNewsScheduler } from './utils/newsScheduler.js';
 
 // Validate critical environment variables
@@ -209,6 +210,8 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/auth', uploadsRoutes); // Profile image upload
+app.use('/api/kyc', uploadsRoutes); // KYC document uploads
 app.use('/api/listings', listingRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/companies', companyRoutes);

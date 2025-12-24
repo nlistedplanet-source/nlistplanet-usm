@@ -187,6 +187,33 @@ const userSchema = new mongoose.Schema({
       default: null
     }
   },
+  profileImage: {
+    type: String,
+    default: null
+  },
+  kycDocuments: {
+    pan: {
+      type: String,
+      default: null
+    },
+    aadhar: {
+      type: String,
+      default: null
+    },
+    cancelledCheque: {
+      type: String,
+      default: null
+    },
+    cml: {
+      type: String,
+      default: null
+    }
+  },
+  kycStatus: {
+    type: String,
+    enum: ['not_verified', 'pending', 'verified', 'rejected'],
+    default: 'not_verified'
+  },
   previousUsernames: [{
     username: {
       type: String,
@@ -286,6 +313,10 @@ userSchema.methods.getPublicProfile = function() {
     bankAccount: this.bankAccount,
     // Nominee
     nominee: this.nominee,
+    // Profile & KYC
+    profileImage: this.profileImage,
+    kycDocuments: this.kycDocuments,
+    kycStatus: this.kycStatus,
     // Referral & Earnings
     referralCode: this.referralCode,
     referredBy: this.referredBy,
