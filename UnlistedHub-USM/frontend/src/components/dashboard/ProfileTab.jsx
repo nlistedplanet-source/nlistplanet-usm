@@ -360,7 +360,7 @@ const ProfileTab = () => {
               <div>
                 {isEditing ? (
                   <div className="space-y-6">
-                    <div>
+                    <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-xl">
                       <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <User size={20} className="text-purple-600" />
                         Personal Information
@@ -448,7 +448,7 @@ const ProfileTab = () => {
                       </div>
                     </div>
 
-                    <div>
+                    <div className="bg-gradient-to-br from-green-50 to-teal-50 p-6 rounded-xl">
                       <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <MapPin size={20} className="text-green-600" />
                         Address Details
@@ -542,7 +542,7 @@ const ProfileTab = () => {
               <div>
                 {isEditing ? (
                   <div className="space-y-6">
-                    <div>
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl">
                       <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <CreditCard size={20} className="text-blue-600" />
                         Bank Account Details
@@ -590,7 +590,7 @@ const ProfileTab = () => {
                       </div>
                     </div>
 
-                    <div>
+                    <div className="bg-gradient-to-br from-orange-50 to-red-50 p-6 rounded-xl">
                       <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <Users size={20} className="text-orange-600" />
                         Nominee Details
