@@ -78,9 +78,9 @@ const Snowfall = () => {
             '--sway': `${flake.swayAmount}px`,
             '--sway-duration': `${flake.swayDuration}s`,
             left: `${flake.left}%`,
-          } as React.CSSProperties}
+          }}
         />
-      ))}
+      ))
     </>
   );
 };
