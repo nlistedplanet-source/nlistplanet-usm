@@ -68,20 +68,43 @@ export const useDashboardTour = () => {
             const skipBtn = document.createElement('button');
             skipBtn.innerText = 'Skip';
             skipBtn.className = 'dashboard-tour-skip-btn';
-            skipBtn.style.marginLeft = '12px';
-            skipBtn.style.background = '#f3f4f6';
-            skipBtn.style.border = '1px solid #d1d5db';
-            skipBtn.style.color = '#374151';
-            skipBtn.style.padding = '6px 16px';
-            skipBtn.style.borderRadius = '6px';
-            skipBtn.style.cursor = 'pointer';
-            skipBtn.onclick = () => {
+            skipBtn.type = 'button';
+            skipBtn.style.cssText = `
+              margin-left: 12px;
+              background: #f3f4f6;
+              border: 1px solid #d1d5db;
+              color: #374151;
+              padding: 6px 16px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 14px;
+              font-weight: 500;
+              position: relative;
+              z-index: 10000;
+              transition: all 0.2s ease;
+            `;
+            skipBtn.onmouseover = () => {
+              skipBtn.style.background = '#e5e7eb';
+              skipBtn.style.borderColor = '#9ca3af';
+            };
+            skipBtn.onmouseout = () => {
+              skipBtn.style.background = '#f3f4f6';
+              skipBtn.style.borderColor = '#d1d5db';
+            };
+            skipBtn.onclick = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
               localStorage.setItem('hasSeenDashboardTour', 'true');
               destroy();
             };
-            // Insert before the Next/Done button
+            // Insert into button row
             const btnRow = popover.querySelector('.driver-popover-footer');
-            if (btnRow) btnRow.appendChild(skipBtn);
+            if (btnRow) {
+              btnRow.style.display = 'flex';
+              btnRow.style.justifyContent = 'space-between';
+              btnRow.style.alignItems = 'center';
+              btnRow.appendChild(skipBtn);
+            }
           }
         },
         onDestroyStarted: () => {
