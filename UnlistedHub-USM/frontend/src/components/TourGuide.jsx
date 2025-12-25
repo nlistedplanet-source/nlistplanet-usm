@@ -166,17 +166,26 @@ const injectStyles = () => {
       background: #059669 !important;
     }
 
-    /* Skip Button - Custom */
+    /* Skip Button - Top Right Corner */
     .nlist-skip-btn {
+      position: absolute !important;
+      top: 12px !important;
+      right: 12px !important;
       background: transparent !important;
       color: #9ca3af !important;
       border: none !important;
-      padding: 8px 12px !important;
-      font-size: 13px !important;
+      padding: 4px 8px !important;
+      font-size: 12px !important;
       cursor: pointer !important;
+      z-index: 10 !important;
     }
     .nlist-skip-btn:hover {
       color: #ef4444 !important;
+    }
+
+    /* Make popover relative for absolute positioning */
+    .driver-popover {
+      position: relative !important;
     }
 
     /* Highlighted Element */
@@ -227,19 +236,20 @@ export const useDashboardTour = () => {
       steps: TOUR_STEPS,
       
       onPopoverRender: (popover) => {
-        const footer = popover.footer;
-        if (!footer || footer.querySelector('.nlist-skip-btn')) return;
+        // Add skip button to top-right of popover
+        const wrapper = popover.wrapper;
+        if (!wrapper || wrapper.querySelector('.nlist-skip-btn')) return;
 
         const skipBtn = document.createElement('button');
         skipBtn.className = 'nlist-skip-btn';
-        skipBtn.textContent = 'Skip';
+        skipBtn.textContent = 'Skip ✕';
         skipBtn.onclick = () => {
           localStorage.setItem('hasSeenDashboardTour', 'true');
           tourDriver?.destroy();
         };
         
-        // Insert at beginning of footer
-        footer.insertBefore(skipBtn, footer.firstChild);
+        // Add to popover wrapper (not footer)
+        wrapper.appendChild(skipBtn);
       },
 
       onDestroyStarted: () => {
