@@ -389,13 +389,21 @@ body {
   border-color: #4b5563 !important;
 }
 
-/* Simple highlight */
+/* Simple highlight - just border */
 .driver-highlighted-element {
   border: 2px solid #3b82f6 !important;
   border-radius: 6px !important;
+  box-shadow: none !important;
 }
 
-/* Normal overlay */
+/* COMPLETELY DISABLE OVERLAY */
 .driver-overlay {
-  background: rgba(0, 0, 0, 0.5) !important;
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Ensure body stays normal */
+body.driver-active {
+  overflow: auto !important;
 }

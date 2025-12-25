@@ -16,12 +16,10 @@ export const resetDashboardTour = () => {
 // Emergency cleanup function
 export const forceCleanupTour = () => {
   // Remove all tour elements
-  const overlays = document.querySelectorAll('.driver-overlay');
-  const popovers = document.querySelectorAll('.driver-popover');
+  const overlays = document.querySelectorAll('.driver-overlay, .driver-popover, .driver-popover-wrapper');
   const highlighted = document.querySelectorAll('.driver-highlighted-element');
   
   overlays.forEach(el => el.remove());
-  popovers.forEach(el => el.remove());
   highlighted.forEach(el => el.classList.remove('driver-highlighted-element'));
   
   // Reset body styles
@@ -29,8 +27,13 @@ export const forceCleanupTour = () => {
   document.body.classList.remove('driver-active');
   
   // Reset localStorage
-  localStorage.removeItem('hasSeenDashboardTour');
+  localStorage.setItem('hasSeenDashboardTour', 'true');
   console.log('Tour force cleanup completed');
+  
+  // Reload page to ensure clean state
+  setTimeout(() => {
+    window.location.reload();
+  }, 100);
 };
 
 export const useDashboardTour = () => {
@@ -46,9 +49,11 @@ export const useDashboardTour = () => {
         try {
           driverObj = driver({
             showProgress: true,
-            animate: true,
+            animate: false,
             overlayClickNext: false,
             allowClose: true,
+            overlayOpacity: 0,
+            disableActiveInteraction: false,
             steps: [
           { 
             element: '#sidebar-tab-marketplace', 
@@ -144,32 +149,22 @@ export const useDashboardTour = () => {
         },
         onDestroyed: () => {
           driverObj = null;
-          // Ensure overlay is removed
-          const overlay = document.querySelector('.driver-overlay');
-          if (overlay) {
-            overlay.remove();
-          }
-        },
-        onHighlightStarted: () => {
-          // Ensure page is scrollable
-          document.body.style.overflow = 'auto';
+          // Force remove any remaining overlays
+          const overlays = document.querySelectorAll('.driver-overlay');
+          overlays.forEach(overlay => overlay.remove());
+          document.body.style.overflow = '';
         }
       });
 
-      // Immediate error check and start
-      if (driverObj) {
-        driverObj.drive();
-      } else {
-        console.error('Failed to initialize tour driver');
-        localStorage.setItem('hasSeenDashboardTour', 'true');
-      }
+      // Start tour immediately
+      driverObj.drive();
       
       } catch (error) {
-        console.error('Tour initialization failed:', error);
+        console.error('Tour failed:', error);
         localStorage.setItem('hasSeenDashboardTour', 'true');
-        // Remove any stuck overlays
-        const overlays = document.querySelectorAll('.driver-overlay');
-        overlays.forEach(overlay => overlay.remove());
+        // Clean up any stuck elements
+        document.querySelectorAll('.driver-overlay').forEach(el => el.remove());
+        document.body.style.overflow = '';
       }
       };
 
