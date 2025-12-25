@@ -129,6 +129,28 @@ company.Logo || company.logo
 
 See: `UnlistedHub-USM/frontend/src/components/CreateListingModal.jsx` lines 249-262
 
+### KYC & Document Management
+**Storage:** Cloudinary (not MongoDB) - only URLs stored in database
+
+**User schema fields:**
+- `kycDocuments.pan` - PAN card URL
+- `kycDocuments.aadhar` - Aadhar number (text)
+- `kycDocuments.aadharFront` - Aadhar front image URL
+- `kycDocuments.aadharBack` - Aadhar back image URL
+- `kycDocuments.cancelledCheque` - Cancelled cheque URL
+- `kycDocuments.cml` - CML statement URL
+- `kycStatus` - Enum: `not_verified`, `pending`, `verified`, `rejected`
+- `profileImage` - Profile photo URL
+
+**Upload workflow:**
+1. Frontend uploads file to `/api/uploads/profile-image` or `/api/uploads/document`
+2. Backend validates (10MB max, JPG/PNG/PDF only)
+3. Multer stores in memory, uploads to Cloudinary
+4. Returns secure HTTPS URL to frontend
+5. Frontend updates user profile with URL
+
+See: `routes/uploads.js`, `routes/kyc.js`, `CLOUDINARY_SETUP.md`
+
 ### Listing Lifecycle
 **Status flow:** `active` → `negotiating` → `deal_pending` → `sold`/`cancelled`
 
@@ -210,12 +232,15 @@ node scripts/checkUserTokenDebug.js <username>  # debug tokens
 
 ### Backend Required (.env)
 ```bash
-MONGODB_URI=mongodb://...           # MongoDB connection
-JWT_SECRET=<min-32-chars>           # Startup fails if <32 chars
-CORS_ORIGINS=https://...            # Comma-separated extras
-FRONTEND_URL=https://...            # Main frontend
-FIREBASE_SERVICE_ACCOUNT='{...}'    # Raw JSON, no file path
-OPENAI_API_KEY=sk-...               # For news summaries/highlights
+MONGODB_URI=mongodb://...              # MongoDB connection
+JWT_SECRET=<min-32-chars>              # Startup fails if <32 chars
+CORS_ORIGINS=https://...               # Comma-separated extras
+FRONTEND_URL=https://...               # Main frontend
+FIREBASE_SERVICE_ACCOUNT='{...}'       # Raw JSON, no file path
+OPENAI_API_KEY=sk-...                  # For news summaries/highlights
+CLOUDINARY_CLOUD_NAME=nlistplanet      # For KYC/profile image storage
+CLOUDINARY_API_KEY=...                 # Cloudinary API key
+CLOUDINARY_API_SECRET=...              # Cloudinary API secret
 ```
 
 **OpenAI Integration:**
@@ -223,9 +248,16 @@ OPENAI_API_KEY=sk-...               # For news summaries/highlights
 - Used for: News summaries (60 words), Hindi translations, editor's notes
 - Test: `node test-openai.js` or `node test-auto-highlights.js`
 
+**Cloudinary Integration:**
+- Stores KYC documents and profile images (not in MongoDB)
+- Folder structure: `nlistplanet/profile-images/{userId}/` and `nlistplanet/kyc-documents/{userId}/`
+- Supports images (JPG/PNG) and PDFs (max 10MB)
+- See `CLOUDINARY_SETUP.md` for complete setup guide
+
 ### Frontend Required
 ```bash
-REACT_APP_API_URL=http://localhost:5000/api  # Backend URL
+REACT_APP_API_URL=http://localhost:5000/api       # Backend URL
+REACT_APP_PLATFORM_FEE_PERCENTAGE=2               # Desktop only (mobile hardcoded)
 ```
 
 Mobile PWA: Same pattern, adjust for deployment URLs.
@@ -380,7 +412,8 @@ Located in `UnlistedHub-USM/backend/` and `/scripts/`:
 
 ### UI/UX Standards
 **Styling:** Tailwind CSS with modern design system
-- **Modern UI Library:** `src/modern-ui.css` - 100+ utility classes
+- **Modern UI Library:** `src/modern-ui.css` - 100+ utility classes (desktop only)
+- **Mobile UI:** `src/modern-ui-mobile.css` - Mobile-optimized components
 - **Effects:** Glassmorphism, gradients, animations, glow effects
 - Primary colors: `bg-gray-900` (dark backgrounds), `text-emerald-500` (CTAs)
 - Modern components: `.btn-modern`, `.card-modern`, `.input-modern`, `.badge-modern`
@@ -396,6 +429,11 @@ Located in `UnlistedHub-USM/backend/` and `/scripts/`:
 - Skeleton loading: `.skeleton-modern` class
 
 **Icons:** `lucide-react` only (consistent across app)
+
+**UI Documentation:**
+- `UI_MODERNIZATION_GUIDE.md` - Complete desktop UI guide
+- `UI_MODERNIZATION_SUMMARY.md` - Quick reference for modern components
+- `nlistplanet-mobile/MOBILE_UI_GUIDE.md` - Mobile UI patterns
 
 ### Component Organization
 **File structure conventions:**
@@ -472,4 +510,8 @@ node scripts/quickTest.js    # Tests all public endpoints, CORS, rate limiting
 - `FIREBASE_SETUP_EASY.md` - Firebase configuration steps
 - `RENDER_AUTODEPLOY.md` - Backend deployment troubleshooting
 - `VERCEL_AUTODEPLOY.md` - Frontend deployment guide (Desktop + Mobile)
+- `CLOUDINARY_SETUP.md` - Document storage setup and usage
+- `UI_MODERNIZATION_GUIDE.md` - Desktop UI component library guide
+- `UI_MODERNIZATION_SUMMARY.md` - Quick reference for modern UI
+- `nlistplanet-mobile/MOBILE_UI_GUIDE.md` - Mobile PWA UI patterns
 

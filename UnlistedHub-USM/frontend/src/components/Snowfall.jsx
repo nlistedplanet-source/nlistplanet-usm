@@ -27,59 +27,60 @@ const Snowfall = () => {
   return (
     <>
       <style>{`
-        @keyframes snowfall {
+        @keyframes snowfallAnim {
           0% {
-            transform: translateY(-10vh) translateX(0);
+            top: -10vh;
             opacity: 1;
           }
           100% {
-            transform: translateY(100vh) translateX(0);
+            top: 100vh;
             opacity: 0;
           }
         }
 
-        @keyframes sway {
+        @keyframes swayAnim {
           0%, 100% {
             transform: translateX(0);
           }
           50% {
-            transform: translateX(var(--sway-amount));
+            transform: translateX(var(--sway));
           }
         }
 
-        .snowflake {
+        .snowflake-item {
           position: fixed;
           top: -10vh;
           width: var(--size);
           height: var(--size);
-          background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 70%, transparent 100%);
+          background: radial-gradient(circle at 30% 30%, rgba(255,255,255,1), rgba(255,255,255,0.9));
           border-radius: 50%;
-          box-shadow: 0 0 10px rgba(255,255,255,0.8);
+          box-shadow: 0 0 15px rgba(255,255,255,0.8), inset -2px -2px 5px rgba(0,0,0,0.05);
           pointer-events: none;
-          z-index: 10;
-          animation: snowfall var(--duration)s linear var(--delay)s infinite, sway var(--sway-duration)s ease-in-out var(--delay)s infinite;
+          z-index: 5;
+          will-change: transform;
           opacity: var(--opacity);
+        }
+
+        .snowflake-item-animated {
+          animation: snowfallAnim var(--duration)s linear var(--delay)s infinite, swayAnim var(--sway-duration)s ease-in-out var(--delay)s infinite;
         }
       `}</style>
 
-      <div className="fixed inset-0 pointer-events-none">
-        {snowflakes.map((flake) => (
-          <div
-            key={flake.id}
-            className="snowflake"
-            style={{
-              '--left': `${flake.left}%`,
-              '--size': `${flake.size}px`,
-              '--delay': `${flake.delay}s`,
-              '--duration': `${flake.duration}s`,
-              '--opacity': flake.opacity,
-              '--sway-amount': `${flake.swayAmount}px`,
-              '--sway-duration': `${flake.swayDuration}s`,
-              left: `${flake.left}%`,
-            }}
-          />
-        ))}
-      </div>
+      {snowflakes.map((flake) => (
+        <div
+          key={flake.id}
+          className="snowflake-item snowflake-item-animated"
+          style={{
+            '--size': `${flake.size}px`,
+            '--delay': `${flake.delay}s`,
+            '--duration': `${flake.duration}s`,
+            '--opacity': flake.opacity,
+            '--sway': `${flake.swayAmount}px`,
+            '--sway-duration': `${flake.swayDuration}s`,
+            left: `${flake.left}%`,
+          } as React.CSSProperties}
+        />
+      ))}
     </>
   );
 };
