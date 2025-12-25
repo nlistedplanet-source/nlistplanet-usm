@@ -2,15 +2,33 @@ import { useEffect } from 'react';
 import { driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
 
+// Function to manually start tour (for reset/help button)
+export const startDashboardTour = () => {
+  localStorage.removeItem('hasSeenDashboardTour');
+  window.location.reload(); // Reload to trigger tour
+};
+
+// Function to reset tour completely
+export const resetDashboardTour = () => {
+  localStorage.removeItem('hasSeenDashboardTour');
+};
+
 export const useDashboardTour = () => {
   useEffect(() => {
     const hasSeenTour = localStorage.getItem('hasSeenDashboardTour');
     if (!hasSeenTour) {
       let driverObj;
-      driverObj = driver({
-        showProgress: true,
-        animate: true,
-        steps: [
+      
+      const startTour = () => {
+        try {
+          driverObj = driver({
+            showProgress: true,
+            animate: true,
+            overlayClickNext: false,
+            allowClose: true,
+            stagePadding: 4,
+            stageRadius: 10,
+            steps: [
           { 
             element: '#sidebar-tab-marketplace', 
             popover: { 
@@ -63,59 +81,111 @@ export const useDashboardTour = () => {
         // Custom buttons for every step
         showButtons: ['prev', 'next', 'done'],
         onPopoverRender: (popover, { destroy }) => {
+          // Ensure popover is a valid DOM element
+          const popoverElement = popover?.wrapper || popover;
+          if (!popoverElement || typeof popoverElement.querySelector !== 'function') {
+            console.warn('Invalid popover element:', popover);
+            return;
+          }
+          
           // Add Skip button if not already present
-          if (!popover.querySelector('.dashboard-tour-skip-btn')) {
+          if (!popoverElement.querySelector('.dashboard-tour-skip-btn')) {
             const skipBtn = document.createElement('button');
-            skipBtn.innerText = 'Skip';
-            skipBtn.className = 'dashboard-tour-skip-btn';
+            skipBtn.innerText = 'Skip Tour';
+            skipBtn.className = 'dashboard-tour-skip-btn btn-secondary';
             skipBtn.type = 'button';
             skipBtn.style.cssText = `
-              margin-left: 12px;
-              background: #f3f4f6;
-              border: 1px solid #d1d5db;
-              color: #374151;
-              padding: 6px 16px;
+              margin-left: auto;
+              margin-right: 8px;
+              background: #ef4444;
+              border: 1px solid #dc2626;
+              color: white;
+              padding: 8px 16px;
               border-radius: 6px;
               cursor: pointer;
-              font-size: 14px;
-              font-weight: 500;
+              font-size: 13px;
+              font-weight: 600;
               position: relative;
-              z-index: 10000;
+              z-index: 10001;
               transition: all 0.2s ease;
+              order: -1;
             `;
             skipBtn.onmouseover = () => {
-              skipBtn.style.background = '#e5e7eb';
-              skipBtn.style.borderColor = '#9ca3af';
+              skipBtn.style.background = '#dc2626';
+              skipBtn.style.transform = 'scale(1.05)';
             };
             skipBtn.onmouseout = () => {
-              skipBtn.style.background = '#f3f4f6';
-              skipBtn.style.borderColor = '#d1d5db';
+              skipBtn.style.background = '#ef4444';
+              skipBtn.style.transform = 'scale(1)';
             };
             skipBtn.onclick = (e) => {
               e.preventDefault();
               e.stopPropagation();
               localStorage.setItem('hasSeenDashboardTour', 'true');
-              destroy();
+              if (driverObj) {
+                driverObj.destroy();
+              } else {
+                destroy();
+              }
             };
-            // Insert into button row
-            const btnRow = popover.querySelector('.driver-popover-footer');
+            
+            // Insert into button row with proper styling
+            const btnRow = popoverElement.querySelector('.driver-popover-footer');
             if (btnRow) {
               btnRow.style.display = 'flex';
-              btnRow.style.justifyContent = 'space-between';
+              btnRow.style.justifyContent = 'flex-end';
               btnRow.style.alignItems = 'center';
-              btnRow.appendChild(skipBtn);
+              btnRow.style.gap = '8px';
+              btnRow.insertBefore(skipBtn, btnRow.firstChild);
+            } else {
+              // Fallback: add to popover directly
+              const popoverContent = popoverElement.querySelector('.driver-popover-title, .driver-popover');
+              if (popoverContent) {
+                const btnContainer = document.createElement('div');
+                btnContainer.style.cssText = 'margin-top: 10px; text-align: right;';
+                btnContainer.appendChild(skipBtn);
+                popoverContent.parentNode.appendChild(btnContainer);
+              }
             }
           }
         },
         onDestroyStarted: () => {
           localStorage.setItem('hasSeenDashboardTour', 'true');
         },
+        onDestroyed: () => {
+          driverObj = null;
+        }
       });
 
-      // Small delay to ensure elements are rendered
-      setTimeout(() => {
-        driverObj.drive();
-      }, 1500);
+      // Start tour with error handling
+      driverObj.drive();
+      
+      } catch (error) {
+        console.error('Tour initialization failed:', error);
+        localStorage.setItem('hasSeenDashboardTour', 'true');
+      }
+      };
+
+      // Wait for elements to be rendered
+      const checkElements = () => {
+        const requiredElements = [
+          '#sidebar-tab-marketplace',
+          '#sidebar-tab-portfolio', 
+          '#dashboard-action-center'
+        ];
+        
+        const elementsExist = requiredElements.every(selector => 
+          document.querySelector(selector)
+        );
+        
+        if (elementsExist) {
+          startTour();
+        } else {
+          setTimeout(checkElements, 500);
+        }
+      };
+      
+      setTimeout(checkElements, 1000);
     }
   }, []);
 };

@@ -66,7 +66,7 @@ import BidOfferModal from '../components/BidOfferModal';
 import ShareCardGenerator from '../components/ShareCardGenerator';
 import VerificationCodesModal from '../components/VerificationCodesModal';
 import CreateListingModal from '../components/CreateListingModal';
-import { useDashboardTour } from '../components/TourGuide';
+import { useDashboardTour, startDashboardTour } from '../components/TourGuide';
 import AdBanner from '../components/AdBanner';
 import QueryModal from '../components/QueryModal';
 
@@ -990,6 +990,16 @@ const DashboardPage = () => {
 
               {/* Right side - Query Help & Notifications */}
               <div className="flex items-center gap-3">
+                {/* Tour Help Icon */}
+                <button
+                  onClick={() => startDashboardTour()}
+                  className="relative p-2.5 hover:bg-blue-50 rounded-xl transition-all duration-200 group"
+                  title="Start Dashboard Tour"
+                >
+                  <HelpCircle size={20} className="text-gray-600 group-hover:text-blue-600 transition-colors" />
+                  <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full border border-white animate-pulse" />
+                </button>
+
                 {/* Query/Help Icon */}
                 <button
                   onClick={() => setIsQueryModalOpen(true)}
