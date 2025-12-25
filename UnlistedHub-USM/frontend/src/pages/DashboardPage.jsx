@@ -66,7 +66,7 @@ import BidOfferModal from '../components/BidOfferModal';
 import ShareCardGenerator from '../components/ShareCardGenerator';
 import VerificationCodesModal from '../components/VerificationCodesModal';
 import CreateListingModal from '../components/CreateListingModal';
-import { useDashboardTour, startDashboardTour } from '../components/TourGuide';
+import { useDashboardTour, startDashboardTour, forceCleanupTour } from '../components/TourGuide';
 import AdBanner from '../components/AdBanner';
 import QueryModal from '../components/QueryModal';
 
@@ -990,6 +990,17 @@ const DashboardPage = () => {
 
               {/* Right side - Query Help & Notifications */}
               <div className="flex items-center gap-3">
+                {/* Emergency Tour Cleanup (Development) */}
+                {process.env.NODE_ENV === 'development' && (
+                  <button
+                    onClick={() => forceCleanupTour()}
+                    className="relative p-2 hover:bg-red-50 rounded-lg transition-all duration-200 group"
+                    title="Emergency Tour Cleanup"
+                  >
+                    <XCircle size={18} className="text-red-500 group-hover:text-red-700 transition-colors" />
+                  </button>
+                )}
+
                 {/* Tour Help Icon */}
                 <button
                   onClick={() => startDashboardTour()}

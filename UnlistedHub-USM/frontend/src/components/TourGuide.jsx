@@ -13,8 +13,31 @@ export const resetDashboardTour = () => {
   localStorage.removeItem('hasSeenDashboardTour');
 };
 
+// Emergency cleanup function
+export const forceCleanupTour = () => {
+  // Remove all tour elements
+  const overlays = document.querySelectorAll('.driver-overlay');
+  const popovers = document.querySelectorAll('.driver-popover');
+  const highlighted = document.querySelectorAll('.driver-highlighted-element');
+  
+  overlays.forEach(el => el.remove());
+  popovers.forEach(el => el.remove());
+  highlighted.forEach(el => el.classList.remove('driver-highlighted-element'));
+  
+  // Reset body styles
+  document.body.style.overflow = '';
+  document.body.classList.remove('driver-active');
+  
+  // Reset localStorage
+  localStorage.removeItem('hasSeenDashboardTour');
+  console.log('Tour force cleanup completed');
+};
+
 export const useDashboardTour = () => {
   useEffect(() => {
+    // Add emergency cleanup to window for console access
+    window.forceCleanupTour = forceCleanupTour;
+    
     const hasSeenTour = localStorage.getItem('hasSeenDashboardTour');
     if (!hasSeenTour) {
       let driverObj;
@@ -28,6 +51,9 @@ export const useDashboardTour = () => {
             allowClose: true,
             stagePadding: 4,
             stageRadius: 10,
+            overlayOpacity: 0.5,
+            smoothScroll: true,
+            disableActiveInteraction: false,
             steps: [
           { 
             element: '#sidebar-tab-marketplace', 
@@ -154,15 +180,32 @@ export const useDashboardTour = () => {
         },
         onDestroyed: () => {
           driverObj = null;
+          // Ensure overlay is removed
+          const overlay = document.querySelector('.driver-overlay');
+          if (overlay) {
+            overlay.remove();
+          }
+        },
+        onHighlightStarted: () => {
+          // Ensure page is scrollable
+          document.body.style.overflow = 'auto';
         }
       });
 
-      // Start tour with error handling
-      driverObj.drive();
+      // Immediate error check and start
+      if (driverObj) {
+        driverObj.drive();
+      } else {
+        console.error('Failed to initialize tour driver');
+        localStorage.setItem('hasSeenDashboardTour', 'true');
+      }
       
       } catch (error) {
         console.error('Tour initialization failed:', error);
         localStorage.setItem('hasSeenDashboardTour', 'true');
+        // Remove any stuck overlays
+        const overlays = document.querySelectorAll('.driver-overlay');
+        overlays.forEach(overlay => overlay.remove());
       }
       };
 

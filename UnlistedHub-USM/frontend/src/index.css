@@ -415,6 +415,22 @@ body {
 
 /* Tour overlay */
 .driver-overlay {
-  background: rgba(0, 0, 0, 0.7) !important;
+  background: rgba(0, 0, 0, 0.4) !important;
   backdrop-filter: blur(2px) !important;
+  z-index: 9998 !important;
+}
+
+/* Ensure body stays scrollable during tour */
+body.driver-active {
+  overflow: auto !important;
+}
+
+/* Emergency overlay cleanup */
+.driver-overlay.driver-overlay-animated {
+  transition: opacity 0.2s ease !important;
+}
+
+/* Prevent page blocking */
+.driver-popover-wrapper {
+  z-index: 9999 !important;
 }
