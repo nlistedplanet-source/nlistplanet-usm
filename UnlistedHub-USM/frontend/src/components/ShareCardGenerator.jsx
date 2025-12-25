@@ -48,23 +48,40 @@ const ShareCardGenerator = ({ listing, onClose }) => {
   };
 
   // Generate card image
+  // Generate card image at full resolution
   const generateCardImage = async () => {
     if (!cardRef.current) return null;
 
     try {
-      const canvas = await html2canvas(cardRef.current, {
+      // Create a hidden container to render card at full size
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.width = '1080px';
+      container.style.height = '1080px';
+      
+      // Clone the card
+      const clonedCard = cardRef.current.cloneNode(true);
+      clonedCard.style.transform = 'scale(1)'; // Full size
+      clonedCard.style.width = '1080px';
+      clonedCard.style.height = '1080px';
+      
+      container.appendChild(clonedCard);
+      document.body.appendChild(container);
+
+      const canvas = await html2canvas(clonedCard, {
         scale: 2,
         backgroundColor: '#ffffff',
         logging: false,
         useCORS: true,
         allowTaint: false,
         foreignObjectRendering: false,
+        width: 1080,
+        height: 1080,
         ignoreElements: (element) => {
-          // Ignore external stylesheets to avoid CORS issues
           return element.tagName === 'LINK' && element.rel === 'stylesheet';
         },
         onclone: (clonedDoc) => {
-          // Remove external fonts to avoid CORS issues
           const links = clonedDoc.querySelectorAll('link[rel="stylesheet"]');
           links.forEach(link => {
             if (link.href.includes('fonts.googleapis.com')) {
@@ -74,6 +91,7 @@ const ShareCardGenerator = ({ listing, onClose }) => {
         }
       });
 
+      document.body.removeChild(container);
       return canvas.toDataURL('image/png');
     } catch (error) {
       console.error('Card generation error:', error);
