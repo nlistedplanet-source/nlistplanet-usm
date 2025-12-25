@@ -80,7 +80,7 @@ const Snowfall = () => {
             left: `${flake.left}%`,
           }}
         />
-      ))
+      ))}
     </>
   );
 };
