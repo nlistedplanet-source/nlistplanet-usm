@@ -709,6 +709,7 @@ const DashboardPage = () => {
   ];
 
   const handleTabChange = (tabId) => {
+    console.log('🔄 Tab changing to:', tabId);
     setActiveTab(tabId);
     setSearchParams({ tab: tabId });
   };
@@ -1153,7 +1154,7 @@ const DashboardPage = () => {
         
         {/* Tab Content */}
         {activeTab === 'overview' && (
-          <>
+          <div key="overview-tab">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader className="animate-spin text-purple-600 mb-3" size={40} />
@@ -1605,11 +1606,12 @@ const DashboardPage = () => {
           </>
         )}
           </>
+        </div>
         )}
 
         {/* Marketplace Tab */}
         {activeTab === 'marketplace' && (
-          <div className="w-full">
+          <div className="w-full" key="marketplace-tab">
             {/* Creative Title */}
             <div className="mb-3">
               <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
