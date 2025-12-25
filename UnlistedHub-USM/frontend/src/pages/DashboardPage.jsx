@@ -1606,7 +1606,6 @@ const DashboardPage = () => {
           </>
         )}
           </>
-        </div>
         )}
 
         {/* Marketplace Tab */}
