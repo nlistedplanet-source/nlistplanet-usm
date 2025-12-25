@@ -344,58 +344,73 @@ body {
 /* Dashboard Tour Styles */
 .driver-popover {
   border-radius: 12px !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  border: 2px solid rgba(16, 185, 129, 0.3) !important;
   background: linear-gradient(135deg, #1f2937 0%, #374151 100%) !important;
   backdrop-filter: blur(10px) !important;
   z-index: 10000 !important;
+  min-width: 300px !important;
+  max-width: 400px !important;
 }
 
 .driver-popover-title {
-  color: #f9fafb !important;
-  font-weight: 600 !important;
-  font-size: 18px !important;
-  margin-bottom: 8px !important;
+  color: #10b981 !important;
+  font-weight: 700 !important;
+  font-size: 20px !important;
+  margin-bottom: 12px !important;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
 }
 
 .driver-popover-description {
-  color: #d1d5db !important;
-  font-size: 14px !important;
+  color: #e5e7eb !important;
+  font-size: 15px !important;
   line-height: 1.6 !important;
+  margin-bottom: 20px !important;
 }
 
 .driver-popover-footer {
-  padding-top: 16px !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-  margin-top: 16px !important;
+  padding-top: 20px !important;
+  border-top: 1px solid rgba(16, 185, 129, 0.2) !important;
+  margin-top: 20px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
 }
 
 .driver-popover-next-btn,
 .driver-popover-prev-btn,
-.driver-popover-done-btn {
+.driver-popover-done-btn,
+.driver-popover-close-btn {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
   color: white !important;
   border: none !important;
-  padding: 8px 16px !important;
+  padding: 10px 20px !important;
   border-radius: 8px !important;
   font-weight: 600 !important;
+  font-size: 14px !important;
   transition: all 0.2s ease !important;
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3) !important;
 }
 
 .driver-popover-next-btn:hover,
 .driver-popover-prev-btn:hover,
-.driver-popover-done-btn:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
+.driver-popover-done-btn:hover,
+.driver-popover-close-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
 }
 
 .driver-popover-progress-text {
-  color: #9ca3af !important;
-  font-size: 12px !important;
+  color: #10b981 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
 }
 
 .dashboard-tour-skip-btn {
   animation: pulseSkip 2s infinite !important;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  order: -1 !important;
 }
 
 @keyframes pulseSkip {
@@ -403,34 +418,31 @@ body {
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
   }
   70% { 
-    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
   }
 }
 
-/* Tour highlight styling */
+/* Tour highlight styling - cleaner without overlay */
 .driver-highlighted-element {
-  border-radius: 8px !important;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.3) !important;
+  border: 3px solid #10b981 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2), 0 0 20px rgba(16, 185, 129, 0.3) !important;
+  position: relative !important;
+  z-index: 9999 !important;
+  background: rgba(255, 255, 255, 0.05) !important;
 }
 
-/* Tour overlay */
+/* Hide overlay completely */
 .driver-overlay {
-  background: rgba(0, 0, 0, 0.4) !important;
-  backdrop-filter: blur(2px) !important;
-  z-index: 9998 !important;
+  display: none !important;
 }
 
-/* Ensure body stays scrollable during tour */
+/* Ensure body stays normal */
 body.driver-active {
   overflow: auto !important;
 }
 
-/* Emergency overlay cleanup */
-.driver-overlay.driver-overlay-animated {
-  transition: opacity 0.2s ease !important;
-}
-
-/* Prevent page blocking */
+/* Tour popover positioning */
 .driver-popover-wrapper {
-  z-index: 9999 !important;
+  z-index: 10001 !important;
 }

@@ -49,11 +49,12 @@ export const useDashboardTour = () => {
             animate: true,
             overlayClickNext: false,
             allowClose: true,
-            stagePadding: 4,
-            stageRadius: 10,
-            overlayOpacity: 0.5,
+            stagePadding: 8,
+            stageRadius: 8,
+            overlayOpacity: 0,
             smoothScroll: true,
-            disableActiveInteraction: false,
+            disableActiveInteraction: true,
+            showButtons: ['close'],
             steps: [
           { 
             element: '#sidebar-tab-marketplace', 
@@ -101,11 +102,12 @@ export const useDashboardTour = () => {
             } 
           }
         ],
-        nextBtnText: 'Next',
-        prevBtnText: 'Previous',
-        doneBtnText: 'Done',
-        // Custom buttons for every step
-        showButtons: ['prev', 'next', 'done'],
+        nextBtnText: 'Next Step →',
+        prevBtnText: '← Previous',
+        doneBtnText: 'Complete Tour! ✨',
+        closeBtnText: 'Skip Tour',
+        // Only show necessary buttons
+        showButtons: ['close', 'next', 'previous'],
         onPopoverRender: (popover, { destroy }) => {
           // Ensure popover is a valid DOM element
           const popoverElement = popover?.wrapper || popover;
@@ -117,32 +119,35 @@ export const useDashboardTour = () => {
           // Add Skip button if not already present
           if (!popoverElement.querySelector('.dashboard-tour-skip-btn')) {
             const skipBtn = document.createElement('button');
-            skipBtn.innerText = 'Skip Tour';
+            skipBtn.innerText = '✕ Skip Tour';
             skipBtn.className = 'dashboard-tour-skip-btn btn-secondary';
             skipBtn.type = 'button';
             skipBtn.style.cssText = `
               margin-left: auto;
               margin-right: 8px;
-              background: #ef4444;
-              border: 1px solid #dc2626;
+              background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+              border: 2px solid #dc2626;
               color: white;
               padding: 8px 16px;
-              border-radius: 6px;
+              border-radius: 8px;
               cursor: pointer;
               font-size: 13px;
-              font-weight: 600;
+              font-weight: 700;
               position: relative;
-              z-index: 10001;
-              transition: all 0.2s ease;
+              z-index: 10002;
+              transition: all 0.3s ease;
               order: -1;
+              box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
             `;
             skipBtn.onmouseover = () => {
-              skipBtn.style.background = '#dc2626';
-              skipBtn.style.transform = 'scale(1.05)';
+              skipBtn.style.background = 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)';
+              skipBtn.style.transform = 'scale(1.05) translateY(-1px)';
+              skipBtn.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.5)';
             };
             skipBtn.onmouseout = () => {
-              skipBtn.style.background = '#ef4444';
+              skipBtn.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
               skipBtn.style.transform = 'scale(1)';
+              skipBtn.style.boxShadow = '0 4px 6px -1px rgba(239, 68, 68, 0.3)';
             };
             skipBtn.onclick = (e) => {
               e.preventDefault();
