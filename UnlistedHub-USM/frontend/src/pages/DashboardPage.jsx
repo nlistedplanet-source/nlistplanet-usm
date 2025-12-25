@@ -1155,14 +1155,14 @@ const DashboardPage = () => {
         {/* Tab Content */}
         {activeTab === 'overview' && (
           <div key="overview-tab">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader className="animate-spin text-purple-600 mb-3" size={40} />
-            <p className="text-gray-600">Loading portfolio...</p>
-          </div>
-        ) : (
-          <>
-        {/* Stats Cards */}
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader className="animate-spin text-purple-600 mb-3" size={40} />
+                <p className="text-gray-600">Loading portfolio...</p>
+              </div>
+            ) : (
+              <>
+                {/* Stats Cards */}
         <div id="dashboard-stats-grid" className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
           {/* Total Portfolio Value */}
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -1603,9 +1603,9 @@ const DashboardPage = () => {
             </div>
           </div>
         </div>
-          </>
-        )}
-          </>
+              </>
+            )}
+          </div>
         )}
 
         {/* Marketplace Tab */}
