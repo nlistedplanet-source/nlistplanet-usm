@@ -56,7 +56,7 @@ const Snowfall = () => {
           border-radius: 50%;
           box-shadow: 0 0 15px rgba(255,255,255,0.8), inset -2px -2px 5px rgba(0,0,0,0.05);
           pointer-events: none;
-          z-index: 5;
+          z-index: 9999;
           will-change: transform;
           opacity: var(--opacity);
         }
