@@ -877,6 +877,7 @@ const DashboardPage = () => {
                 return (
                   <button
                     key={tab.id}
+                    id={`sidebar-tab-${tab.id}`}
                     onClick={() => handleTabChange(tab.id)}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
                       isActive
@@ -904,6 +905,7 @@ const DashboardPage = () => {
                   return (
                     <button
                       key={tab.id}
+                      id={`sidebar-tab-${tab.id}`}
                       onClick={() => handleTabChange(tab.id)}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
                         isActive
