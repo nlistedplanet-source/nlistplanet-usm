@@ -3,15 +3,15 @@ import { driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
 
 /**
- * Professional Dashboard Tour Guide
- * Features: Skip button, Progress indicator, Modern styling
+ * NListPlanet Dashboard Tour Guide
+ * Clean, minimal, professional design
  */
 
 const TOUR_STEPS = [
   {
     element: '#sidebar-tab-marketplace',
     popover: {
-      title: '🏪 Marketplace',
+      title: 'Marketplace',
       description: 'Browse and place bids/offers on unlisted shares from other traders.',
       side: 'right',
       align: 'center'
@@ -20,7 +20,7 @@ const TOUR_STEPS = [
   {
     element: '#sidebar-tab-portfolio',
     popover: {
-      title: '📊 Portfolio',
+      title: 'Portfolio',
       description: 'Track and manage your unlisted share holdings in one place.',
       side: 'right',
       align: 'center'
@@ -29,7 +29,7 @@ const TOUR_STEPS = [
   {
     element: '#sidebar-tab-posts',
     popover: {
-      title: '📝 My Posts',
+      title: 'My Posts',
       description: 'View and manage all your buy/sell listings here.',
       side: 'right',
       align: 'center'
@@ -38,7 +38,7 @@ const TOUR_STEPS = [
   {
     element: '#sidebar-tab-my-bids-offers',
     popover: {
-      title: '💰 My Bids',
+      title: 'My Bids & Offers',
       description: 'Track all your active bids and offers on other listings.',
       side: 'right',
       align: 'center'
@@ -47,280 +47,225 @@ const TOUR_STEPS = [
   {
     element: '#dashboard-action-center',
     popover: {
-      title: '🔔 Action Center',
-      description: 'Get notified about new bids, counter-offers, and deal updates.',
+      title: 'Action Center',
+      description: 'Important notifications about bids, counter-offers, and deal updates appear here.',
       side: 'top',
       align: 'start'
     }
   }
 ];
 
-// Custom styles for the tour
-const injectTourStyles = () => {
-  const styleId = 'tour-custom-styles';
-  if (document.getElementById(styleId)) return;
+const injectStyles = () => {
+  if (document.getElementById('nlist-tour-styles')) return;
 
-  const styles = document.createElement('style');
-  styles.id = styleId;
-  styles.textContent = `
-    /* Modern Tour Popover */
+  const style = document.createElement('style');
+  style.id = 'nlist-tour-styles';
+  style.textContent = `
+    /* Overlay - Light and subtle */
+    .driver-overlay {
+      background: rgba(0, 0, 0, 0.3) !important;
+    }
+
+    /* Popover Container */
     .driver-popover {
-      background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%) !important;
-      border: 1px solid #e2e8f0 !important;
-      border-radius: 16px !important;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
-      padding: 24px !important;
-      max-width: 340px !important;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+      background: #ffffff !important;
+      border: none !important;
+      border-radius: 12px !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+      padding: 20px !important;
+      max-width: 320px !important;
+      min-width: 280px !important;
     }
 
-    .driver-popover-arrow {
-      border: 8px solid transparent !important;
-    }
-
-    .driver-popover-arrow-side-left {
-      border-left-color: #ffffff !important;
-    }
-
+    /* Arrow */
     .driver-popover-arrow-side-right {
       border-right-color: #ffffff !important;
     }
-
+    .driver-popover-arrow-side-left {
+      border-left-color: #ffffff !important;
+    }
     .driver-popover-arrow-side-top {
       border-top-color: #ffffff !important;
     }
-
     .driver-popover-arrow-side-bottom {
       border-bottom-color: #ffffff !important;
     }
 
     /* Title */
     .driver-popover-title {
-      font-size: 18px !important;
-      font-weight: 700 !important;
-      color: #1e293b !important;
-      margin-bottom: 8px !important;
-      line-height: 1.3 !important;
+      font-size: 16px !important;
+      font-weight: 600 !important;
+      color: #111827 !important;
+      margin: 0 0 8px 0 !important;
+      padding: 0 !important;
     }
 
     /* Description */
     .driver-popover-description {
       font-size: 14px !important;
-      color: #64748b !important;
-      line-height: 1.6 !important;
-      margin-bottom: 0 !important;
-    }
-
-    /* Progress Text */
-    .driver-popover-progress-text {
-      font-size: 12px !important;
-      color: #94a3b8 !important;
-      font-weight: 500 !important;
+      color: #6b7280 !important;
+      line-height: 1.5 !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
 
     /* Footer */
     .driver-popover-footer {
-      margin-top: 20px !important;
+      margin-top: 16px !important;
       padding-top: 16px !important;
-      border-top: 1px solid #f1f5f9 !important;
+      border-top: 1px solid #f3f4f6 !important;
       display: flex !important;
       align-items: center !important;
-      justify-content: space-between !important;
       gap: 8px !important;
     }
 
-    /* Navigation Buttons */
-    .driver-popover-navigation-btns {
-      display: flex !important;
-      gap: 8px !important;
+    /* Progress */
+    .driver-popover-progress-text {
+      font-size: 12px !important;
+      color: #9ca3af !important;
+      flex: 1 !important;
     }
 
-    .driver-popover-prev-btn,
-    .driver-popover-next-btn {
-      padding: 10px 20px !important;
-      border-radius: 10px !important;
-      font-size: 14px !important;
-      font-weight: 600 !important;
-      cursor: pointer !important;
-      transition: all 0.2s ease !important;
-      border: none !important;
-    }
-
-    .driver-popover-prev-btn {
-      background: #f1f5f9 !important;
-      color: #475569 !important;
-    }
-
-    .driver-popover-prev-btn:hover {
-      background: #e2e8f0 !important;
-    }
-
-    .driver-popover-next-btn,
-    .driver-popover-done-btn {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-      color: white !important;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
-    }
-
-    .driver-popover-next-btn:hover,
-    .driver-popover-done-btn:hover {
-      transform: translateY(-1px) !important;
-      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4) !important;
-    }
-
-    /* Skip Button */
-    .tour-skip-btn {
-      padding: 10px 16px !important;
-      border-radius: 10px !important;
+    /* All Buttons Base */
+    .driver-popover-footer button {
+      padding: 8px 16px !important;
+      border-radius: 8px !important;
       font-size: 13px !important;
       font-weight: 500 !important;
       cursor: pointer !important;
-      transition: all 0.2s ease !important;
-      border: 1px solid #e2e8f0 !important;
-      background: white !important;
-      color: #64748b !important;
+      transition: all 0.15s ease !important;
     }
 
-    .tour-skip-btn:hover {
-      background: #fef2f2 !important;
-      border-color: #fecaca !important;
-      color: #dc2626 !important;
+    /* Previous Button */
+    .driver-popover-prev-btn {
+      background: #f3f4f6 !important;
+      color: #374151 !important;
+      border: none !important;
+    }
+    .driver-popover-prev-btn:hover {
+      background: #e5e7eb !important;
     }
 
-    /* Overlay */
-    .driver-overlay {
-      background: rgba(15, 23, 42, 0.6) !important;
-      backdrop-filter: blur(4px) !important;
+    /* Next Button */
+    .driver-popover-next-btn {
+      background: #10b981 !important;
+      color: white !important;
+      border: none !important;
+    }
+    .driver-popover-next-btn:hover {
+      background: #059669 !important;
+    }
+
+    /* Done Button */
+    .driver-popover-done-btn {
+      background: #10b981 !important;
+      color: white !important;
+      border: none !important;
+    }
+    .driver-popover-done-btn:hover {
+      background: #059669 !important;
+    }
+
+    /* Skip Button - Custom */
+    .nlist-skip-btn {
+      background: transparent !important;
+      color: #9ca3af !important;
+      border: none !important;
+      padding: 8px 12px !important;
+      font-size: 13px !important;
+      cursor: pointer !important;
+    }
+    .nlist-skip-btn:hover {
+      color: #ef4444 !important;
     }
 
     /* Highlighted Element */
     .driver-active-element {
-      border-radius: 12px !important;
-      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.3), 0 0 0 8px rgba(16, 185, 129, 0.1) !important;
+      border-radius: 8px !important;
     }
 
-    /* Close Button */
+    /* Hide default close button */
     .driver-popover-close-btn {
       display: none !important;
     }
   `;
-  document.head.appendChild(styles);
+  document.head.appendChild(style);
 };
 
-// Dashboard Tour Hook
 export const useDashboardTour = () => {
-  const initTour = useCallback(() => {
-    const hasSeenTour = localStorage.getItem('hasSeenDashboardTour');
-    if (hasSeenTour) return;
+  const startTour = useCallback(() => {
+    const seen = localStorage.getItem('hasSeenDashboardTour');
+    if (seen) return;
 
-    // Inject custom styles
-    injectTourStyles();
-
-    // Check if required elements exist
-    const elementsExist = TOUR_STEPS.slice(0, 3).every(
+    // Check elements exist
+    const hasElements = TOUR_STEPS.slice(0, 2).every(
       step => document.querySelector(step.element)
     );
-
-    if (!elementsExist) {
-      setTimeout(initTour, 500);
+    if (!hasElements) {
+      setTimeout(startTour, 500);
       return;
     }
 
-    let driverInstance = null;
+    injectStyles();
 
-    driverInstance = driver({
+    let tourDriver = null;
+
+    tourDriver = driver({
       showProgress: true,
       animate: true,
       smoothScroll: true,
-      allowClose: false,
+      allowClose: true,
       overlayClickNext: false,
-      stagePadding: 8,
-      stageRadius: 12,
-      popoverOffset: 15,
+      stagePadding: 6,
+      stageRadius: 8,
+      popoverOffset: 12,
       showButtons: ['next', 'previous'],
-      nextBtnText: 'Next →',
-      prevBtnText: '← Back',
-      doneBtnText: 'Get Started! 🚀',
-      progressText: '{{current}} of {{total}}',
+      nextBtnText: 'Next',
+      prevBtnText: 'Back',
+      doneBtnText: 'Done',
+      progressText: '{{current}} / {{total}}',
       steps: TOUR_STEPS,
+      
       onPopoverRender: (popover) => {
         const footer = popover.footer;
-        if (!footer) return;
+        if (!footer || footer.querySelector('.nlist-skip-btn')) return;
 
-        // Check if skip button already exists
-        if (footer.querySelector('.tour-skip-btn')) return;
-
-        // Create Skip button
         const skipBtn = document.createElement('button');
-        skipBtn.className = 'tour-skip-btn';
-        skipBtn.innerHTML = 'Skip Tour';
-        skipBtn.onclick = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
+        skipBtn.className = 'nlist-skip-btn';
+        skipBtn.textContent = 'Skip';
+        skipBtn.onclick = () => {
           localStorage.setItem('hasSeenDashboardTour', 'true');
-          if (driverInstance) {
-            driverInstance.destroy();
-          }
+          tourDriver?.destroy();
         };
-
-        // Insert skip button at the beginning
+        
+        // Insert at beginning of footer
         footer.insertBefore(skipBtn, footer.firstChild);
       },
+
       onDestroyStarted: () => {
         localStorage.setItem('hasSeenDashboardTour', 'true');
-      },
-      onDestroyed: () => {
-        driverInstance = null;
       }
     });
 
-    // Start the tour
-    driverInstance.drive();
+    tourDriver.drive();
   }, []);
 
   useEffect(() => {
-    // Delay tour start to ensure page is fully loaded
-    const timer = setTimeout(initTour, 1500);
+    const timer = setTimeout(startTour, 1200);
     return () => clearTimeout(timer);
-  }, [initTour]);
+  }, [startTour]);
 };
 
-// Manually trigger tour
+// Manual controls
 export const startDashboardTour = () => {
   localStorage.removeItem('hasSeenDashboardTour');
   window.location.reload();
 };
 
-// Reset tour for testing
-export const resetTour = () => {
-  localStorage.removeItem('hasSeenDashboardTour');
-};
-
-// Force cleanup any stuck tour elements
 export const forceCleanupTour = () => {
   localStorage.setItem('hasSeenDashboardTour', 'true');
-  
-  // Remove all driver.js elements
-  const selectors = [
-    '.driver-overlay',
-    '.driver-popover',
-    '.driver-active-element'
-  ];
-  
-  selectors.forEach(selector => {
-    document.querySelectorAll(selector).forEach(el => {
-      if (selector === '.driver-active-element') {
-        el.classList.remove('driver-active-element');
-      } else {
-        el.remove();
-      }
-    });
-  });
-
-  // Reset body scroll
+  document.querySelectorAll('.driver-overlay, .driver-popover').forEach(el => el.remove());
   document.body.style.overflow = '';
-  
-  console.log('Tour cleanup completed');
 };
 
 export default useDashboardTour;
