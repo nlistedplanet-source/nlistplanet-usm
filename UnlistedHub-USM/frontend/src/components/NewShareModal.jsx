@@ -200,13 +200,13 @@ const NewShareModal = ({ listing, onClose }) => {
             <Share2 className="text-white" size={20} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-white">Share Listing</h3>
+            <h3 className="text-lg font-bold text-white">Share Listing</h3>
             <p className="text-xs text-gray-400">Create your investment card</p>
           </div>
         </div>
 
         {/* Card Preview */}
-        <div className="mb-4 rounded-xl overflow-hidden shadow-2xl border-2 border-gray-700" style={{ aspectRatio: '1/1', maxWidth: '320px', margin: '0 auto' }}>
+        <div className="mb-4 rounded-xl overflow-hidden shadow-2xl border-2 border-gray-700" style={{ aspectRatio: '1/1', maxWidth: '300px', margin: '0 auto' }}>
           <div className="relative w-full h-full">
             <div 
               ref={cardRef} 
@@ -214,7 +214,7 @@ const NewShareModal = ({ listing, onClose }) => {
               style={{ 
                 width: '1080px', 
                 height: '1080px',
-                transform: 'scale(0.296)',
+                transform: 'scale(0.278)',
                 transformOrigin: 'top left',
                 position: 'absolute'
               }}
@@ -331,17 +331,17 @@ const NewShareModal = ({ listing, onClose }) => {
           <button
             onClick={handleShare}
             disabled={loading}
-            className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+            className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-medium py-2 px-3 text-sm rounded-lg flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
-            {loading ? <Loader size={16} className="animate-spin" /> : <Share2 size={16} />}
+            {loading ? <Loader size={14} className="animate-spin" /> : <Share2 size={14} />}
             Share
           </button>
           <button
             onClick={handleDownload}
             disabled={loading}
-            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+            className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-3 text-sm rounded-lg flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
-            <Download size={16} />
+            <Download size={14} />
             Download
           </button>
         </div>
