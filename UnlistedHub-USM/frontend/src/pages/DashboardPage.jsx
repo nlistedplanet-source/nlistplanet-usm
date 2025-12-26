@@ -1014,7 +1014,6 @@ const DashboardPage = () => {
                   title="Start Dashboard Tour"
                 >
                   <PlayCircle size={20} className="text-indigo-600 group-hover:text-indigo-700 transition-colors" />
-                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
                 </button>
 
                 {/* Query/Help Icon */}
