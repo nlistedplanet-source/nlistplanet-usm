@@ -66,14 +66,14 @@ import BidOfferModal from '../components/BidOfferModal';
 import ShareCardGenerator from '../components/ShareCardGenerator';
 import VerificationCodesModal from '../components/VerificationCodesModal';
 import CreateListingModal from '../components/CreateListingModal';
-import { useDashboardTour, startDashboardTour, forceCleanupTour } from '../components/TourGuide';
+import SimpleTour, { startSimpleTour } from '../components/SimpleTour';
 import AdBanner from '../components/AdBanner';
 import QueryModal from '../components/QueryModal';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const { user, logout, loading: authLoading } = useAuth();
-  useDashboardTour();
+  // useDashboardTour(); // Old tour disabled
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
   const [loading, setLoading] = useState(true);
@@ -996,9 +996,12 @@ const DashboardPage = () => {
                 {/* Emergency Tour Cleanup (Development) */}
                 {process.env.NODE_ENV === 'development' && (
                   <button
-                    onClick={() => forceCleanupTour()}
+                    onClick={() => {
+                      localStorage.removeItem('hasSeenDashboardTour');
+                      window.location.reload();
+                    }}
                     className="relative p-2 hover:bg-red-50 rounded-lg transition-all duration-200 group"
-                    title="Emergency Tour Cleanup"
+                    title="Reset Tour"
                   >
                     <XCircle size={18} className="text-red-500 group-hover:text-red-700 transition-colors" />
                   </button>
@@ -1006,7 +1009,7 @@ const DashboardPage = () => {
 
                 {/* Tour Help Icon */}
                 <button
-                  onClick={() => startDashboardTour()}
+                  onClick={() => startSimpleTour()}
                   className="relative p-2.5 hover:bg-blue-50 rounded-xl transition-all duration-200 group"
                   title="Start Dashboard Tour"
                 >
@@ -2401,6 +2404,9 @@ const DashboardPage = () => {
         isOpen={isQueryModalOpen} 
         onClose={() => setIsQueryModalOpen(false)} 
       />
+
+      {/* Simple Tour Component */}
+      <SimpleTour />
     </div>
   );
 };
