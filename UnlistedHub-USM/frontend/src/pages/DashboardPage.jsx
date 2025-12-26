@@ -63,7 +63,7 @@ import ReferralTracking from '../components/admin/ReferralTracking';
 import NewsManagement from '../components/admin/NewsManagement';
 import MarketplaceCard from '../components/MarketplaceCard';
 import BidOfferModal from '../components/BidOfferModal';
-import ShareCardGenerator from '../components/ShareCardGenerator';
+import NewShareModal from '../components/NewShareModal';
 import VerificationCodesModal from '../components/VerificationCodesModal';
 import CreateListingModal from '../components/CreateListingModal';
 import SimpleTour, { startSimpleTour } from '../components/SimpleTour';
@@ -2103,7 +2103,7 @@ const DashboardPage = () => {
 
       {/* Share Card Generator */}
       {showShareCard && shareListingData && (
-        <ShareCardGenerator
+        <NewShareModal
           listing={shareListingData}
           onClose={() => {
             setShowShareCard(false);
