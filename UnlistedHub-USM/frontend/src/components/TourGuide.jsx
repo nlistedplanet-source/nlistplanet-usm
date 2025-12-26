@@ -68,19 +68,21 @@ const injectStyles = () => {
     }
 
     /* Popover Container */
-    .driver-popover {
+    .driver-popover,
+    .nlist-tour-popover {
       background: #ffffff !important;
-      border: none !important;
+      border: 2px solid #e5e7eb !important;
       border-radius: 12px !important;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
       padding: 20px !important;
-      max-width: 320px !important;
-      min-width: 280px !important;
+      max-width: 360px !important;
+      min-width: 300px !important;
       z-index: 99999 !important;
       display: block !important;
       visibility: visible !important;
       opacity: 1 !important;
-      position: relative !important;
+      position: absolute !important;
+      pointer-events: all !important;
     }
 
     /* Arrow */
@@ -240,33 +242,48 @@ export const useDashboardTour = () => {
       showProgress: true,
       animate: true,
       smoothScroll: true,
-      allowClose: true,
+      allowClose: false,
       overlayClickNext: false,
-      stagePadding: 6,
-      stageRadius: 8,
-      popoverOffset: 12,
+      stagePadding: 8,
+      stageRadius: 10,
+      popoverOffset: 16,
+      popoverClass: 'nlist-tour-popover',
+      disableActiveInteraction: false,
       showButtons: ['next', 'previous'],
-      nextBtnText: 'Next',
-      prevBtnText: 'Back',
-      doneBtnText: 'Done',
-      progressText: '{{current}} / {{total}}',
+      nextBtnText: 'Next →',
+      prevBtnText: '← Back',
+      doneBtnText: 'Done ✓',
+      progressText: '{{current}} of {{total}}',
       steps: TOUR_STEPS,
-      
-      onPopoverRender: (popover) => {
-        // Add skip button to top-right of popover
+
+      onPopoverRender: (popover, { config, state }) => {
         const wrapper = popover.wrapper;
-        if (!wrapper || wrapper.querySelector('.nlist-skip-btn')) return;
+        if (!wrapper) return;
+
+        // Force visibility
+        wrapper.style.display = 'block';
+        wrapper.style.visibility = 'visible';
+        wrapper.style.opacity = '1';
+        wrapper.style.zIndex = '99999';
+        
+        // Add skip button if not exists
+        if (wrapper.querySelector('.nlist-skip-btn')) return;
 
         const skipBtn = document.createElement('button');
         skipBtn.className = 'nlist-skip-btn';
         skipBtn.textContent = 'Skip ✕';
-        skipBtn.onclick = () => {
+        skipBtn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
           localStorage.setItem('hasSeenDashboardTour', 'true');
           tourDriver?.destroy();
         };
         
-        // Add to popover wrapper (not footer)
         wrapper.appendChild(skipBtn);
+      },
+
+      onHighlightStarted: (element, step, options) => {
+        console.log('🎯 Tour step:', step);
       },
 
       onDestroyStarted: () => {
