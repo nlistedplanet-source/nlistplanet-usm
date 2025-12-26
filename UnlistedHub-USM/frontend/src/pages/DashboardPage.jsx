@@ -1007,14 +1007,14 @@ const DashboardPage = () => {
                   </button>
                 )}
 
-                {/* Tour Demo Button */}
+                {/* Tour Demo Icon */}
                 <button
                   onClick={() => startSimpleTour()}
-                  className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300 transition-all duration-200 hover:scale-105 active:scale-95"
+                  className="relative p-2.5 hover:bg-indigo-50 rounded-xl transition-all duration-200 group"
                   title="Start Dashboard Tour"
                 >
-                  <PlayCircle size={18} className="text-white" />
-                  <span className="text-sm font-bold">Tour Demo</span>
+                  <PlayCircle size={20} className="text-indigo-600 group-hover:text-indigo-700 transition-colors" />
+                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
                 </button>
 
                 {/* Query/Help Icon */}
