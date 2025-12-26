@@ -230,6 +230,22 @@ const ProfileTab = () => {
     }
   };
 
+  const handleNextTab = () => {
+    if (activeTab === 'personal') {
+      setActiveTab('bank');
+    } else if (activeTab === 'bank') {
+      setActiveTab('documents');
+    }
+  };
+
+  const handlePreviousTab = () => {
+    if (activeTab === 'documents') {
+      setActiveTab('bank');
+    } else if (activeTab === 'bank') {
+      setActiveTab('personal');
+    }
+  };
+
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword) {
@@ -319,7 +335,10 @@ const ProfileTab = () => {
             {!isEditing && (
               <button
                 type="button"
-                onClick={() => setIsEditing(true)}
+                onClick={() => {
+                  setIsEditing(true);
+                  setActiveTab('personal'); // Always start from Personal tab
+                }}
                 className="flex items-center gap-2 px-5 py-2.5 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-semibold shadow-md"
               >
                 <Edit2 size={18} />
@@ -723,43 +742,70 @@ const ProfileTab = () => {
           {/* Save/Cancel Buttons */}
           {isEditing && (
             <div className="border-t border-gray-200 p-6 bg-gray-50">
-              <div className="flex items-center justify-end gap-3">(
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setProfileData({
-                      username: user.username || '',
-                      fullName: user.fullName || '',
-                      email: user.email || '',
-                      phone: user.phone || '',
-                      dob: user.dob || '',
-                      gender: user.gender || '',
-                      addressLine1: user.addressLine1 || '',
-                      addressLine2: user.addressLine2 || '',
-                      city: user.city || '',
-                      state: user.state || '',
-                      pincode: user.pincode || '',
-                      country: user.country || 'India',
-                      accountType: user.bankAccount?.accountType || '',
-                      accountNumber: user.bankAccount?.accountNumber || '',
-                      ifsc: user.bankAccount?.ifsc || '',
-                      bankName: user.bankAccount?.bankName || '',
-                      nomineeName: user.nominee?.name || '',
-                      nomineeRelationship: user.nominee?.relationship || ''
-                    });
-                  }}
-                  className="px-6 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-semibold"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-8 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 font-semibold"
-                >
-                  {loading ? 'Saving...' : 'Save Changes'}
-                </button>
+              <div className="flex items-center justify-between gap-3">
+                {/* Left side - Previous/Cancel */}
+                <div className="flex gap-3">
+                  {activeTab !== 'personal' && (
+                    <button
+                      type="button"
+                      onClick={handlePreviousTab}
+                      className="px-6 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-semibold"
+                    >
+                      ← Previous
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditing(false);
+                      setActiveTab('personal');
+                      setProfileData({
+                        username: user.username || '',
+                        fullName: user.fullName || '',
+                        email: user.email || '',
+                        phone: user.phone || '',
+                        dob: user.dob || '',
+                        gender: user.gender || '',
+                        addressLine1: user.addressLine1 || '',
+                        addressLine2: user.addressLine2 || '',
+                        city: user.city || '',
+                        state: user.state || '',
+                        pincode: user.pincode || '',
+                        country: user.country || 'India',
+                        accountType: user.bankAccount?.accountType || '',
+                        accountNumber: user.bankAccount?.accountNumber || '',
+                        ifsc: user.bankAccount?.ifsc || '',
+                        bankName: user.bankAccount?.bankName || '',
+                        nomineeName: user.nominee?.name || '',
+                        nomineeRelationship: user.nominee?.relationship || ''
+                      });
+                    }}
+                    className="px-6 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-semibold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                
+                {/* Right side - Next/Save */}
+                <div className="flex gap-3">
+                  {activeTab !== 'documents' ? (
+                    <button
+                      type="button"
+                      onClick={handleNextTab}
+                      className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all font-semibold"
+                    >
+                      Next →
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="px-8 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 font-semibold"
+                    >
+                      {loading ? 'Saving...' : '✓ Save All Changes'}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )}
