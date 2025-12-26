@@ -186,8 +186,8 @@ const NewShareModal = ({ listing, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
-      <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl max-w-lg w-full p-6 relative shadow-2xl border border-gray-700 animate-slideUp">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn overflow-y-auto">
+      <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl max-w-md w-full p-4 my-4 relative shadow-2xl border border-gray-700 animate-slideUp max-h-[95vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 w-10 h-10 bg-gray-700/50 hover:bg-gray-700 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-all z-10"
@@ -195,18 +195,18 @@ const NewShareModal = ({ listing, onClose }) => {
           <X size={20} />
         </button>
 
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center">
-            <Share2 className="text-white" size={24} />
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
+            <Share2 className="text-white" size={20} />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-white">Share Listing</h3>
-            <p className="text-sm text-gray-400">Create your investment card</p>
+            <h3 className="text-xl font-bold text-white">Share Listing</h3>
+            <p className="text-xs text-gray-400">Create your investment card</p>
           </div>
         </div>
 
         {/* Card Preview */}
-        <div className="mb-6 rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-700" style={{ aspectRatio: '1/1' }}>
+        <div className="mb-4 rounded-xl overflow-hidden shadow-2xl border-2 border-gray-700" style={{ aspectRatio: '1/1', maxWidth: '320px', margin: '0 auto' }}>
           <div className="relative w-full h-full">
             <div 
               ref={cardRef} 
@@ -214,7 +214,7 @@ const NewShareModal = ({ listing, onClose }) => {
               style={{ 
                 width: '1080px', 
                 height: '1080px',
-                transform: 'scale(0.36)',
+                transform: 'scale(0.296)',
                 transformOrigin: 'top left',
                 position: 'absolute'
               }}
@@ -327,30 +327,30 @@ const NewShareModal = ({ listing, onClose }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-2 gap-2 mb-3">
           <button
             onClick={handleShare}
             disabled={loading}
-            className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
+            className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
           >
-            {loading ? <Loader size={18} className="animate-spin" /> : <Share2 size={18} />}
+            {loading ? <Loader size={16} className="animate-spin" /> : <Share2 size={16} />}
             Share
           </button>
           <button
             onClick={handleDownload}
             disabled={loading}
-            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
+            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
           >
-            <Download size={18} />
+            <Download size={16} />
             Download
           </button>
         </div>
 
         {/* Caption */}
         {shareData && (
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Caption Preview</div>
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Caption</div>
               <button
                 onClick={async () => {
                   await navigator.clipboard.writeText(shareData.caption);
