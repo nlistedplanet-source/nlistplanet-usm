@@ -53,46 +53,57 @@ const ShareCardGenerator = ({ listing, onClose }) => {
     if (!cardRef.current) return null;
 
     try {
+      // Wait for fonts and images to load
+      await document.fonts.ready;
+      
       // Create a hidden container to render card at full size
       const container = document.createElement('div');
       container.style.position = 'absolute';
       container.style.left = '-9999px';
       container.style.width = '1080px';
       container.style.height = '1080px';
+      container.style.overflow = 'hidden';
       
       // Clone the card
       const clonedCard = cardRef.current.cloneNode(true);
       clonedCard.style.transform = 'scale(1)'; // Full size
       clonedCard.style.width = '1080px';
       clonedCard.style.height = '1080px';
+      clonedCard.style.position = 'relative';
       
       container.appendChild(clonedCard);
       document.body.appendChild(container);
+
+      // Wait for images to load in cloned card
+      const images = clonedCard.querySelectorAll('img');
+      await Promise.all(Array.from(images).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      }));
+
+      // Small delay to ensure rendering is complete
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       const canvas = await html2canvas(clonedCard, {
         scale: 2,
         backgroundColor: '#ffffff',
         logging: false,
         useCORS: true,
-        allowTaint: false,
+        allowTaint: true,
         foreignObjectRendering: false,
         width: 1080,
         height: 1080,
-        ignoreElements: (element) => {
-          return element.tagName === 'LINK' && element.rel === 'stylesheet';
-        },
-        onclone: (clonedDoc) => {
-          const links = clonedDoc.querySelectorAll('link[rel="stylesheet"]');
-          links.forEach(link => {
-            if (link.href.includes('fonts.googleapis.com')) {
-              link.remove();
-            }
-          });
-        }
+        windowWidth: 1080,
+        windowHeight: 1080,
+        imageTimeout: 0,
+        removeContainer: true
       });
 
       document.body.removeChild(container);
-      return canvas.toDataURL('image/png');
+      return canvas.toDataURL('image/png', 1.0);
     } catch (error) {
       console.error('Card generation error:', error);
       toast.error('Failed to generate card');
