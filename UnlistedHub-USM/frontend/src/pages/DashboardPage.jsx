@@ -1730,10 +1730,11 @@ const DashboardPage = () => {
                     // Filter by search
                     if (marketplaceSearch) {
                       const searchLower = marketplaceSearch.toLowerCase();
-                      const companyMatch = listing.companyName?.toLowerCase().includes(searchLower);
+                      const companyMatch = (listing.companyName?.toLowerCase() || listing.companyId?.CompanyName?.toLowerCase() || listing.companyId?.name?.toLowerCase() || '').includes(searchLower);
+                      const scripMatch = (listing.companyId?.ScripName?.toLowerCase() || listing.companyId?.scriptName?.toLowerCase() || listing.companyId?.symbol?.toLowerCase() || '').includes(searchLower);
                       const sectorMatch = (listing.companyId?.Sector || listing.companyId?.sector || '')?.toLowerCase().includes(searchLower);
                       const userMatch = listing.username?.toLowerCase().includes(searchLower);
-                      if (!companyMatch && !sectorMatch && !userMatch) return false;
+                      if (!companyMatch && !scripMatch && !sectorMatch && !userMatch) return false;
                     }
                     
                     // Filter by sector
