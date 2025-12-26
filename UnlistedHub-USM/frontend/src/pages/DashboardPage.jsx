@@ -29,7 +29,7 @@ import {
   Shield,
   Newspaper,
   MessageCircle,
-  HelpCircle,
+  PlayCircle,
   CheckCircle,
   RotateCcw,
   XCircle,
@@ -1007,14 +1007,14 @@ const DashboardPage = () => {
                   </button>
                 )}
 
-                {/* Tour Help Icon */}
+                {/* Tour Demo Button */}
                 <button
                   onClick={() => startSimpleTour()}
-                  className="relative p-2.5 hover:bg-blue-50 rounded-xl transition-all duration-200 group"
+                  className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300 transition-all duration-200 hover:scale-105 active:scale-95"
                   title="Start Dashboard Tour"
                 >
-                  <HelpCircle size={20} className="text-gray-600 group-hover:text-blue-600 transition-colors" />
-                  <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full border border-white animate-pulse" />
+                  <PlayCircle size={18} className="text-white" />
+                  <span className="text-sm font-bold">Tour Demo</span>
                 </button>
 
                 {/* Query/Help Icon */}
