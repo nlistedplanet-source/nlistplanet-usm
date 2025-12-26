@@ -64,6 +64,7 @@ const injectStyles = () => {
     /* Overlay - Light and subtle */
     .driver-overlay {
       background: rgba(0, 0, 0, 0.3) !important;
+      z-index: 99998 !important;
     }
 
     /* Popover Container */
@@ -75,6 +76,11 @@ const injectStyles = () => {
       padding: 20px !important;
       max-width: 320px !important;
       min-width: 280px !important;
+      z-index: 99999 !important;
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      position: relative !important;
     }
 
     /* Arrow */
@@ -196,6 +202,17 @@ const injectStyles = () => {
     /* Hide default close button */
     .driver-popover-close-btn {
       display: none !important;
+    }
+
+    /* Ensure all popover content is visible */
+    .driver-popover * {
+      position: relative !important;
+      z-index: 1 !important;
+    }
+
+    /* Stage (highlighted element background) */
+    .driver-stage {
+      z-index: 99997 !important;
     }
   `;
   document.head.appendChild(style);
