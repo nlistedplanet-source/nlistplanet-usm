@@ -738,8 +738,8 @@ const DashboardPage = () => {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
               <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 ring-2 ring-white/50">
-                {viewingUser.avatar ? (
-                  <img src={viewingUser.avatar} alt={viewingUser.username} className="w-full h-full rounded-full object-cover" />
+                {viewingUser.profileImage ? (
+                  <img src={viewingUser.profileImage} alt={viewingUser.username} className="w-full h-full rounded-full object-cover" />
                 ) : (
                   <span className="text-orange-600 font-bold text-sm">{viewingUser.username?.charAt(0).toUpperCase()}</span>
                 )}
@@ -770,14 +770,14 @@ const DashboardPage = () => {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
               {(isViewingAsAdmin && viewingUser) ? (
-                viewingUser.avatar ? (
-                  <img src={viewingUser.avatar} alt={viewingUser.username} className="w-full h-full rounded-full object-cover" />
+                viewingUser.profileImage ? (
+                  <img src={viewingUser.profileImage} alt={viewingUser.username} className="w-full h-full rounded-full object-cover" />
                 ) : (
                   viewingUser.username?.charAt(0).toUpperCase()
                 )
               ) : (
-                user.avatar ? (
-                  <img src={user.avatar} alt={user.username} className="w-full h-full rounded-full object-cover" />
+                user.profileImage ? (
+                  <img src={user.profileImage} alt={user.username} className="w-full h-full rounded-full object-cover" />
                 ) : (
                   user.username?.charAt(0).toUpperCase()
                 )
@@ -809,8 +809,8 @@ const DashboardPage = () => {
             >
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center flex-shrink-0 ring-2 ring-blue-200">
-                  {user.avatar ? (
-                    <img src={user.avatar} alt={user.username} className="w-full h-full rounded-full object-cover" />
+                  {user.profileImage ? (
+                    <img src={user.profileImage} alt={user.username} className="w-full h-full rounded-full object-cover" />
                   ) : (
                     <span className="text-white font-bold text-xs">{user.username?.charAt(0).toUpperCase()}</span>
                   )}
@@ -1136,8 +1136,8 @@ const DashboardPage = () => {
           <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-orange-200 rounded-xl p-5 shadow-sm">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center flex-shrink-0 ring-4 ring-orange-200">
-                {viewingUser.avatar ? (
-                  <img src={viewingUser.avatar} alt={viewingUser.username} className="w-full h-full rounded-full object-cover" />
+                {viewingUser.profileImage ? (
+                  <img src={viewingUser.profileImage} alt={viewingUser.username} className="w-full h-full rounded-full object-cover" />
                 ) : (
                   <span className="text-white font-bold text-2xl">{viewingUser.username?.charAt(0).toUpperCase()}</span>
                 )}

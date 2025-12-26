@@ -104,8 +104,8 @@ const TopBar = ({ title, showBack = false }) => {
                 {/* User Info - Desktop */}
                 <div className="hidden sm:flex items-center gap-2 bg-white/70 backdrop-blur-md rounded-full px-3 py-1.5 border border-gray-200">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                    {user.avatar ? (
-                      <img src={user.avatar} alt={user.username} className="w-full h-full rounded-full object-cover" />
+                    {user.profileImage ? (
+                      <img src={user.profileImage} alt={user.username} className="w-full h-full rounded-full object-cover" />
                     ) : (
                       user.username?.charAt(0).toUpperCase() || '👤'
                     )}

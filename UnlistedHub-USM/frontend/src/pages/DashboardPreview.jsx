@@ -146,8 +146,8 @@ const DashboardPreview = () => {
         <div className="p-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.username} className="w-full h-full rounded-full object-cover" />
+              {user.profileImage ? (
+                <img src={user.profileImage} alt={user.username} className="w-full h-full rounded-full object-cover" />
               ) : (
                 user.username?.charAt(0).toUpperCase()
               )}
