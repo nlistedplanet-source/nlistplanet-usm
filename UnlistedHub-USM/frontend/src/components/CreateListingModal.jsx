@@ -397,18 +397,6 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 <option value="Mainboard">Mainboard</option>
                 <option value="Unlisted">Unlisted</option>
                 <option value="Pre-IPO">Pre-IPO</option>
-            {/* Company Segmentation - Styled */}
-            <div className="relative">
-              <select
-                value={formData.companySegmentation}
-                onChange={(e) => setFormData({ ...formData, companySegmentation: e.target.value })}
-                className="w-full px-5 py-3 border-2 border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none bg-white text-gray-700 font-medium"
-              >
-                <option value="">Select Company Segmentation</option>
-                <option value="SME">SME</option>
-                <option value="Mainboard">Mainboard</option>
-                <option value="Unlisted">Unlisted</option>
-                <option value="Pre-IPO">Pre-IPO</option>
                 <option value="Startup">Startup</option>
               </select>
               <label className="absolute left-4 -top-3 text-xs text-gray-600 bg-white px-2 font-semibold">
