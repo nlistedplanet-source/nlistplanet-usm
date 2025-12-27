@@ -155,7 +155,8 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
 
       await listingsAPI.create(payload);
       toast.success(`${type === 'sell' ? 'Sell post' : 'Buy request'} created successfully!`);
-      onSuccess();
+      onClose(); // Close the modal
+      onSuccess(); // Trigger success callback
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create listing');
     } finally {
@@ -565,8 +566,6 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
             </div>
           </div>
         )}
-          </div>
-        </div>
       </div>
     </>
   );
