@@ -437,10 +437,8 @@ const DashboardPage = () => {
       // Remove this listing from marketplace immediately (deal pending)
       setMarketplaceListings(prev => prev.filter(l => l._id !== listingToAccept._id));
       
-      // Refresh my bids to show the accepted deal
-      if (activeTab === 'bids') {
-        await fetchMyBidsOffers();
-      }
+      // Refresh dashboard data to show the accepted deal
+      setRefreshTrigger(prev => prev + 1);
       
       // Close modal
       setShowAcceptConfirmation(false);
