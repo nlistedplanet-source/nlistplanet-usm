@@ -1077,6 +1077,11 @@ const DashboardPage = () => {
                           if (qty >= 1000) return `${(qty / 1000).toFixed(1)}K`;
                           return qty.toString();
                         };
+                        // Apply platform fee model - show what viewer would pay/receive
+                        const basePrice = listing.pricePerShare ?? listing.price ?? 0;
+                        const displayPrice = listing.listingType === 'sell' 
+                          ? calculateBuyerPays(basePrice) // Buyer sees what they pay (price + fee)
+                          : calculateSellerGets(basePrice); // For buy requests, seller sees what they get
                         return (
                         <span key={`${listing._id}-1`} className="inline-flex items-center gap-2 mx-4">
                           <span className="text-sm font-semibold text-gray-800">
@@ -1086,7 +1091,7 @@ const DashboardPage = () => {
                             {listing.listingType === 'sell' ? '🔴 SELL' : '🟢 BUY'}
                           </span>
                           <span className="text-sm font-bold text-blue-600">
-                            @ ₹{listing.pricePerShare ?? listing.price ?? 'N/A'}
+                            @ ₹{formatCurrency(displayPrice)}
                           </span>
                           <span className="text-sm text-gray-700">
                             • {formatQuantity(listing.quantity)} shares
@@ -1109,6 +1114,11 @@ const DashboardPage = () => {
                           if (qty >= 1000) return `${(qty / 1000).toFixed(1)}K`;
                           return qty.toString();
                         };
+                        // Apply platform fee model - show what viewer would pay/receive
+                        const basePrice = listing.pricePerShare ?? listing.price ?? 0;
+                        const displayPrice = listing.listingType === 'sell' 
+                          ? calculateBuyerPays(basePrice) // Buyer sees what they pay (price + fee)
+                          : calculateSellerGets(basePrice); // For buy requests, seller sees what they get
                         return (
                         <span key={`${listing._id}-2`} className="inline-flex items-center gap-2 mx-4">
                           <span className="text-sm font-semibold text-gray-800">
@@ -1118,7 +1128,7 @@ const DashboardPage = () => {
                             {listing.listingType === 'sell' ? '🔴 SELL' : '🟢 BUY'}
                           </span>
                           <span className="text-sm font-bold text-blue-600">
-                            @ ₹{listing.pricePerShare ?? listing.price ?? 'N/A'}
+                            @ ₹{formatCurrency(displayPrice)}
                           </span>
                           <span className="text-sm text-gray-700">
                             • {formatQuantity(listing.quantity)} shares
