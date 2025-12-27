@@ -1091,7 +1091,7 @@ const DashboardPage = () => {
                             {listing.listingType === 'sell' ? '🔴 SELL' : '🟢 BUY'}
                           </span>
                           <span className="text-sm font-bold text-blue-600">
-                            @ ₹{formatCurrency(displayPrice)}
+                            @ {formatCurrency(displayPrice)}
                           </span>
                           <span className="text-sm text-gray-700">
                             • {formatQuantity(listing.quantity)} shares
@@ -1128,7 +1128,7 @@ const DashboardPage = () => {
                             {listing.listingType === 'sell' ? '🔴 SELL' : '🟢 BUY'}
                           </span>
                           <span className="text-sm font-bold text-blue-600">
-                            @ ₹{formatCurrency(displayPrice)}
+                            @ {formatCurrency(displayPrice)}
                           </span>
                           <span className="text-sm text-gray-700">
                             • {formatQuantity(listing.quantity)} shares
