@@ -8,7 +8,7 @@ const Footer = () => (
         <div className="col-span-1">
           <div className="flex flex-col items-center mb-2 w-fit mx-auto">
             <div>
-              <img src="/crismas logo.png" alt="Nlist Planet Logo" className="h-32 w-32 object-contain" />
+              <img src="/favicon.png" alt="Nlist Planet Logo" className="h-32 w-32 object-contain" />
             </div>
           </div>
           <p className="text-gray-400 text-sm leading-relaxed text-center mt-2">

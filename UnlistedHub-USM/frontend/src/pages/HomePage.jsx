@@ -365,7 +365,7 @@ const HomePage = () => {
             <h2 className="text-5xl font-bold text-gray-800 mb-4 flex items-center justify-center gap-3">
               Why Choose 
               <img 
-                src="/crismas logo.png" 
+                src="/favicon.png" 
                 alt="Nlist Planet" 
                 className="h-24 w-24 object-contain"
               />

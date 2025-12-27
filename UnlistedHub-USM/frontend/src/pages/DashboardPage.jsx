@@ -44,7 +44,6 @@ import { useAuth } from '../context/AuthContext';
 import { portfolioAPI, listingsAPI, adminAPI, notificationsAPI, BASE_API_URL } from '../utils/api';
 import { calculateTotalWithFee, calculateBuyerPays, calculateSellerGets, formatCurrency, formatRelativeTime, getNetPriceForUser } from '../utils/helpers';
 import toast from 'react-hot-toast';
-import Snowfall from '../components/Snowfall';
 import MyPostsTab from '../components/dashboard/MyPostsTab';
 import MyBidsOffersTab from '../components/dashboard/MyBidsOffersTab';
 import NotificationsTab from '../components/dashboard/NotificationsTab';
@@ -729,9 +728,6 @@ const DashboardPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Snowfall Effect */}
-      <Snowfall />
-
       {/* Admin Viewing Banner */}
       {isViewingAsAdmin && viewingUser && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-500 via-red-500 to-red-600 text-white px-6 py-4 flex items-center justify-between shadow-2xl border-b-4 border-red-700">
@@ -970,7 +966,7 @@ const DashboardPage = () => {
                 <div className="flex items-center gap-2">
                   <div className="w-12 h-12 flex items-center justify-center relative">
                     <img 
-                      src="/crismas logo.png" 
+                      src="/favicon.png" 
                       alt="NListPlanet Logo" 
                       className="w-full h-full object-contain"
                     />

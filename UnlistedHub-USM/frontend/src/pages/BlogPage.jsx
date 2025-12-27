@@ -135,7 +135,7 @@ const BlogPage = () => {
               
               <div className="flex items-center gap-3">
                 <img 
-                  src="/crismas logo.png" 
+                  src="/favicon.png" 
                   alt="NlistPlanet" 
                   className="w-8 h-8 object-contain"
                   onError={(e) => { e.target.style.display = 'none'; }}
