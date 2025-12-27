@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Search, TrendingUp, Package, Info, IndianRupee } from 'lucide-react';
+import { X, Search, TrendingUp, Package, Info, IndianRupee, Loader } from 'lucide-react';
 import { companiesAPI, listingsAPI } from '../utils/api';
 import toast from 'react-hot-toast';
 
@@ -157,15 +157,11 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
       
       // Close preview first
       setShowPreview(false);
+      setLoading(false);
       
-      toast.success(`${type === 'sell' ? 'Sell post' : 'Buy request'} created successfully!`);
-      
-      // Then trigger callbacks
+      // Only call onSuccess - it will handle closing and refresh
       if (onSuccess) {
         onSuccess();
-      }
-      if (onClose) {
-        onClose();
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create listing');
