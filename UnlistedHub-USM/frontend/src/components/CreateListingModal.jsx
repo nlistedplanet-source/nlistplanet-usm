@@ -154,12 +154,21 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
       }
 
       await listingsAPI.create(payload);
+      
+      // Close preview first
+      setShowPreview(false);
+      
       toast.success(`${type === 'sell' ? 'Sell post' : 'Buy request'} created successfully!`);
-      onClose(); // Close the modal
-      onSuccess(); // Trigger success callback
+      
+      // Then trigger callbacks
+      if (onSuccess) {
+        onSuccess();
+      }
+      if (onClose) {
+        onClose();
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create listing');
-    } finally {
       setLoading(false);
     }
   };
