@@ -966,6 +966,7 @@ const DashboardPage = () => {
             <span>Logout</span>
           </button>
         </div>
+      </aside>
 
       {/* Main Content Area */}
       <main className={`flex-1 ml-56 overflow-x-auto ${isViewingAsAdmin ? 'mt-[68px]' : ''}`}>
