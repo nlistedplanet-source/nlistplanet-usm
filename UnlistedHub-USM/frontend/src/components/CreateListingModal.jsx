@@ -271,21 +271,21 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
               </div>
             )}
 
-            {/* Manual Entry Option */}
-            {searchTerm.length > 0 && (
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-2xl p-5 shadow-sm">
-                <p className="text-sm text-gray-700 mb-4">
-                  Can't find <span className="font-bold text-blue-600">"{searchTerm}"</span> in suggestions?
+            {/* Manual Entry Option - Only show when no suggestions found */}
+            {searchTerm.length > 0 && !showSuggestions && companies.length === 0 && (
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-3 shadow-sm">
+                <p className="text-xs text-gray-700 mb-2">
+                  Can't find <span className="font-bold text-blue-600">"{searchTerm}"</span>?
                 </p>
                 <button
                   type="button"
                   onClick={handleManualEntry}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-500/40 transition-all active:scale-95 border border-blue-700/30"
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2.5 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/30 transition-all active:scale-95 text-sm border border-blue-700/30"
                 >
                   Continue with "{searchTerm}"
                 </button>
-                <p className="text-xs text-gray-600 mt-3 text-center">
-                  You'll be able to list this company manually
+                <p className="text-xs text-gray-600 mt-2 text-center">
+                  Add this company manually
                 </p>
               </div>
             )}
