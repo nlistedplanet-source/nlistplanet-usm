@@ -940,35 +940,32 @@ const DashboardPage = () => {
             })}
           </div>
         )}
-
-        {/* Logout inside scroll */}
-        <div className="pt-3 mt-2 border-t border-gray-100">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition-all text-red-600 hover:bg-red-50"
-          >
-            <LogOut size={18} />
-            <span>Logout</span>
-          </button>
         </div>
 
-        {/* Create Post Floating Button - Sticky at bottom */}
-        <div className="mt-auto p-3 border-t border-gray-200 bg-gradient-to-t from-white to-transparent flex-shrink-0">
+        {/* Logout & Create Post - Outside scroll area */}
+        <div className="flex-shrink-0 border-t border-gray-200 p-3 space-y-2 bg-gradient-to-t from-white via-white to-transparent">
+          {/* Create Post Floating Button */}
           <button
             onClick={() => {
               handleTabChange('create-listing');
-              // Scroll to top of content
               document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="w-full flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl font-semibold text-sm transition-all bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:shadow-lg hover:shadow-purple-500/30 hover:scale-105 active:scale-95"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold text-sm transition-all bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:shadow-lg hover:shadow-purple-500/40 hover:-translate-y-0.5 active:scale-95 border border-purple-700/30"
             title="Create a new post"
           >
             <Plus size={20} strokeWidth={3} />
             <span>Create Post</span>
           </button>
+          
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-lg font-medium text-sm transition-all text-red-600 hover:bg-red-50 border border-red-200/50"
+          >
+            <LogOut size={18} />
+            <span>Logout</span>
+          </button>
         </div>
-        </div>
-      </aside>
 
       {/* Main Content Area */}
       <main className={`flex-1 ml-56 overflow-x-auto ${isViewingAsAdmin ? 'mt-[68px]' : ''}`}>
