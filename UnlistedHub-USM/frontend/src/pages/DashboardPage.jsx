@@ -951,6 +951,22 @@ const DashboardPage = () => {
             <span>Logout</span>
           </button>
         </div>
+
+        {/* Create Post Floating Button - Sticky at bottom */}
+        <div className="mt-auto p-3 border-t border-gray-200 bg-gradient-to-t from-white to-transparent flex-shrink-0">
+          <button
+            onClick={() => {
+              handleTabChange('create-listing');
+              // Scroll to top of content
+              document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="w-full flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl font-semibold text-sm transition-all bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:shadow-lg hover:shadow-purple-500/30 hover:scale-105 active:scale-95"
+            title="Create a new post"
+          >
+            <Plus size={20} strokeWidth={3} />
+            <span>Create Post</span>
+          </button>
+        </div>
         </div>
       </aside>
 
