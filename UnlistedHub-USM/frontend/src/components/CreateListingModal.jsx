@@ -166,101 +166,104 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
   return (
     <>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-          <div className="p-6">
+        <div className="bg-gradient-to-b from-white via-white to-gray-50 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-white/80" onClick={(e) => e.stopPropagation()}>
+          <div className="p-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-dark-900">Create Listing</h2>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Create Listing</h2>
+            <p className="text-sm text-gray-500 mt-1">Post your unlisted share offer</p>
+          </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-dark-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
           >
-            <X size={24} />
+            <X size={24} className="text-gray-600" />
           </button>
         </div>
 
         {step === 1 && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* Type Selection */}
             <div>
-              <label className="block text-sm font-semibold text-dark-700 mb-2">
+              <label className="block text-sm font-bold text-gray-700 mb-3 tracking-wide">
                 Listing Type
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={() => setType('sell')}
-                  className={`py-4 px-6 rounded-xl border-2 font-semibold transition-all ${
+                  className={`py-5 px-6 rounded-2xl border-2 font-semibold transition-all duration-200 ${
                     type === 'sell'
-                      ? 'border-green-500 bg-gradient-to-br from-green-50 to-emerald-50 text-green-700 shadow-md'
-                      : 'border-gray-200 bg-white text-gray-600 hover:border-green-300'
+                      ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-700 shadow-lg shadow-emerald-500/20 transform scale-105'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-emerald-300 hover:bg-emerald-50/50'
                   }`}
                 >
-                  <TrendingUp className="mx-auto mb-2" size={24} />
-                  SELL Post
+                  <TrendingUp className="mx-auto mb-2 transition-transform" size={28} strokeWidth={2.5} />
+                  <span className="text-lg">SELL Post</span>
                 </button>
                 <button
                   onClick={() => setType('buy')}
-                  className={`py-4 px-6 rounded-xl border-2 font-semibold transition-all ${
+                  className={`py-5 px-6 rounded-2xl border-2 font-semibold transition-all duration-200 ${
                     type === 'buy'
-                      ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-700 shadow-md'
-                      : 'border-gray-200 bg-white text-gray-600 hover:border-blue-300'
+                      ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-700 shadow-lg shadow-blue-500/20 transform scale-105'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:bg-blue-50/50'
                   }`}
                 >
-                  <Package className="mx-auto mb-2" size={24} />
-                  BUY Request
+                  <Package className="mx-auto mb-2 transition-transform" size={28} strokeWidth={2.5} />
+                  <span className="text-lg">BUY Request</span>
                 </button>
               </div>
             </div>
 
             {/* Company Search */}
             <div>
-              <label className="block text-sm font-semibold text-dark-700 mb-2">
+              <label className="block text-sm font-bold text-gray-700 mb-3 tracking-wide">
                 Type Company Name
               </label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-400" size={20} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} strokeWidth={2.5} />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Start typing company name..."
-                  className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-5 py-3 pl-12 border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-gray-50 placeholder-gray-400"
                   autoFocus
                 />
               </div>
-              <p className="text-xs text-dark-500 mt-1">
-                Select from suggestions or continue typing to add manually
+              <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                <Info size={14} /> Select from suggestions or continue typing to add manually
               </p>
             </div>
 
             {/* Company Suggestions */}
             {showSuggestions && companies.length > 0 && (
-              <div className="max-h-64 overflow-y-auto space-y-2 border-2 border-primary-200 rounded-xl p-2">
-                <p className="text-xs font-semibold text-dark-600 px-2 py-1">Suggestions from database:</p>
+              <div className="max-h-64 overflow-y-auto space-y-2 border-2 border-purple-200 rounded-2xl p-3 bg-purple-50/50 backdrop-blur-sm">
+                <p className="text-xs font-bold text-purple-700 px-2 py-1 uppercase tracking-wider">Suggestions from database:</p>
                 {companies.map((company) => (
                   <button
                     key={company._id}
                     onClick={() => handleCompanySelect(company)}
-                    className="w-full flex items-center gap-3 p-3 bg-dark-50 hover:bg-primary-50 rounded-xl transition-all text-left touch-feedback"
+                    className="w-full flex items-center gap-3 p-3 bg-white hover:bg-purple-100/50 rounded-xl transition-all text-left border border-transparent hover:border-purple-300 shadow-sm hover:shadow-md"
                   >
                     {(company.Logo || company.logo) ? (
                       <img
                         src={company.Logo || company.logo}
                         alt={company.CompanyName || company.name}
-                        className="w-12 h-12 rounded-lg object-cover"
+                        className="w-12 h-12 rounded-lg object-cover ring-2 ring-gray-100"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center">
-                        <span className="text-primary-700 font-bold text-lg">
+                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center shadow-md">
+                        <span className="text-white font-bold text-lg">
                           {(company.CompanyName || company.name)[0]}
                         </span>
                       </div>
                     )}
                     <div className="flex-1">
-                      <h4 className="font-semibold text-dark-900">{company.CompanyName || company.name}</h4>
-                      <p className="text-sm text-dark-500 flex items-center gap-2">
-                        {(company.scriptName || company.ScripName) && <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">{company.scriptName || company.ScripName}</span>}
-                        {company.Sector || company.sector}
+                      <h4 className="font-semibold text-gray-900">{company.CompanyName || company.name}</h4>
+                      <p className="text-sm text-gray-600 flex items-center gap-2">
+                        {(company.scriptName || company.ScripName) && <span className="text-xs bg-purple-200 text-purple-700 px-2 py-0.5 rounded-full font-semibold">{company.scriptName || company.ScripName}</span>}
+                        <span className="text-gray-500">{company.Sector || company.sector}</span>
                       </p>
                     </div>
                   </button>
@@ -270,18 +273,18 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
 
             {/* Manual Entry Option */}
             {searchTerm.length > 0 && (
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-                <p className="text-sm text-dark-700 mb-3">
-                  Can't find <span className="font-bold">"{searchTerm}"</span> in suggestions?
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-2xl p-5 shadow-sm">
+                <p className="text-sm text-gray-700 mb-4">
+                  Can't find <span className="font-bold text-blue-600">"{searchTerm}"</span> in suggestions?
                 </p>
                 <button
                   type="button"
                   onClick={handleManualEntry}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-500/40 transition-all active:scale-95 border border-blue-700/30"
                 >
                   Continue with "{searchTerm}"
                 </button>
-                <p className="text-xs text-dark-500 mt-2 text-center">
+                <p className="text-xs text-gray-600 mt-3 text-center">
                   You'll be able to list this company manually
                 </p>
               </div>
@@ -290,19 +293,19 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
         )}
 
         {step === 2 && (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Selected Company */}
-            <div className="bg-primary-50 rounded-xl p-4 flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center">
-                <span className="text-primary-700 font-bold text-lg">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Selected Company Card */}
+            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-5 flex items-center gap-4 border border-purple-200/50">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center flex-shrink-0 shadow-md">
+                <span className="text-white font-bold text-xl">
                   {formData.companyName[0]}
                 </span>
               </div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-dark-900">{formData.companyName}</h4>
-                <p className="text-sm text-dark-600">
-                  {type === 'sell' ? 'Selling shares' : 'Buying shares'}
-                  {manualEntry && <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Manual Entry</span>}
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-gray-900 text-lg">{formData.companyName}</h4>
+                <p className="text-sm text-gray-600 flex items-center gap-2">
+                  <span>{type === 'sell' ? '📤 Selling shares' : '📥 Buying shares'}</span>
+                  {manualEntry && <span className="text-xs bg-blue-200 text-blue-700 px-2.5 py-1 rounded-full font-semibold">Manual Entry</span>}
                 </p>
               </div>
               <button
@@ -312,61 +315,61 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                   setSearchTerm('');
                   setManualEntry(false);
                 }}
-                className="text-primary-600 text-sm font-semibold"
+                className="text-purple-600 text-sm font-bold hover:text-purple-700 hover:bg-white px-3 py-2 rounded-lg transition-all"
               >
                 Change
               </button>
             </div>
 
-            {/* Price with Floating Label */}
+            {/* Price Input */}
             <div className="relative">
-              <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={18} />
+              <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-400 z-10" size={20} strokeWidth={2.5} />
               <input
                 type="number"
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 onWheel={(e) => e.target.blur()}
                 placeholder=" "
-                className="peer w-full px-4 py-3 pl-10 pr-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="peer w-full px-5 py-3 pl-12 pr-4 border-2 border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 required
                 min="1"
                 step="0.01"
               />
-              <label className="absolute left-10 -top-2.5 text-xs text-gray-500 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white">
+              <label className="absolute left-12 -top-3 text-xs text-gray-600 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-3 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white font-semibold">
                 Price per Share
               </label>
 
               {formData.price && (
-                <p className="text-sm font-semibold text-purple-600 mt-2 ml-1 bg-purple-50 px-3 py-1 rounded-lg inline-block">
-                  ₹ {numberToWords(parseFloat(formData.price))} Rupees
+                <p className="text-xs font-bold text-purple-600 mt-2 ml-2 bg-purple-100 px-3 py-1.5 rounded-lg inline-block">
+                  ₹ {numberToWords(parseFloat(formData.price))}
                 </p>
               )}
             </div>
 
-            {/* Quantity with Floating Label */}
+            {/* Quantity Input */}
             <div className="relative">
-              <Package className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={18} />
+              <Package className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 z-10" size={20} strokeWidth={2.5} />
               <input
                 type="number"
                 value={formData.quantity}
                 onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                 onWheel={(e) => e.target.blur()}
                 placeholder=" "
-                className="peer w-full px-4 py-3 pl-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="peer w-full px-5 py-3 pl-12 pr-4 border-2 border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 required
                 min="1"
               />
-              <label className="absolute left-10 -top-2.5 text-xs text-gray-500 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white">
+              <label className="absolute left-12 -top-3 text-xs text-gray-600 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-3 peer-focus:text-xs peer-focus:text-indigo-600 peer-focus:bg-white font-semibold">
                 Quantity
               </label>
               {formData.quantity && (
-                <p className="text-sm font-semibold text-indigo-600 mt-2 ml-1 bg-indigo-50 px-3 py-1 rounded-lg inline-block">
+                <p className="text-xs font-bold text-indigo-600 mt-2 ml-2 bg-indigo-100 px-3 py-1.5 rounded-lg inline-block">
                   📊 {numberToWords(parseInt(formData.quantity))} Shares
                 </p>
               )}
             </div>
 
-            {/* Min Lot with Floating Label */}
+            {/* Min Lot Input */}
             <div className="relative">
               <input
                 type="number"
@@ -374,10 +377,10 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 onChange={(e) => setFormData({ ...formData, minLot: e.target.value })}
                 onWheel={(e) => e.target.blur()}
                 placeholder=" "
-                className="peer w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="peer w-full px-5 py-3 border-2 border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 min="1"
               />
-              <label className="absolute left-4 -top-2.5 text-xs text-gray-500 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white">
+              <label className="absolute left-4 -top-3 text-xs text-gray-600 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-3 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white font-semibold">
                 Minimum Lot Size
               </label>
             </div>
@@ -387,7 +390,19 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
               <select
                 value={formData.companySegmentation}
                 onChange={(e) => setFormData({ ...formData, companySegmentation: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all appearance-none bg-white"
+                className="w-full px-5 py-3 border-2 border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none bg-white text-gray-700 font-medium"
+              >
+                <option value="">Select Company Segmentation</option>
+                <option value="SME">SME</option>
+                <option value="Mainboard">Mainboard</option>
+                <option value="Unlisted">Unlisted</option>
+                <option value="Pre-IPO">Pre-IPO</option>
+            {/* Company Segmentation - Styled */}
+            <div className="relative">
+              <select
+                value={formData.companySegmentation}
+                onChange={(e) => setFormData({ ...formData, companySegmentation: e.target.value })}
+                className="w-full px-5 py-3 border-2 border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none bg-white text-gray-700 font-medium"
               >
                 <option value="">Select Company Segmentation</option>
                 <option value="SME">SME</option>
@@ -396,7 +411,7 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 <option value="Pre-IPO">Pre-IPO</option>
                 <option value="Startup">Startup</option>
               </select>
-              <label className="absolute left-4 -top-2.5 text-xs text-gray-500 bg-white px-2">
+              <label className="absolute left-4 -top-3 text-xs text-gray-600 bg-white px-2 font-semibold">
                 Company Segmentation
               </label>
             </div>
@@ -408,10 +423,10 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 value={formData.companyPan}
                 onChange={(e) => setFormData({ ...formData, companyPan: e.target.value.toUpperCase() })}
                 placeholder=" "
-                className="peer w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                className="peer w-full px-5 py-3 border-2 border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 maxLength="10"
               />
-              <label className="absolute left-4 -top-2.5 text-xs text-gray-500 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white">
+              <label className="absolute left-4 -top-3 text-xs text-gray-600 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-3 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white font-semibold">
                 Company PAN
               </label>
             </div>
@@ -423,10 +438,10 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 value={formData.companyISIN}
                 onChange={(e) => setFormData({ ...formData, companyISIN: e.target.value.toUpperCase() })}
                 placeholder=" "
-                className="peer w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                className="peer w-full px-5 py-3 border-2 border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 maxLength="12"
               />
-              <label className="absolute left-4 -top-2.5 text-xs text-gray-500 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white">
+              <label className="absolute left-4 -top-3 text-xs text-gray-600 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-3 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white font-semibold">
                 Company ISIN No
               </label>
             </div>
@@ -438,36 +453,45 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
                 value={formData.companyCIN}
                 onChange={(e) => setFormData({ ...formData, companyCIN: e.target.value.toUpperCase() })}
                 placeholder=" "
-                className="peer w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                className="peer w-full px-5 py-3 border-2 border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 maxLength="21"
               />
-              <label className="absolute left-4 -top-2.5 text-xs text-gray-500 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white">
+              <label className="absolute left-4 -top-3 text-xs text-gray-600 bg-white px-2 transition-all pointer-events-none peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-3 peer-focus:text-xs peer-focus:text-purple-600 peer-focus:bg-white font-semibold">
                 Company CIN Number
               </label>
             </div>
 
             {/* Terms & Conditions Checkbox */}
-            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+            <div className="flex items-start gap-3 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl border border-purple-200/50">
               <input
                 type="checkbox"
                 id="terms"
                 checked={agreedToTerms}
                 onChange={(e) => setAgreedToTerms(e.target.checked)}
-                className="mt-1 w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-2 focus:ring-purple-500"
+                className="mt-1 w-5 h-5 text-purple-600 border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 cursor-pointer"
               />
-              <label htmlFor="terms" className="text-sm text-gray-700">
-                I agree to the <button type="button" className="text-purple-600 font-semibold hover:underline">Terms & Conditions</button> and confirm that all information provided is accurate
+              <label htmlFor="terms" className="text-sm text-gray-700 leading-relaxed font-medium">
+                I agree to the <button type="button" className="text-purple-600 font-bold hover:text-purple-700 hover:underline">Terms & Conditions</button> and confirm that all information provided is accurate
               </label>
             </div>
 
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={!agreedToTerms}
-              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              disabled={!agreedToTerms || loading}
+              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-4 rounded-2xl font-bold hover:shadow-lg hover:shadow-purple-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-95 border border-purple-700/30"
             >
-              <TrendingUp size={20} />
-              Submit
+              {loading ? (
+                <>
+                  <Loader size={20} className="animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <TrendingUp size={22} strokeWidth={2.5} />
+                  Create Listing
+                </>
+              )}
             </button>
           </form>
         )}
