@@ -946,10 +946,7 @@ const DashboardPage = () => {
         <div className="flex-shrink-0 border-t border-gray-200 p-3 space-y-2 bg-gradient-to-t from-white via-white to-transparent">
           {/* Create Post Floating Button */}
           <button
-            onClick={() => {
-              handleTabChange('create-listing');
-              document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onClick={() => setShowCreateModal(true)}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold text-sm transition-all bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:shadow-lg hover:shadow-purple-500/40 hover:-translate-y-0.5 active:scale-95 border border-purple-700/30"
             title="Create a new post"
           >
