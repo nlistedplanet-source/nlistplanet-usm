@@ -947,7 +947,7 @@ const DashboardPage = () => {
           {/* Create Post Floating Button */}
           <button
             onClick={() => setShowCreateModal(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold text-sm transition-all bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:shadow-lg hover:shadow-purple-500/40 hover:-translate-y-0.5 active:scale-95 border border-purple-700/30"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold text-sm transition-all bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:shadow-lg hover:shadow-emerald-500/40 hover:-translate-y-0.5 active:scale-95 border border-emerald-600/30"
             title="Create a new post"
           >
             <Plus size={20} strokeWidth={3} />
