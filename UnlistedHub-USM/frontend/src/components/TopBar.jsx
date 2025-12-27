@@ -52,7 +52,7 @@ const TopBar = ({ title, showBack = false }) => {
             ) : (
               <button onClick={() => navigate('/')} className="hover:opacity-80 transition-opacity">
                 <img 
-                  src="/crismas logo.png" 
+                  src="/favicon.png" 
                   alt="Nlist Planet" 
                   className="h-12 w-auto object-contain"
                   onError={(e) => { e.target.onerror = null; e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="48"><text x="10" y="30" font-size="24" font-weight="bold" fill="%236366f1">Nlist Planet</text></svg>'; }}
