@@ -484,10 +484,13 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
             </button>
           </form>
         )}
+          </div>
+        </div>
+      </div>
 
-        {/* Preview Modal */}
-        {showPreview && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowPreview(false)}>
+      {/* Preview Modal */}
+      {showPreview && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowPreview(false)}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
               <div className="p-6">
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">Review Your Listing</h3>
@@ -566,7 +569,6 @@ const CreateListingModal = ({ onClose, onSuccess }) => {
             </div>
           </div>
         )}
-      </div>
     </>
   );
 };
