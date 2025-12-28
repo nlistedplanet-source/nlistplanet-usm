@@ -891,9 +891,9 @@ const DashboardPage = () => {
               })
             ) : (
               <>
-                <div className="pb-2">
-                  <p className="px-3 text-[10px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
-                    <Shield size={12} />
+                <div className="pb-1">
+                  <p className="px-2 text-[9px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
+                    <Shield size={10} />
                     Admin Panel
                   </p>
                 </div>
@@ -906,13 +906,13 @@ const DashboardPage = () => {
                       key={tab.id}
                       id={`sidebar-tab-${tab.id}`}
                       onClick={() => handleTabChange(tab.id)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+                      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md font-medium text-xs transition-all ${
                         isActive
                           ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
                           : 'text-gray-700 hover:bg-blue-50'
                       }`}
                     >
-                      <Icon size={18} />
+                      <Icon size={15} />
                       <span>{tab.label}</span>
                     </button>
                   );
