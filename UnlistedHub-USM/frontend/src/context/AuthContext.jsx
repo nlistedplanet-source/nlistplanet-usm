@@ -23,7 +23,11 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
-  const [lastActivity, setLastActivity] = useState(Date.now());
+  const [lastActivity, setLastActivity] = useState(() => {
+    // Check if there's a stored last activity time
+    const stored = localStorage.getItem('lastActivity');
+    return stored ? parseInt(stored, 10) : Date.now();
+  });
   const [fcmToken, setFcmToken] = useState(null);
   
   // Auto logout after 30 minutes of inactivity
@@ -44,6 +48,7 @@ export const AuthProvider = ({ children }) => {
         if (error.response?.status === 401) {
           // Token invalid or expired - logout user
           localStorage.removeItem('token');
+          localStorage.removeItem('lastActivity');
           setToken(null);
           setUser(null);
           toast.error('Session expired. Please login again.');
@@ -63,12 +68,34 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const loadUser = async () => {
       if (token) {
+        // Check if session expired due to inactivity before loading user
+        const storedLastActivity = localStorage.getItem('lastActivity');
+        if (storedLastActivity) {
+          const timeSinceLastActivity = Date.now() - parseInt(storedLastActivity, 10);
+          if (timeSinceLastActivity >= INACTIVITY_TIMEOUT) {
+            // Session expired - logout
+            localStorage.removeItem('token');
+            localStorage.removeItem('lastActivity');
+            setToken(null);
+            setUser(null);
+            setLoading(false);
+            toast.error('Session expired due to inactivity. Please login again.');
+            window.location.href = '/login';
+            return;
+          }
+        }
+
         try {
           const response = await axios.get(`${BASE_API_URL}/auth/me`);
           setUser(response.data.user);
+          // Update lastActivity on successful load
+          const now = Date.now();
+          setLastActivity(now);
+          localStorage.setItem('lastActivity', now.toString());
         } catch (error) {
           console.error('Failed to load user:', error);
           localStorage.removeItem('token');
+          localStorage.removeItem('lastActivity');
           setToken(null);
         }
       }
@@ -189,7 +216,9 @@ export const AuthProvider = ({ children }) => {
     if (!user) return;
 
     const updateActivity = () => {
-      setLastActivity(Date.now());
+      const now = Date.now();
+      setLastActivity(now);
+      localStorage.setItem('lastActivity', now.toString());
     };
     
     // Track various user activities
@@ -215,6 +244,7 @@ export const AuthProvider = ({ children }) => {
 
       if (timeSinceLastActivity >= INACTIVITY_TIMEOUT) {
         localStorage.removeItem('token');
+        localStorage.removeItem('lastActivity');
         setToken(null);
         setUser(null);
         toast.error('You have been logged out due to inactivity');
@@ -235,8 +265,11 @@ export const AuthProvider = ({ children }) => {
       const { token: newToken, user: userData } = response.data;
       
       localStorage.setItem('token', newToken);
+      const now = Date.now();
+      localStorage.setItem('lastActivity', now.toString());
       setToken(newToken);
       setUser(userData);
+      setLastActivity(now);
       
       toast.success('Login successful!');
       return { success: true };
@@ -284,6 +317,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('lastActivity');
     setToken(null);
     setUser(null);
     toast.success('Logged out successfully');
