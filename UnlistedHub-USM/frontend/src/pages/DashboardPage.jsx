@@ -1753,10 +1753,13 @@ const DashboardPage = () => {
                       if (!companyMatch && !scripMatch && !sectorMatch && !userMatch) return false;
                     }
                     
-                    // Filter by sector
-                    if (marketplaceFilter !== 'all') {
+                    // Filter by sector - Only apply filter if NOT "all"
+                    if (marketplaceFilter && marketplaceFilter !== 'all') {
                       const sector = (listing.companyId?.Sector || listing.companyId?.sector || '').toLowerCase();
-                      if (!sector.includes(marketplaceFilter.toLowerCase())) return false;
+                      // Check if sector contains the filter value
+                      if (!sector || !sector.includes(marketplaceFilter.toLowerCase())) {
+                        return false;
+                      }
                     }
                     
                     return true;
