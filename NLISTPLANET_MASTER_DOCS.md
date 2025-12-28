@@ -1486,6 +1486,10 @@ router.post('/:id/accept', protect, async (req, res, next) => {
   - Root cause: `handleConfirmPurchase` called `fetchMyBidsOffers()` which doesn't exist
   - Fix: Replaced with `setRefreshTrigger(prev => prev + 1)` to refresh dashboard
   - Impact: Accepted deals now properly appear in "My Bids" tab immediately
+- ✅ **Buyer seeing seller's price instead of buyer's price** (commit: 161fb4a)
+  - Root cause: Negotiation table showing `activity.originalPrice` (₹1900) instead of `buyerOfferedPrice` (₹1938)
+  - Fix: Show `buyerOfferedPrice` for bids, `sellerReceivesPrice` for offers in Round 1 row
+  - Impact: Buyers now see correct price with 2% platform fee included (₹1900 × 1.02 = ₹1938)
 
 #### Pending 🔄
 - 🔄 Render auto-deployment (schema fix + accept endpoint)
