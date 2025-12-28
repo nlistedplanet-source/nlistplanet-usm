@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Users, Ban, CheckCircle, Mail, Calendar, TrendingUp, Package, Clock, Trash2, Phone, Shield, User, Eye } from 'lucide-react';
+import { Search, Users, Ban, CheckCircle, Mail, Calendar, TrendingUp, Package, Clock, Trash2, Phone, Shield, User, Eye, MapPin, CreditCard, UserCheck, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminAPI } from '../../utils/api';
 import { formatDate } from '../../utils/helpers';
@@ -187,14 +187,15 @@ const UserManagement = () => {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px]">User</th>
-                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px]">Email</th>
-                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px]">Phone</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px]">Contact</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px]">Address</th>
+                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px]">DOB</th>
+                    <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px]">Bank</th>
+                    <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px]">Nominee</th>
                     <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px]">Role</th>
                     <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px]">KYC</th>
                     <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px]">Listings</th>
-                    <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px]">Trades</th>
                     <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px]">Joined</th>
-                    <th className="px-2 py-1.5 text-left font-semibold text-gray-600 uppercase text-[10px]">Last Login</th>
                     <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px]">Status</th>
                     <th className="px-2 py-1.5 text-center font-semibold text-gray-600 uppercase text-[10px]">Actions</th>
                   </tr>
@@ -205,28 +206,77 @@ const UserManagement = () => {
                       <td className="px-2 py-1.5">
                         <div className="flex items-center gap-1.5">
                           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
-                            {user.fullName?.[0] || user.username[0].toUpperCase()}
+                            {user.profileImage ? (
+                              <img src={user.profileImage} alt={user.username} className="w-full h-full rounded-full object-cover" />
+                            ) : (
+                              user.fullName?.[0] || user.username[0].toUpperCase()
+                            )}
                           </div>
                           <div className="min-w-0">
                             <p className="font-medium text-gray-900 truncate text-[11px]">{user.fullName || 'N/A'}</p>
                             <p className="text-gray-500 truncate text-[10px]">@{user.username}</p>
+                            {user.gender && (
+                              <p className="text-gray-400 text-[9px]">{user.gender}</p>
+                            )}
                           </div>
                         </div>
                       </td>
                       <td className="px-2 py-1.5">
-                        <div className="flex items-center gap-1 text-gray-700">
-                          <Mail size={10} className="flex-shrink-0" />
-                          <span className="truncate max-w-[130px]">{user.email}</span>
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1 text-gray-700">
+                            <Mail size={9} className="flex-shrink-0" />
+                            <span className="truncate max-w-[120px] text-[10px]">{user.email}</span>
+                          </div>
+                          {user.phone && (
+                            <div className="flex items-center gap-1 text-gray-600">
+                              <Phone size={9} className="flex-shrink-0" />
+                              <span className="text-[10px]">{user.phone}</span>
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="px-2 py-1.5">
-                        {user.phone ? (
-                          <div className="flex items-center gap-1 text-gray-700">
-                            <Phone size={10} className="flex-shrink-0" />
-                            {user.phone}
+                        {user.address?.line1 || user.address?.city || user.address?.state ? (
+                          <div className="text-[10px] text-gray-600 max-w-[150px]">
+                            {user.address.line1 && <div className="truncate">{user.address.line1}</div>}
+                            {(user.address.city || user.address.state) && (
+                              <div className="truncate text-gray-500">
+                                {user.address.city}{user.address.city && user.address.state && ', '}{user.address.state}
+                              </div>
+                            )}
+                            {user.address.pincode && (
+                              <div className="text-gray-400">{user.address.pincode}</div>
+                            )}
                           </div>
                         ) : (
+                          <span className="text-gray-400 text-[10px]">-</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-1.5 text-[10px] text-gray-600">
+                        {user.dateOfBirth ? (
+                          new Date(user.dateOfBirth).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                        ) : (
                           <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-1.5 text-center">
+                        {user.bankAccount?.accountNumber || user.bankAccount?.ifscCode ? (
+                          <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-medium" title={`${user.bankAccount.bankName || 'Bank'}\nA/C: ${user.bankAccount.accountNumber || 'N/A'}\nIFSC: ${user.bankAccount.ifscCode || 'N/A'}`}>
+                            <CreditCard size={10} />
+                            <span>Added</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-[10px]">-</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-1.5 text-center">
+                        {user.nominee?.name ? (
+                          <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-medium" title={`${user.nominee.name}\n${user.nominee.relationship || ''}`}>
+                            <UserCheck size={10} />
+                            <span>{user.nominee.name.split(' ')[0]}</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-[10px]">-</span>
                         )}
                       </td>
                       <td className="px-2 py-1.5 text-center">
@@ -239,29 +289,30 @@ const UserManagement = () => {
                         </span>
                       </td>
                       <td className="px-2 py-1.5 text-center">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                          user.kycStatus === 'verified' ? 'bg-green-100 text-green-700' :
-                          user.kycStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                          user.kycStatus === 'rejected' ? 'bg-red-100 text-red-700' :
-                          'bg-gray-100 text-gray-500'
-                        }`}>
-                          {user.kycStatus || 'none'}
-                        </span>
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                            user.kycStatus === 'verified' ? 'bg-green-100 text-green-700' :
+                            user.kycStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                            user.kycStatus === 'rejected' ? 'bg-red-100 text-red-700' :
+                            'bg-gray-100 text-gray-500'
+                          }`}>
+                            {user.kycStatus || 'none'}
+                          </span>
+                          {user.kycDocuments && (
+                            <div className="flex gap-0.5 text-[9px]">
+                              {user.kycDocuments.pan && <span className="text-blue-600" title="PAN uploaded">P</span>}
+                              {user.kycDocuments.aadharFront && <span className="text-green-600" title="Aadhar uploaded">A</span>}
+                              {user.kycDocuments.cancelledCheque && <span className="text-purple-600" title="Cheque uploaded">C</span>}
+                              {user.kycDocuments.cml && <span className="text-orange-600" title="CML uploaded">M</span>}
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="px-2 py-1.5 text-center">
                         <span className="font-medium text-green-700">{user.listingsCount || 0}</span>
                       </td>
-                      <td className="px-2 py-1.5 text-center">
-                        <span className="font-medium text-blue-700">{user.tradesCount || 0}</span>
-                      </td>
-                      <td className="px-2 py-1.5 text-gray-600">
+                      <td className="px-2 py-1.5 text-gray-600 text-[10px]">
                         {new Date(user.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                      </td>
-                      <td className="px-2 py-1.5 text-gray-500">
-                        {user.lastLogin 
-                          ? new Date(user.lastLogin).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
-                          : <span className="text-gray-400">Never</span>
-                        }
                       </td>
                       <td className="px-2 py-1.5 text-center">
                         {user.isBanned ? (
