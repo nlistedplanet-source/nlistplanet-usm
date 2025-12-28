@@ -1711,11 +1711,16 @@ const DashboardPage = () => {
                     className="px-2.5 py-1 text-[11px] border border-gray-300 rounded-md focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100 transition-all text-gray-700 bg-white cursor-pointer font-semibold"
                   >
                     <option value="all">All Sectors</option>
-                    <option value="finance">Finance</option>
-                    <option value="tech">Tech</option>
+                    <option value="financial">Finance</option>
+                    <option value="tech">Technology</option>
+                    <option value="insurance">Insurance</option>
                     <option value="manufacturing">Manufacturing</option>
                     <option value="healthcare">Healthcare</option>
+                    <option value="ecommerce">E-commerce</option>
                     <option value="retail">Retail</option>
+                    <option value="investment">Investment</option>
+                    <option value="energy">Energy</option>
+                    <option value="automobile">Automobile</option>
                   </select>
                 </div>
               </div>
