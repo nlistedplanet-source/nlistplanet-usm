@@ -54,17 +54,29 @@ const ReferralsTab = () => {
             // Check if this is user's own post
             const isOwnPost = listing.userId?.toString() === user._id?.toString();
             
+            // Get company name with fallback logic
+            const companyName = listing.companyId?.name || 
+                               listing.companyId?.CompanyName || 
+                               listing.companyName || 
+                               listing.company || 
+                               'Unknown Company';
+            
+            // Get company logo with fallback
+            const companyLogo = listing.companyId?.logo || 
+                               listing.companyId?.Logo || 
+                               null;
+            
             return {
               _id: share._id,
               shareId: share.shareId,
               postId: listing.postId || 'N/A',
-              company: listing.companyName || listing.company || 'Unknown',
-              companyLogo: listing.companyId?.logo || listing.companyId?.Logo,
-              type: listing.type,
-              price: listing.price,
-              quantity: listing.quantity,
+              company: companyName,
+              companyLogo: companyLogo,
+              type: listing.type || listing.listingType,
+              price: listing.price || listing.pricePerShare,
+              quantity: listing.quantity || listing.shares,
               isOwnPost,
-              ownerUsername: listing.username || 'N/A',
+              ownerUsername: listing.userId?.username || listing.username || 'Anonymous',
               views: share.uniqueVisitors?.length || 0,
               clicks: share.clicks || 0,
               conversions: share.conversions?.length || 0,
