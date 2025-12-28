@@ -974,31 +974,16 @@ const DashboardPage = () => {
         <div className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
           <div className="px-6 py-3">
             <div className="flex items-center justify-between">
-              {/* Left side - Logo & Greeting */}
-              <div className="flex items-center gap-4">
-                {/* Logo */}
-                <div className="flex items-center gap-2">
-                  <div className="w-12 h-12 flex items-center justify-center relative">
-                    <img 
-                      src="/favicon.png" 
-                      alt="NListPlanet Logo" 
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <div>
-                    <h1 className="text-lg font-bold text-gray-900">
-                      NListPlanet 🎄
-                    </h1>
-                    <p className="text-xs text-gray-500 font-medium">
-                      {(() => {
-                        const hour = new Date().getHours();
-                        if (hour < 12) return 'Good Morning';
-                        if (hour < 17) return 'Good Afternoon';
-                        return 'Good Evening';
-                      })()}!
-                    </p>
-                  </div>
-                </div>
+              {/* Left side - Greeting */}
+              <div>
+                <p className="text-sm text-gray-600 font-medium">
+                  {(() => {
+                    const hour = new Date().getHours();
+                    if (hour < 12) return 'Good Morning';
+                    if (hour < 17) return 'Good Afternoon';
+                    return 'Good Evening';
+                  })()}!
+                </p>
               </div>
 
               {/* Right side - Notifications & User Profile */}
