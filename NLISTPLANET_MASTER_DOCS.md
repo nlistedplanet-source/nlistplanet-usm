@@ -1477,7 +1477,15 @@ router.post('/:id/accept', protect, async (req, res, next) => {
 - ✅ Wrong price display (₹16,500 vs ₹16,830)
 - ✅ Mongoose validation error for `pending_confirmation` (commit: acb383f)
 - ✅ Company creation with logo URL failing
-- ✅ **Marketplace Accept creating wrong bid status** (commit: 2a882c6) ← NEW
+- ✅ **Marketplace Accept creating wrong bid status** (commit: 2a882c6)
+- ✅ **500 error on accept/bid despite successful operation** (commit: 5af2782)
+  - Root cause: Notification calls were awaited, throwing errors when FCM/Firebase fails
+  - Fix: Made all `createAndSendNotification` calls non-blocking with `.catch()` handlers
+  - Impact: Accept/bid now always returns success, notifications fail silently
+- ✅ **Undefined function call after accept** (commit: 9c60b62)
+  - Root cause: `handleConfirmPurchase` called `fetchMyBidsOffers()` which doesn't exist
+  - Fix: Replaced with `setRefreshTrigger(prev => prev + 1)` to refresh dashboard
+  - Impact: Accepted deals now properly appear in "My Bids" tab immediately
 
 #### Pending 🔄
 - 🔄 Render auto-deployment (schema fix + accept endpoint)
@@ -1495,8 +1503,8 @@ router.post('/:id/accept', protect, async (req, res, next) => {
 
 *For questions or updates, contact the development team.*
 
-**Last Updated:** December 23, 2025  
-**Document Version:** 2.2.0
+**Last Updated:** December 28, 2025  
+**Document Version:** 2.3.0
 
 ---
 
