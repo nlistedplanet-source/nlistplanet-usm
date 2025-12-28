@@ -759,35 +759,40 @@ const DashboardPage = () => {
       )}
       {/* Left Sidebar Navigation - Compact */}
       <aside id="dashboard-sidebar" className={`w-56 bg-white border-r border-gray-200 fixed left-0 h-full flex flex-col z-30 ${isViewingAsAdmin ? 'top-[52px]' : 'top-0'}`}>
-        {/* User Profile */}
-        <div className="p-3 border-b border-gray-100 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-              {(isViewingAsAdmin && viewingUser) ? (
-                viewingUser.profileImage ? (
-                  <img src={viewingUser.profileImage} alt={viewingUser.username} className="w-full h-full rounded-full object-cover" />
-                ) : (
-                  viewingUser.username?.charAt(0).toUpperCase()
-                )
-              ) : (
-                user.profileImage ? (
-                  <img src={user.profileImage} alt={user.username} className="w-full h-full rounded-full object-cover" />
-                ) : (
-                  user.username?.charAt(0).toUpperCase()
-                )
-              )}
+        {/* Company Logo & Name */}
+        <div className="p-4 border-b border-gray-100 flex-shrink-0">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-16 h-16 flex items-center justify-center mb-2">
+              <img 
+                src="/favicon.png" 
+                alt="NListPlanet Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">
-                {isViewingAsAdmin && viewingUser ? (viewingUser.fullName || viewingUser.username) : (user.fullName || user.username)}
-              </p>
-              <div className="flex items-center gap-1">
-                <p className="text-xs text-gray-500">@{isViewingAsAdmin && viewingUser ? viewingUser.username : user.username}</p>
-                {(isViewingAsAdmin && viewingUser ? viewingUser.role : user.role) === 'admin' && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-600 text-white">ADM</span>
-                )}
-              </div>
-            </div>
+            <h2 className="text-sm font-bold text-gray-900">NListPlanet</h2>
+            <p className="text-xs text-gray-500">Unlisted Shares Platform</p>
+          </div>
+        </div>
+
+        {/* Demo and Help Links */}
+        <div className="px-3 py-2 border-b border-gray-100 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => startSimpleTour()}
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-all"
+              title="Start Demo Tour"
+            >
+              <PlayCircle size={16} />
+              <span>Demo</span>
+            </button>
+            <button
+              onClick={() => setIsQueryModalOpen(true)}
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-emerald-600 hover:bg-emerald-50 transition-all"
+              title="Get Help"
+            >
+              <MessageCircle size={16} />
+              <span>Help</span>
+            </button>
           </div>
         </div>
 
@@ -996,7 +1001,7 @@ const DashboardPage = () => {
                 </div>
               </div>
 
-              {/* Right side - Query Help & Notifications */}
+              {/* Right side - Notifications & User Profile */}
               <div className="flex items-center gap-3">
                 {/* Emergency Tour Cleanup (Development) */}
                 {process.env.NODE_ENV === 'development' && (
@@ -1012,25 +1017,6 @@ const DashboardPage = () => {
                   </button>
                 )}
 
-                {/* Tour Demo Icon */}
-                <button
-                  onClick={() => startSimpleTour()}
-                  className="relative p-2.5 hover:bg-indigo-50 rounded-xl transition-all duration-200 group"
-                  title="Start Dashboard Tour"
-                >
-                  <PlayCircle size={20} className="text-indigo-600 group-hover:text-indigo-700 transition-colors" />
-                </button>
-
-                {/* Query/Help Icon */}
-                <button
-                  onClick={() => setIsQueryModalOpen(true)}
-                  className="relative p-2.5 hover:bg-emerald-50 rounded-xl transition-all duration-200 group"
-                  title="Send Query to Admin"
-                >
-                  <MessageCircle size={22} className="text-gray-700 group-hover:text-emerald-600 transition-colors" />
-                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
-                </button>
-
                 {/* Notification Bell */}
                 <button
                   onClick={() => handleTabChange('notifications')}
@@ -1045,6 +1031,36 @@ const DashboardPage = () => {
                     </div>
                   )}
                 </button>
+
+                {/* User Profile */}
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer border border-gray-200 transition-all">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                    {(isViewingAsAdmin && viewingUser) ? (
+                      viewingUser.profileImage ? (
+                        <img src={viewingUser.profileImage} alt={viewingUser.username} className="w-full h-full rounded-full object-cover" />
+                      ) : (
+                        viewingUser.username?.charAt(0).toUpperCase()
+                      )
+                    ) : (
+                      user.profileImage ? (
+                        <img src={user.profileImage} alt={user.username} className="w-full h-full rounded-full object-cover" />
+                      ) : (
+                        user.username?.charAt(0).toUpperCase()
+                      )
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-gray-900 truncate max-w-[120px]">
+                      {isViewingAsAdmin && viewingUser ? (viewingUser.fullName || viewingUser.username) : (user.fullName || user.username)}
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <p className="text-xs text-gray-500">@{isViewingAsAdmin && viewingUser ? viewingUser.username : user.username}</p>
+                      {(isViewingAsAdmin && viewingUser ? viewingUser.role : user.role) === 'admin' && (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-600 text-white">ADM</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
