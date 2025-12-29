@@ -65,21 +65,28 @@ export const getNetPriceForUser = (item, listingType, isOwner, counterBy = null)
   
   // Who made this price?
   // If no counterBy, we determine based on context:
-  // If I am owner, the initial bid/offer was made by the other party.
-  // If I am not owner, the initial bid/offer was made by me.
-  const maker = counterBy || (isOwner ? (isSell ? 'buyer' : 'seller') : (isSell ? 'buyer' : 'seller'));
+  // If I am owner of SELL listing, the bid was made by buyer
+  // If I am owner of BUY listing, the offer was made by seller
+  const maker = counterBy || (isSell ? 'buyer' : 'seller');
   
   if (isCurrentUserSeller) {
     // I am Seller. I want to see what I GET.
+    // If buyer made the price at ₹90, seller gets ₹90 * 0.98 = ₹88.20
     if (maker === 'buyer') {
-      return isSell ? (item.sellerReceivesPrice || price / 1.02) : (item.sellerReceivesPrice || price * 0.98);
+      // Buyer's price is what they're willing to pay
+      // Seller receives: price * 0.98 (platform takes 2%)
+      return item.sellerReceivesPrice || (price * 0.98);
     }
+    // Seller made this price, show as-is (what seller wants to receive)
     return price;
   } else {
     // I am Buyer. I want to see what I PAY.
     if (maker === 'seller') {
-      return isSell ? (item.buyerOfferedPrice || price * 1.02) : (item.buyerOfferedPrice || price / 0.98);
+      // Seller's price is what they want to receive
+      // Buyer pays: price * 1.02 (platform adds 2%)
+      return item.buyerOfferedPrice || (price * 1.02);
     }
+    // Buyer made this price, show as-is (what buyer is offering to pay)
     return price;
   }
 };

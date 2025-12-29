@@ -81,11 +81,18 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
       return getNetPriceForUser({ price }, listing.type, true, by);
     };
 
+    const oppositeParty = isSell ? 'buyer' : 'seller';
+    const ownerParty = isSell ? 'seller' : 'buyer';
+
+    // Original bid price from the opposite party (buyer's initial bid on SELL listing)
+    // This should NEVER change regardless of counter history
+    const originalBuyerBid = getVisibleToOwner(bid.price, oppositeParty);
+    const originalBuyerQty = bid.quantity;
+
     if (!bid.counterHistory || bid.counterHistory.length === 0) {
-      const oppositeParty = isSell ? 'buyer' : 'seller';
       return { 
-        buyerBid: getVisibleToOwner(bid.price, oppositeParty), 
-        buyerQty: bid.quantity, 
+        buyerBid: originalBuyerBid, 
+        buyerQty: originalBuyerQty, 
         yourPrice: null, 
         yourQty: null, 
         rounds: 0, 
@@ -96,8 +103,6 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
     const history = bid.counterHistory;
     let latestOppositeCounter = null;
     let latestOwnerCounter = null;
-    const oppositeParty = isSell ? 'buyer' : 'seller';
-    const ownerParty = isSell ? 'seller' : 'buyer';
     
     for (let i = history.length - 1; i >= 0; i--) {
       if (!latestOppositeCounter && history[i].by === oppositeParty) {
@@ -111,9 +116,18 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
     
     const latestEntry = history[history.length - 1];
     
+    // For buyer bid column: show the LATEST counter from buyer if available, 
+    // otherwise show original bid. This is what buyer is currently offering.
+    const currentBuyerOffer = latestOppositeCounter 
+      ? getVisibleToOwner(latestOppositeCounter.price, oppositeParty)
+      : originalBuyerBid;
+    const currentBuyerQty = latestOppositeCounter 
+      ? latestOppositeCounter.quantity 
+      : originalBuyerQty;
+
     return {
-      buyerBid: getVisibleToOwner(latestOppositeCounter ? latestOppositeCounter.price : bid.price, oppositeParty),
-      buyerQty: latestOppositeCounter ? latestOppositeCounter.quantity : bid.quantity,
+      buyerBid: currentBuyerOffer,
+      buyerQty: currentBuyerQty,
       yourPrice: latestOwnerCounter ? getVisibleToOwner(latestOwnerCounter.price, ownerParty) : null,
       yourQty: latestOwnerCounter ? latestOwnerCounter.quantity : null,
       rounds: history.length,
@@ -956,19 +970,26 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
               <p className="text-sm opacity-90 mt-1">{listing.companyName} - {isSell ? 'SELL' : 'BUY'} Post</p>
             </div>
             <form onSubmit={handleCounterSubmit} className="p-6">
-              <div className="bg-blue-50 rounded-xl p-4 mb-5 border-2 border-blue-200">
-                <p className="text-sm font-bold text-gray-700 mb-3">Original {isSell ? 'Bid' : 'Offer'} by <span className="text-blue-700">@{selectedBid.user?.username || selectedBid.username || 'Unknown'}</span></p>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="bg-white rounded-lg p-3 border border-blue-300">
-                    <span className="text-gray-600 block mb-1">Price per share:</span>
-                    <span className="font-bold text-gray-900 text-lg">{formatCurrency(selectedBid.price)}</span>
+              {/* Show buyer's bid price as what seller will receive (adjusted for platform fee) */}
+              {(() => {
+                const counterInfo = getLatestCounterInfo(selectedBid);
+                const displayBuyerPrice = counterInfo.buyerBid; // Already adjusted for seller's view
+                return (
+                  <div className="bg-blue-50 rounded-xl p-4 mb-5 border-2 border-blue-200">
+                    <p className="text-sm font-bold text-gray-700 mb-3">Original {isSell ? 'Bid' : 'Offer'} by <span className="text-blue-700">@{selectedBid.user?.username || selectedBid.username || 'Unknown'}</span></p>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="bg-white rounded-lg p-3 border border-blue-300">
+                        <span className="text-gray-600 block mb-1">{isSell ? 'You will receive:' : 'You will pay:'}</span>
+                        <span className="font-bold text-gray-900 text-lg">{formatCurrency(displayBuyerPrice)}</span>
+                      </div>
+                      <div className="bg-white rounded-lg p-3 border border-blue-300">
+                        <span className="text-gray-600 block mb-1">Quantity:</span>
+                        <span className="font-bold text-gray-900 text-lg">{counterInfo.buyerQty} shares</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="bg-white rounded-lg p-3 border border-blue-300">
-                    <span className="text-gray-600 block mb-1">Quantity:</span>
-                    <span className="font-bold text-gray-900 text-lg">{selectedBid.quantity} shares</span>
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
               <div className="mb-4">
                 <label className="block text-sm font-bold text-gray-700 mb-2">Counter Price (per share) *</label>
                 <input type="number" required min="1" step="0.01" value={counterPrice} onChange={(e) => setCounterPrice(e.target.value)} onWheel={(e) => e.target.blur()} className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-semibold text-gray-900 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" placeholder="Enter your counter price" />
