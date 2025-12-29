@@ -109,7 +109,15 @@ router.get('/my', protect, async (req, res, next) => {
     const query = { userId: targetUserId };
     
     if (type) query.type = type;
-    if (status) query.status = status;  // Only filter by status if explicitly provided
+    
+    // Handle status filter - 'active' includes active + deal_pending + negotiating
+    if (status === 'active') {
+      query.status = { $in: ['active', 'deal_pending', 'negotiating'] };
+    } else if (status === 'history') {
+      query.status = { $in: ['completed', 'cancelled', 'sold', 'inactive'] };
+    } else if (status) {
+      query.status = status;
+    }
 
     const listings = await Listing.find(query)
       .sort('-createdAt')
@@ -178,6 +186,9 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
               quantity: bid.quantity,
               message: bid.message,
               status: bid.status,
+              dealId: bid.dealId, // Include dealId for verification codes
+              buyerAcceptedAt: bid.buyerAcceptedAt,
+              sellerAcceptedAt: bid.sellerAcceptedAt,
               counterHistory: bid.counterHistory,
               createdAt: bid.createdAt
             });
@@ -213,6 +224,9 @@ router.get('/my-placed-bids', protect, async (req, res, next) => {
               quantity: offer.quantity,
               message: offer.message,
               status: offer.status,
+              dealId: offer.dealId, // Include dealId for verification codes
+              buyerAcceptedAt: offer.buyerAcceptedAt,
+              sellerAcceptedAt: offer.sellerAcceptedAt,
               counterHistory: offer.counterHistory,
               createdAt: offer.createdAt
             });

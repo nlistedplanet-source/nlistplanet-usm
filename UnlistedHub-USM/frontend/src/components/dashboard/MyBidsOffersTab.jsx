@@ -168,8 +168,10 @@ const MyBidsOffersTab = () => {
     
     if (!typeMatch) return false;
     
-    // Check if listing is deleted - use isActive from backend (already handles deal_pending)
-    const isListingDeleted = !activity.listing || activity.listing.isActive === false;
+    // Check if listing is deleted - BUT ignore for confirmed/accepted deals
+    // Confirmed deals have listing.isActive=false (deal_pending) which is expected
+    const isConfirmedDeal = ['confirmed', 'accepted', 'pending_confirmation', 'pending_seller_confirmation'].includes(activity.status);
+    const isListingDeleted = !activity.listing || (activity.listing.isActive === false && !isConfirmedDeal);
     const isActive = activeStatuses.includes(activity.status) && !isListingDeleted;
     
     if (statusFilter === 'active') {
@@ -193,7 +195,8 @@ const MyBidsOffersTab = () => {
       type === 'bids' ? a.type === 'bid' : a.type === 'offer'
     );
     const activeCount = typeActivities.filter(a => {
-      const isListingDeleted = !a.listing || a.listing.isActive === false;
+      const isConfirmedDeal = ['confirmed', 'accepted', 'pending_confirmation', 'pending_seller_confirmation'].includes(a.status);
+      const isListingDeleted = !a.listing || (a.listing.isActive === false && !isConfirmedDeal);
       return activeStatuses.includes(a.status) && !isListingDeleted;
     }).length;
     const expiredCount = typeActivities.length - activeCount;
