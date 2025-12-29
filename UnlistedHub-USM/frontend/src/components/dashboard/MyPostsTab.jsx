@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 
 const MyPostsTab = () => {
   const [subTab, setSubTab] = useState('sell');
+  const [statusTab, setStatusTab] = useState('active'); // 'active' or 'history'
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -17,14 +18,14 @@ const MyPostsTab = () => {
   const fetchListings = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await listingsAPI.getMy({ type: subTab });
+      const response = await listingsAPI.getMy({ type: subTab, status: statusTab });
       setListings(response.data.data);
     } catch (error) {
       toast.error('Failed to fetch listings');
     } finally {
       setLoading(false);
     }
-  }, [subTab]);
+  }, [subTab, statusTab]);
 
   useEffect(() => {
     fetchListings();
@@ -65,7 +66,7 @@ const MyPostsTab = () => {
       </div>
 
       {/* Sub Tabs */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-3">
         <button
           onClick={() => setSubTab('sell')}
           className={`flex-1 py-2.5 rounded-xl font-semibold transition-all ${
@@ -88,6 +89,28 @@ const MyPostsTab = () => {
           <Package className="inline mr-2" size={18} />
           BUY Requests
         </button>
+      </div>
+
+      {/* Active/History Toggle */}
+      <div className="flex items-center justify-end gap-3 mb-4 px-1">
+        <span className={`text-sm font-medium ${statusTab === 'active' ? 'text-emerald-700' : 'text-gray-500'}`}>
+          Active
+        </span>
+        <button
+          onClick={() => setStatusTab(statusTab === 'active' ? 'history' : 'active')}
+          className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
+            statusTab === 'history' ? 'bg-gray-400' : 'bg-emerald-500'
+          }`}
+        >
+          <span
+            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 ${
+              statusTab === 'history' ? 'translate-x-6' : 'translate-x-0'
+            }`}
+          />
+        </button>
+        <span className={`text-sm font-medium ${statusTab === 'history' ? 'text-gray-700' : 'text-gray-500'}`}>
+          History
+        </span>
       </div>
 
       {/* Listings */}

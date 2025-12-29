@@ -1300,6 +1300,125 @@ export const formatShortNumber = (num) => {
 
 ---
 
+### 12.4 Complete Deal Acceptance Flow (Dec 29, 2025)
+
+**Detailed Step-by-Step Flow:**
+
+#### Phase 1: Buyer Accepts Deal
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  BUYER CLICKS "ACCEPT"                                          │
+├────────────────────────────────────────────────────────────────┤
+│  1. Bid status → 'pending_confirmation' or 'accepted'          │
+│  2. Listing status → 'deal_pending' (hidden from marketplace)  │
+│  3. Seller receives push notification                          │
+└────────────────────────────────────────────────────────────────┘
+
+Buyer's Dashboard (My Bids Tab):
+┌─────────────────────────────────────────────────────────────────┐
+│  Action By: ✅ You Accepted                                     │
+│  Status: "Accepted - Waiting for Seller's Acceptance"           │
+│  Border: Green left border                                      │
+│  Tab: STAYS in Active tab (NOT moved to History)               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Phase 2: Seller Gets Notification
+
+```
+Seller's View:
+┌─────────────────────────────────────────────────────────────────┐
+│  1. Push notification: "Buyer accepted your deal!"              │
+│  2. Action Center shows pending action                         │
+│  3. My Posts tab shows "Buyer Accepted - Your Confirmation      │
+│     Needed" section with green pulsing border                   │
+│  4. "ACTION REQUIRED" badge visible on card                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Phase 3: Seller Accepts Deal
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  SELLER CLICKS "CONFIRM"                                        │
+├────────────────────────────────────────────────────────────────┤
+│  1. Bid status → 'confirmed'                                   │
+│  2. Deal record created with verification codes                │
+│  3. Buyer receives push notification: "Deal Confirmed!"         │
+│  4. Admin sees deal in Final Deals                             │
+└────────────────────────────────────────────────────────────────┘
+
+Both Dashboards Now Show:
+┌─────────────────────────────────────────────────────────────────┐
+│  Status: 🎉 "Deal Confirmed by Both Parties"                   │
+│  Border: Emerald green                                         │
+│  VIEW CODE button appears → Opens verification codes           │
+│  Tab: STAYS in Active tab until admin action                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Phase 4: Admin Final Action
+
+```
+Admin marks deal as: completed / cancelled / on-hold
+┌─────────────────────────────────────────────────────────────────┐
+│  1. Bid status → 'completed' / 'cancelled'                     │
+│  2. Listing status → 'completed' / 'cancelled'                 │
+│  3. Deal moves to buyer/seller's History tab                   │
+│  4. Both parties notified                                      │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Status Tab Rules (IMPORTANT!)
+
+| Status | Tab Location | Reason |
+|--------|--------------|--------|
+| `pending` | Active | Awaiting response |
+| `countered` | Active | Negotiation ongoing |
+| `pending_confirmation` | Active | Buyer accepted, seller pending |
+| `accepted` | Active | Buyer accepted, seller pending |
+| `confirmed` | **Active** | Both confirmed, admin pending |
+| `completed` | History | Admin marked complete |
+| `cancelled` | History | Admin/user cancelled |
+| `rejected` | History | Offer declined |
+| `expired` | History | Timeout |
+| `sold` | History | Transaction complete |
+
+#### Desktop Files Modified:
+- `MyBidsOffersTab.jsx` - `activeStatuses` array includes `accepted`, `confirmed`
+- `MyPostsTab.jsx` - Added Active/History toggle
+- `MyPostCard.jsx` - Green pulse animation when action required
+
+#### Mobile Files Modified:
+- `BidsPage.jsx` - Same status flow as desktop
+- `MyPostsPage.jsx` - Active/History toggle added
+
+**Key Code Pattern:**
+```javascript
+// Statuses that stay in Active tab
+const activeStatuses = [
+  'pending', 
+  'pending_confirmation', 
+  'countered', 
+  'pending_seller_confirmation', 
+  'accepted',    // ← Buyer accepted, stays visible
+  'confirmed'    // ← Both confirmed, stays until admin action
+];
+
+// Statuses that move to History tab
+const expiredStatuses = [
+  'rejected', 
+  'expired', 
+  'completed',   // ← Only after admin marks complete
+  'cancelled', 
+  'sold', 
+  'rejected_by_seller'
+];
+```
+
+---
+
 ### 12.4 Admin Accepted Deals Management
 
 **Admin Dashboard Features:**

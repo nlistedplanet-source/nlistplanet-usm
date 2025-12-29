@@ -265,10 +265,18 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow-md border-2 border-purple-300 overflow-hidden mb-3">
+      <div className={`bg-white rounded-lg shadow-md border-2 overflow-hidden mb-3 transition-all duration-300 ${
+        buyerAcceptedBids.length > 0 
+          ? 'border-green-500 shadow-lg shadow-green-200 animate-pulse-subtle' 
+          : 'border-purple-300'
+      }`}>
         {/* Enhanced Header - Clickable */}
         <div 
-          className="px-4 py-3 border-b-2 border-purple-300 bg-gradient-to-r from-purple-50 to-blue-50 cursor-pointer hover:bg-gradient-to-r hover:from-purple-100 hover:to-blue-100 transition-all"
+          className={`px-4 py-3 border-b-2 cursor-pointer transition-all ${
+            buyerAcceptedBids.length > 0 
+              ? 'border-green-500 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100'
+              : 'border-purple-300 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100'
+          }`}
           onClick={() => {
             setIsTableCollapsed(!isTableCollapsed);
             // Clear existing timer
@@ -321,6 +329,13 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
 
             {/* Status Badges and Toggle */}
             <div className="flex items-center gap-2">
+              {buyerAcceptedBids.length > 0 && (
+                <div className="px-3 py-1.5 rounded-full text-xs font-bold border-2 bg-green-500 text-white border-green-600 animate-pulse flex items-center gap-1.5 shadow-lg">
+                  <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative">⚡</span>
+                  ACTION REQUIRED
+                </div>
+              )}
               <div className={`px-3 py-1.5 rounded-full text-xs font-bold border-2 ${
                 markedSold ? 'bg-amber-100 text-amber-800 border-amber-400' : (
                 listing.status === 'active' ? 'bg-green-100 text-green-700 border-green-400' :

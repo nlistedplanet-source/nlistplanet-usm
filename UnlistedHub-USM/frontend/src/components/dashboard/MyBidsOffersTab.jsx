@@ -18,8 +18,9 @@ const MyBidsOffersTab = () => {
 
   // Define which statuses are "active" vs "expired"
   // NEW MODEL: pending_confirmation means buyer accepted, waiting for seller
-  const activeStatuses = ['pending', 'pending_confirmation', 'countered', 'pending_seller_confirmation'];
-  const expiredStatuses = ['accepted', 'rejected', 'expired', 'completed', 'cancelled', 'confirmed', 'sold', 'rejected_by_seller'];
+  // accepted/confirmed stay in active until admin marks completed/cancelled
+  const activeStatuses = ['pending', 'pending_confirmation', 'countered', 'pending_seller_confirmation', 'accepted', 'confirmed'];
+  const expiredStatuses = ['rejected', 'expired', 'completed', 'cancelled', 'sold', 'rejected_by_seller'];
 
   useEffect(() => {
     fetchMyActivity();

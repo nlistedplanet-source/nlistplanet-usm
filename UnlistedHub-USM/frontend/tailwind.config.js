@@ -109,6 +109,16 @@ module.exports = {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
+        "pulse-subtle": {
+          "0%, 100%": { 
+            boxShadow: "0 0 0 0 rgba(34, 197, 94, 0.4)",
+            borderColor: "rgb(34, 197, 94)"
+          },
+          "50%": { 
+            boxShadow: "0 0 20px 5px rgba(34, 197, 94, 0.2)",
+            borderColor: "rgb(74, 222, 128)"
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -117,6 +127,7 @@ module.exports = {
         "slideUp": "slideUp 0.3s ease-out",
         "slideDown": "slideDown 0.2s ease-out",
         "shimmer": "shimmer 2s linear infinite",
+        "pulse-subtle": "pulse-subtle 2s ease-in-out infinite",
       },
     },
   },
