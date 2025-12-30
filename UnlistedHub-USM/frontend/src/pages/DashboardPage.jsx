@@ -217,15 +217,25 @@ const DashboardPage = () => {
         // 1. Incoming Bids on my Sell Posts
         (sellRes.data.data || []).forEach(listing => {
           (listing.bids || []).forEach(bid => {
-            // Include pending AND pending_confirmation (buyer accepted, waiting for seller)
-            if (bid.status === 'pending' || bid.status === 'pending_confirmation') {
-              // Find latest prices from history
-              const history = bid.counterHistory || [];
-              const latestSellerCounter = [...history].reverse().find(h => h.by === 'seller');
-              const latestBuyerCounter = [...history].reverse().find(h => h.by === 'buyer');
+            // Include pending, pending_confirmation, and countered (if buyer countered)
+            const history = bid.counterHistory || [];
+            const latestCounter = history[history.length - 1];
+            const latestSellerCounter = [...history].reverse().find(h => h.by === 'seller');
+            const latestBuyerCounter = [...history].reverse().find(h => h.by === 'buyer');
+            
+            // For countered status, only show if buyer made the latest counter (seller needs to respond)
+            const isCounteredByBuyer = bid.status === 'countered' && latestCounter?.by === 'buyer';
+            
+            if (bid.status === 'pending' || bid.status === 'pending_confirmation' || isCounteredByBuyer) {
+              let actionType = 'bid_received';
+              if (bid.status === 'pending_confirmation') {
+                actionType = 'buyer_accepted';
+              } else if (isCounteredByBuyer) {
+                actionType = 'counter_received';
+              }
 
               actions.push({
-                type: bid.status === 'pending_confirmation' ? 'buyer_accepted' : 'bid_received',
+                type: actionType,
                 id: bid._id,
                 listingId: listing._id,
                 company: listing.companyName,
@@ -236,7 +246,7 @@ const DashboardPage = () => {
                 otherActionPrice: getNetPriceForUser(bid, 'sell', true), // Seller sees what they receive
                 quantity: bid.quantity,
                 user: bid.userId?.username || bid.username,
-                date: bid.buyerAcceptedAt || bid.createdAt,
+                date: latestBuyerCounter?.timestamp || bid.buyerAcceptedAt || bid.createdAt,
                 originalListing: listing
               });
             }
@@ -246,13 +256,24 @@ const DashboardPage = () => {
         // 2. Incoming Offers on my Buy Posts
         (buyRes.data.data || []).forEach(listing => {
           (listing.offers || []).forEach(offer => {
-            if (offer.status === 'pending') {
-              const history = offer.counterHistory || [];
-              const latestBuyerCounter = [...history].reverse().find(h => h.by === 'buyer'); // Me (Buyer)
-              const latestSellerCounter = [...history].reverse().find(h => h.by === 'seller'); // Them (Seller)
+            const history = offer.counterHistory || [];
+            const latestCounter = history[history.length - 1];
+            const latestBuyerCounter = [...history].reverse().find(h => h.by === 'buyer'); // Me (Buyer)
+            const latestSellerCounter = [...history].reverse().find(h => h.by === 'seller'); // Them (Seller)
+            
+            // For countered status, only show if seller made the latest counter (buyer needs to respond)
+            const isCounteredBySeller = offer.status === 'countered' && latestCounter?.by === 'seller';
+
+            if (offer.status === 'pending' || offer.status === 'pending_confirmation' || isCounteredBySeller) {
+              let actionType = 'offer_received';
+              if (offer.status === 'pending_confirmation') {
+                actionType = 'seller_accepted';
+              } else if (isCounteredBySeller) {
+                actionType = 'counter_received';
+              }
 
               actions.push({
-                type: 'offer_received',
+                type: actionType,
                 id: offer._id,
                 listingId: listing._id,
                 company: listing.companyName,
@@ -263,7 +284,7 @@ const DashboardPage = () => {
                 otherActionPrice: getNetPriceForUser(offer, 'buy', true), // Buyer sees what they pay
                 quantity: offer.quantity,
                 user: offer.userId?.username,
-                date: offer.createdAt,
+                date: latestSellerCounter?.timestamp || offer.createdAt,
                 originalListing: listing
               });
             }
@@ -280,6 +301,15 @@ const DashboardPage = () => {
             // - activity.type === 'bid' → I bid on a SELL listing → I am BUYER
             // - activity.type === 'offer' → I offered on a BUY listing → I am SELLER
             const isBuyer = activity.type === 'bid';
+            
+            // Only show in Action Center if latest counter is from the OTHER party
+            // (i.e., I need to respond, not waiting for them)
+            const latestCounterBy = latestCounter?.by;
+            const isActionRequired = isBuyer 
+              ? (latestCounterBy === 'seller') // I am buyer, seller countered → I need to act
+              : (latestCounterBy === 'buyer'); // I am seller, buyer countered → I need to act
+            
+            if (!isActionRequired) return; // Skip if I sent the last counter
             
             // Get raw listing price
             const rawListingPrice = activity.listing.listingPrice || activity.listing.price;
