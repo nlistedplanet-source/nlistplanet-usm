@@ -574,36 +574,55 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                                         <thead className="bg-gray-100">
                                           <tr>
                                             <th className="px-2 py-1 text-[10px] font-bold text-gray-600 text-left border-r border-gray-300">Round</th>
-                                            <th className="px-2 py-1 text-[10px] font-bold text-gray-600 text-left border-r border-gray-300">By</th>
-                                            <th className="px-2 py-1 text-[10px] font-bold text-gray-600 text-center border-r border-gray-300">Price</th>
+                                            <th className="px-2 py-1 text-[10px] font-bold text-blue-700 text-center border-r border-gray-300">Buyer Price</th>
+                                            <th className="px-2 py-1 text-[10px] font-bold text-purple-700 text-center border-r border-gray-300">Your Price</th>
                                             <th className="px-2 py-1 text-[10px] font-bold text-gray-600 text-center border-r border-gray-300">Qty</th>
                                             <th className="px-2 py-1 text-[10px] font-bold text-gray-600 text-left">Date</th>
                                           </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-200">
-                                          {bid.counterHistory.map((counter, cIdx) => {
-                                            // Show adjusted price to owner
+                                          {(() => {
                                             const isSell = listing.type === 'sell';
-                                            const counterDisplayPrice = isSell 
-                                              ? (counter.by === 'buyer' ? counter.price * 0.98 : counter.price)
-                                              : (counter.by === 'seller' ? counter.price * 1.02 : counter.price);
+                                            const oppositeParty = isSell ? 'buyer' : 'seller';
                                             
-                                            return (
-                                              <tr key={cIdx} className={counter.by === (isSell ? 'seller' : 'buyer') ? 'bg-purple-50' : 'bg-white'}>
-                                                <td className="px-2 py-1 text-[10px] font-semibold text-gray-700 border-r border-gray-200">#{counter.round || cIdx + 1}</td>
-                                                <td className="px-2 py-1 text-[10px] border-r border-gray-200">
-                                                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
-                                                    counter.by === 'seller' ? 'bg-purple-200 text-purple-800' : 'bg-blue-200 text-blue-800'
-                                                  }`}>
-                                                    {counter.by === 'seller' ? 'You' : 'Buyer'}
-                                                  </span>
+                                            // Build round-by-round history with both buyer and seller prices
+                                            const rounds = [];
+                                            let buyerPrice = getVisibleToOwner(bid.price, oppositeParty); // Original bid
+                                            let sellerPrice = null;
+                                            
+                                            bid.counterHistory.forEach((counter, idx) => {
+                                              if (counter.by === oppositeParty) {
+                                                // Buyer countered - update buyer price for this round
+                                                buyerPrice = getVisibleToOwner(counter.price, oppositeParty);
+                                              } else {
+                                                // Seller countered - set seller price for this round
+                                                sellerPrice = getVisibleToOwner(counter.price, counter.by);
+                                              }
+                                              
+                                              rounds.push({
+                                                round: counter.round || idx + 1,
+                                                buyerPrice: buyerPrice,
+                                                sellerPrice: sellerPrice,
+                                                qty: counter.quantity,
+                                                date: counter.timestamp,
+                                                latestBy: counter.by
+                                              });
+                                            });
+                                            
+                                            return rounds.map((round, idx) => (
+                                              <tr key={idx} className="bg-white hover:bg-gray-50">
+                                                <td className="px-2 py-1 text-[10px] font-semibold text-gray-700 border-r border-gray-200">#{round.round}</td>
+                                                <td className="px-2 py-1 text-[10px] font-semibold text-blue-700 text-center border-r border-gray-200">
+                                                  {formatCurrency(round.buyerPrice)}
                                                 </td>
-                                                <td className="px-2 py-1 text-[10px] font-semibold text-gray-800 text-center border-r border-gray-200">{formatCurrency(counterDisplayPrice)}</td>
-                                                <td className="px-2 py-1 text-[10px] text-gray-700 text-center border-r border-gray-200">{formatShortQuantity(counter.quantity)}</td>
-                                                <td className="px-2 py-1 text-[9px] text-gray-500">{formatDate(counter.timestamp)}</td>
+                                                <td className="px-2 py-1 text-[10px] font-semibold text-purple-700 text-center border-r border-gray-200">
+                                                  {round.sellerPrice ? formatCurrency(round.sellerPrice) : '-'}
+                                                </td>
+                                                <td className="px-2 py-1 text-[10px] text-gray-700 text-center border-r border-gray-200">{formatShortQuantity(round.qty)}</td>
+                                                <td className="px-2 py-1 text-[9px] text-gray-500">{formatDate(round.date)}</td>
                                               </tr>
-                                            );
-                                          })}
+                                            ));
+                                          })()}
                                         </tbody>
                                       </table>
                                     </div>
