@@ -586,23 +586,30 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                                             const oppositeParty = isSell ? 'buyer' : 'seller';
                                             
                                             // Build round-by-round history with both buyer and seller prices
+                                            // Important: Each round shows the price that was valid at that specific round
                                             const rounds = [];
-                                            let buyerPrice = getVisibleToOwner(bid.price, oppositeParty); // Original bid
-                                            let sellerPrice = null;
+                                            let currentBuyerPrice = getVisibleToOwner(bid.price, oppositeParty); // Original bid - never changes unless buyer counters
+                                            let currentSellerPrice = null;
                                             
                                             bid.counterHistory.forEach((counter, idx) => {
+                                              // Determine the price for THIS SPECIFIC round
+                                              let roundBuyerPrice = currentBuyerPrice; // Use current buyer price
+                                              let roundSellerPrice = currentSellerPrice; // Use current seller price
+                                              
                                               if (counter.by === oppositeParty) {
-                                                // Buyer countered - update buyer price for this round
-                                                buyerPrice = getVisibleToOwner(counter.price, oppositeParty);
+                                                // Buyer countered in this round - update buyer price for THIS round
+                                                roundBuyerPrice = getVisibleToOwner(counter.price, oppositeParty);
+                                                currentBuyerPrice = roundBuyerPrice; // Update for next rounds
                                               } else {
-                                                // Seller countered - set seller price for this round
-                                                sellerPrice = getVisibleToOwner(counter.price, counter.by);
+                                                // Seller countered in this round - update seller price for THIS round
+                                                roundSellerPrice = getVisibleToOwner(counter.price, counter.by);
+                                                currentSellerPrice = roundSellerPrice; // Update for next rounds
                                               }
                                               
                                               rounds.push({
                                                 round: counter.round || idx + 1,
-                                                buyerPrice: buyerPrice,
-                                                sellerPrice: sellerPrice,
+                                                buyerPrice: roundBuyerPrice, // Price for THIS round
+                                                sellerPrice: roundSellerPrice, // Price for THIS round
                                                 qty: counter.quantity,
                                                 date: counter.timestamp,
                                                 latestBy: counter.by

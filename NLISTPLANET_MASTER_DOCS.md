@@ -548,6 +548,70 @@ Admin Closure:
   - Quantity, Price, Notes
 - **Actions:**
   - Place Sell Order (prefills company)
+
+### 📊 Counter History Table (My Posts - Seller View)
+
+**Location:** `MyPostCard.jsx` - Counter History sub-table in bid expansion
+
+**Critical Implementation Details:**
+
+**Table Structure:**
+| Round | Buyer Price | Your Price | Qty | Date |
+|-------|-------------|------------|-----|------|
+
+**Price Tracking Logic (IMPORTANT - DO NOT MODIFY):**
+```javascript
+// Initialize with original bid price (never changes)
+let currentBuyerPrice = getVisibleToOwner(bid.price, oppositeParty);
+let currentSellerPrice = null;
+
+// Iterate through counterHistory
+bid.counterHistory.forEach((counter, idx) => {
+  // Capture prices for THIS SPECIFIC round BEFORE updating
+  let roundBuyerPrice = currentBuyerPrice;
+  let roundSellerPrice = currentSellerPrice;
+  
+  if (counter.by === oppositeParty) {
+    // Buyer countered - update buyer price FOR THIS ROUND
+    roundBuyerPrice = getVisibleToOwner(counter.price, oppositeParty);
+    currentBuyerPrice = roundBuyerPrice; // Update for NEXT rounds
+  } else {
+    // Seller countered - update seller price FOR THIS ROUND
+    roundSellerPrice = getVisibleToOwner(counter.price, counter.by);
+    currentSellerPrice = roundSellerPrice; // Update for NEXT rounds
+  }
+  
+  // Push with round-specific prices
+  rounds.push({
+    buyerPrice: roundBuyerPrice, // Fixed for this round
+    sellerPrice: roundSellerPrice // Fixed for this round
+  });
+});
+```
+
+**Why This Matters:**
+- ✅ Each round shows the EXACT prices that were valid at that moment
+- ✅ Round 1 always shows original buyer bid (never changes)
+- ✅ If buyer counters in Round 2, Round 1 still shows original bid
+- ✅ Prevents price "leakage" between rounds
+- ❌ WRONG: Updating shared variable and using it for all rounds
+- ❌ WRONG: Using `buyerPrice` directly without round-specific capture
+
+**Helper Function:**
+```javascript
+// Component-level helper (used by both table and counter info)
+const getVisibleToOwner = (price, by) => {
+  return getNetPriceForUser({ price }, listing.type, true, by);
+};
+```
+
+**Color Coding:**
+- Buyer Price: `text-blue-700` 
+- Your Price: `text-purple-700`
+
+**Last Updated:** December 30, 2025 (Fixed Round 1 price mutation bug)
+
+---
   - Buy More
   - Edit Record
 
