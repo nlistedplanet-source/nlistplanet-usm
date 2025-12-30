@@ -354,22 +354,39 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                   ACTION REQUIRED
                 </div>
               )}
-              <div className={`px-3 py-1.5 rounded-full text-xs font-bold border-2 ${
-                markedSold ? 'bg-amber-100 text-amber-800 border-amber-400' : (
-                listing.status === 'active' ? 'bg-green-100 text-green-700 border-green-400' :
-                listing.status === 'negotiating' ? 'bg-orange-100 text-orange-700 border-orange-400' :
-                'bg-gray-100 text-gray-700 border-gray-400')
+              
+              {/* Status Badge - Shows turn info */}
+              <div className={`px-2 py-1 rounded-full text-[10px] font-bold border ${
+                buyerAcceptedBids.length > 0 
+                  ? 'bg-green-100 text-green-700 border-green-400'
+                  : counterOfferBids.some(b => b.counterHistory?.[b.counterHistory.length - 1]?.by === 'buyer')
+                  ? 'bg-orange-100 text-orange-700 border-orange-400'
+                  : pendingBids.length > 0
+                  ? 'bg-amber-100 text-amber-700 border-amber-400'
+                  : 'bg-gray-100 text-gray-600 border-gray-300'
               }`}>
-                {markedSold ? '🟠 SOLD' : 
-                 listing.status === 'negotiating' ? '🟠 NEGOTIATING' :
-                 `🟢 ${listing.status?.toUpperCase() || 'ACTIVE'}`}
+                {buyerAcceptedBids.length > 0 
+                  ? '✅ Your Turn'
+                  : counterOfferBids.some(b => b.counterHistory?.[b.counterHistory.length - 1]?.by === 'buyer')
+                  ? '🔔 Your Turn'
+                  : pendingBids.length > 0
+                  ? '⏳ Buyer Turn'
+                  : '✓ Active'}
               </div>
-              <div className={`px-3 py-1.5 rounded-full text-xs font-bold border-2 ${
+              
+              <div className={`px-2 py-1 rounded-full text-[10px] font-bold border ${
                 isSell ? 'bg-red-50 text-red-700 border-red-400' : 'bg-green-50 text-green-700 border-green-400'
               }`}>
                 {isSell ? 'SELL' : 'BUY'} Post
               </div>
-              <div className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 border-2 border-blue-700">
+              <div className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border-2 border-blue-700 relative">
+                {/* Blinking indicator when user's turn */}
+                {(buyerAcceptedBids.length > 0 || counterOfferBids.some(b => b.counterHistory?.[b.counterHistory.length - 1]?.by === 'buyer')) && (
+                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
+                  </span>
+                )}
                 <span>{isSell ? 'Bids' : 'Offers'}:</span>
                 <span>{activeBidsCount}</span>
               </div>
