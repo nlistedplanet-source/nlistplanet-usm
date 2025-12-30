@@ -338,6 +338,10 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                   <span className="mx-2 text-gray-400">•</span>
                   {listing.companyId?.Sector || listing.companyId?.sector || 'N/A'}
                 </p>
+                <p className="text-[10px] text-gray-500 mt-0.5 flex items-center gap-1">
+                  <Clock size={10} />
+                  Posted: {formatDate(listing.createdAt)}
+                </p>
               </div>
             </div>
 
