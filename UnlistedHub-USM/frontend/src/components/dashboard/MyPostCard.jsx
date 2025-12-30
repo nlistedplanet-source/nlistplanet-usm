@@ -72,14 +72,14 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
   const price = formatCurrency(sellerPrice);
   const qty = formatShortQuantity(listing.quantity || 0);
 
+  // Helper to get price visible to the OWNER of this listing (component-level for reuse)
+  const getVisibleToOwner = (price, by) => {
+    return getNetPriceForUser({ price }, listing.type, true, by);
+  };
+
   // Helper to get latest counter info for a bid
   const getLatestCounterInfo = (bid) => {
     const isSell = listing.type === 'sell';
-    
-    // Helper to get price visible to the OWNER of this listing
-    const getVisibleToOwner = (price, by) => {
-      return getNetPriceForUser({ price }, listing.type, true, by);
-    };
 
     const oppositeParty = isSell ? 'buyer' : 'seller';
     const ownerParty = isSell ? 'seller' : 'buyer';
