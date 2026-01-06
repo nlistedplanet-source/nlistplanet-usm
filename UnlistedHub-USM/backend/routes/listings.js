@@ -1244,7 +1244,24 @@ router.put('/:listingId/bids/:bidId/counter', protect, async (req, res, next) =>
       ? (isOwner ? 'seller' : 'buyer')
       : (isOwner ? 'buyer' : 'seller');
 
-    // Add to counter history
+    // If this is the first counter (Round 1), we need to capture ORIGINAL prices first
+    if (!bid.counterHistory || bid.counterHistory.length === 0) {
+      // Round 1: Capture original bid and listing prices
+      const originalListingPrice = listing.type === 'sell' ? listing.price : listing.price;
+      
+      // Add Round 1 entry with original prices from BOTH parties
+      bid.counterHistory = [{
+        round: 1,
+        by: counterBy === 'seller' ? 'buyer' : 'seller', // The OTHER party's original offer
+        price: bid.originalPrice || bid.price, // Original buyer bid
+        quantity: bid.quantity,
+        message: 'Initial offer',
+        timestamp: bid.createdAt || new Date(),
+        isOriginal: true // Mark as original bid/listing price
+      }];
+    }
+
+    // Add current counter to history
     const round = (bid.counterHistory?.length || 0) + 1;
     const counterData = {
       round,
