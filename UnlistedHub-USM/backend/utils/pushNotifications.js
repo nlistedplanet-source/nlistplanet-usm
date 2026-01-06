@@ -220,70 +220,70 @@ export const NotificationTemplates = {
   NEW_BID: (fromUser, amount, quantity, companyName) => ({
     type: 'new_bid',
     title: '🎯 New Bid Received!',
-    message: `${fromUser} placed a bid of ₹${amount} for ${quantity} shares of ${companyName}`,
+    message: `${fromUser} placed a bid of ₹${parseFloat(amount).toFixed(2)} for ${quantity} shares of ${companyName}`,
     data: { fromUser, amount, quantity, companyName }
   }),
 
   NEW_OFFER: (fromUser, amount, quantity, companyName) => ({
     type: 'new_offer',
     title: '📈 New Offer Received!',
-    message: `${fromUser} made an offer of ₹${amount} for ${quantity} shares of ${companyName}`,
+    message: `${fromUser} made an offer of ₹${parseFloat(amount).toFixed(2)} for ${quantity} shares of ${companyName}`,
     data: { fromUser, amount, quantity, companyName }
   }),
 
   BID_ACCEPTED: (companyName, amount, quantity) => ({
     type: 'bid_accepted',
     title: '✅ Bid Accepted!',
-    message: `Your bid of ₹${amount} for ${quantity} shares of ${companyName} has been accepted!`,
+    message: `Your bid of ₹${parseFloat(amount).toFixed(2)} for ${quantity} shares of ${companyName} has been accepted!`,
     data: { amount, quantity, companyName }
   }),
 
   OFFER_ACCEPTED: (companyName, amount, quantity) => ({
     type: 'offer_accepted',
     title: '✅ Offer Accepted!',
-    message: `Your offer of ₹${amount} for ${quantity} shares of ${companyName} has been accepted!`,
+    message: `Your offer of ₹${parseFloat(amount).toFixed(2)} for ${quantity} shares of ${companyName} has been accepted!`,
     data: { amount, quantity, companyName }
   }),
 
   BID_REJECTED: (companyName, amount, quantity) => ({
     type: 'bid_rejected',
     title: '❌ Bid Rejected',
-    message: `Your bid of ₹${amount} for ${quantity} shares of ${companyName} was rejected`,
+    message: `Your bid of ₹${parseFloat(amount).toFixed(2)} for ${quantity} shares of ${companyName} was rejected`,
     data: { amount, quantity, companyName }
   }),
 
   OFFER_REJECTED: (companyName, amount, quantity) => ({
     type: 'offer_rejected',
     title: '❌ Offer Rejected',
-    message: `Your offer of ₹${amount} for ${quantity} shares of ${companyName} was rejected`,
+    message: `Your offer of ₹${parseFloat(amount).toFixed(2)} for ${quantity} shares of ${companyName} was rejected`,
     data: { amount, quantity, companyName }
   }),
 
   COUNTER_OFFER: (fromUser, amount, quantity, companyName) => ({
     type: 'counter_offer',
     title: '🔄 Counter Offer Received!',
-    message: `${fromUser} sent a counter offer of ₹${amount} for ${quantity} shares of ${companyName}`,
+    message: `${fromUser} sent a counter offer of ₹${parseFloat(amount).toFixed(2)} for ${quantity} shares of ${companyName}`,
     data: { fromUser, amount, quantity, companyName }
   }),
 
   BID_COUNTERED: (fromUser, amount, quantity, companyName) => ({
     type: 'bid_countered',
     title: '🔄 Bid Countered!',
-    message: `${fromUser} countered your bid with ₹${amount} for ${quantity} shares of ${companyName}`,
+    message: `${fromUser} countered your bid with ₹${parseFloat(amount).toFixed(2)} for ${quantity} shares of ${companyName}`,
     data: { fromUser, amount, quantity, companyName }
   }),
 
   DEAL_CONFIRMED: (companyName, amount, quantity) => ({
     type: 'deal_confirmed',
     title: '🎉 Deal Confirmed!',
-    message: `Deal confirmed for ${quantity} shares of ${companyName} at ₹${amount}. Check confirmation codes!`,
+    message: `Deal confirmed for ${quantity} shares of ${companyName} at ₹${parseFloat(amount).toFixed(2)}. Check confirmation codes!`,
     data: { amount, quantity, companyName }
   }),
 
   CONFIRMATION_REQUIRED: (companyName, amount, quantity) => ({
     type: 'confirmation_required',
     title: '⏳ Action Required!',
-    message: `Please confirm your deal for ${quantity} shares of ${companyName} at ₹${amount}`,
+    message: `Please confirm your deal for ${quantity} shares of ${companyName} at ₹${parseFloat(amount).toFixed(2)}`,
     data: { amount, quantity, companyName }
   }),
 
