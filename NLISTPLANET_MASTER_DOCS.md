@@ -1,7 +1,7 @@
 # 📚 NListPlanet - Master Documentation
 
-**Version:** 2.1.0 (Consolidated - December 25, 2025)  
-**Last Updated:** December 25, 2025  
+**Version:** 2.2.0 (Counter History Model Update)  
+**Last Updated:** January 6, 2026  
 **Project:** P2P Unlisted Shares Trading Platform  
 **Architecture:** Unified Backend + Dual Frontend (Desktop + Mobile PWA)
 
@@ -469,29 +469,62 @@ node scripts/fetchNews.js        # Fetch RSS news (cron simulation)
 
 ### 🎯 Bid Lifecycle (State Machine)
 
+**Updated: January 6, 2026 - Counter History Model**
+
 ```text
 Buyer places Bid
-  ↓ status: 'pending_seller_response'
+  ↓ status: 'pending'
   
 Seller Action:
-  ├─ Accept → 'accepted_by_seller' → Buyer must confirm
-  ├─ Reject → 'rejected_by_seller' → Closed
-  └─ Counter → 'counter_by_seller' → Buyer responds
+  ├─ Accept → 'pending_confirmation' → Buyer confirms → 'confirmed'
+  ├─ Reject → 'rejected' → Closed
+  └─ Counter → 'countered' + Round 1 Auto-Created → Buyer responds
   
 Counter Flow (max 4 rounds):
-  Buyer counter → 'counter_by_buyer' → Seller responds
-  Either accepts counter → 'counter_accepted_by_*' → Other confirms
+  Round 1 (Auto-created on first counter):
+    - Buyer Price: Original buyer bid (NEVER changes)
+    - Seller Price: Original listing price (NEVER changes)
+    - Captures initial negotiation baseline
+  
+  Round 2+ (Actual counter offers):
+    Seller counters → Round 2 created
+    Buyer counters → Round 3 created
+    Either accepts → 'pending_confirmation' → Other confirms
+  
+Counter History Structure:
+  {
+    round: 1,
+    by: 'buyer',
+    price: 19.61,           // Original buyer bid
+    quantity: 1000,
+    timestamp: Date,
+    isOriginal: true        // Marks Round 1
+  },
+  {
+    round: 2,
+    by: 'seller',
+    price: 24.00,           // Seller's counter offer
+    quantity: 1000,
+    timestamp: Date
+  }
   
 Both Accept:
-  status: 'both_accepted'
-  listing.status: 'pending_admin_closure'
+  status: 'confirmed'
+  listing.status: 'deal_pending'
   Transaction created → Admin Queue
   
 Admin Closure:
-  Admin verifies offline → Marks 'closed_success'
-  Orders → Previous
+  Admin verifies offline → Marks 'sold'/'completed'
+  CompletedDeal created
   Portfolio Updated
 ```
+
+**Key Rules:**
+- ✅ Round 1 = Original prices (buyer bid + seller listing) - auto-created
+- ✅ Round 2+ = Actual counter offers
+- ✅ Max 4 counter rounds enforced
+- ✅ `bid.originalPrice` stores buyer's initial bid (immutable)
+- ✅ Counter history preserves full negotiation trail
 
 ### 🎨 UI Flow (Landing → Dashboard)
 
