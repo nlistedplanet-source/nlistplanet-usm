@@ -1547,8 +1547,9 @@ router.put('/:id/mark-sold', protect, async (req, res, next) => {
     listing.soldPrice = soldPrice;
     listing.soldQuantity = soldQuantity || listing.quantity;
     listing.soldExternally = true;
-    listing.soldNotes = notes || '';
+    listing.soldNotes = notes || 'Sold outside the platform';
     listing.soldAt = new Date();
+    listing.cancelReason = `Sold externally at ₹${soldPrice} per share${notes ? `: ${notes}` : ''}`;
     
     // Reject all pending bids/offers
     const bidField = listing.type === 'sell' ? 'bids' : 'offers';
