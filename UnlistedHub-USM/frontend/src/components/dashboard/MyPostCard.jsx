@@ -370,7 +370,7 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                   : counterOfferBids.some(b => b.counterHistory?.[b.counterHistory.length - 1]?.by === 'buyer')
                   ? '🔔 Your Turn'
                   : pendingBids.length > 0
-                  ? '⏳ Buyer Turn'
+                  ? '🔔 Your Turn'
                   : '✓ Active'}
               </div>
               
