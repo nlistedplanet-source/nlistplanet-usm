@@ -607,29 +607,30 @@ const MyPostCard = ({ listing, onShare, onBoost, onDelete, onRefresh }) => {
                                             const oppositeParty = isSell ? 'buyer' : 'seller';
                                             
                                             // Build round-by-round history
-                                            // IMPORTANT: Round 1 always shows ORIGINAL bid prices, never changes
                                             const rounds = [];
-                                            const originalBuyerBid = getVisibleToOwner(bid.price, oppositeParty); // Original bid - FIXED for Round 1
+                                            const originalBuyerBid = getVisibleToOwner(bid.originalPrice || bid.price, oppositeParty); 
+                                            const originalSellerPrice = getVisibleToOwner(sellerPrice, 'seller'); // Seller's original listing price
                                             
                                             bid.counterHistory.forEach((counter, idx) => {
                                               const roundNumber = counter.round || idx + 1;
                                               
-                                              // For Round 1: Always use original prices
-                                              if (roundNumber === 1) {
+                                              // Round 1: Show ORIGINAL prices from both buyer and seller
+                                              if (roundNumber === 1 && counter.isOriginal) {
                                                 rounds.push({
-                                                  round: roundNumber,
-                                                  buyerPrice: originalBuyerBid, // Original buyer bid - NEVER changes
-                                                  sellerPrice: counter.by === oppositeParty ? null : getVisibleToOwner(counter.price, counter.by),
+                                                  round: 1,
+                                                  buyerPrice: getVisibleToOwner(counter.price, oppositeParty), // Original buyer bid from history
+                                                  sellerPrice: originalSellerPrice, // Seller's original listing price
                                                   qty: counter.quantity,
                                                   date: counter.timestamp,
-                                                  latestBy: counter.by
+                                                  latestBy: 'initial'
                                                 });
-                                              } else {
-                                                // For Round 2+: Use the counter price from THIS specific round
+                                              } else if (roundNumber > 1 || !counter.isOriginal) {
+                                                // Round 2+: Show actual counter offers
+                                                const isSellerCounter = counter.by === 'seller';
                                                 rounds.push({
                                                   round: roundNumber,
                                                   buyerPrice: counter.by === oppositeParty ? getVisibleToOwner(counter.price, oppositeParty) : originalBuyerBid,
-                                                  sellerPrice: counter.by === oppositeParty ? null : getVisibleToOwner(counter.price, counter.by),
+                                                  sellerPrice: isSellerCounter ? getVisibleToOwner(counter.price, 'seller') : originalSellerPrice,
                                                   qty: counter.quantity,
                                                   date: counter.timestamp,
                                                   latestBy: counter.by
